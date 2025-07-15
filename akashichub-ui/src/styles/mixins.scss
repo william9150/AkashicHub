@@ -1,0 +1,308 @@
+// SCSS Mixins 工具函數
+
+// 響應式斷點
+@mixin respond-to($breakpoint) {
+  @if map-has-key($breakpoints, $breakpoint) {
+    @media (min-width: map-get($breakpoints, $breakpoint)) {
+      @content;
+    }
+  } @else {
+    @warn "Unknown breakpoint: #{$breakpoint}";
+  }
+}
+
+// 最大寬度斷點
+@mixin respond-to-max($breakpoint) {
+  @if map-has-key($breakpoints, $breakpoint) {
+    @media (max-width: map-get($breakpoints, $breakpoint) - 1px) {
+      @content;
+    }
+  } @else {
+    @warn "Unknown breakpoint: #{$breakpoint}";
+  }
+}
+
+// 範圍斷點
+@mixin respond-between($min, $max) {
+  @if map-has-key($breakpoints, $min) and map-has-key($breakpoints, $max) {
+    @media (min-width: map-get($breakpoints, $min)) and (max-width: map-get($breakpoints, $max) - 1px) {
+      @content;
+    }
+  } @else {
+    @warn "Unknown breakpoint range: #{$min} - #{$max}";
+  }
+}
+
+// 清除浮動
+@mixin clearfix {
+  &::after {
+    content: '';
+    display: table;
+    clear: both;
+  }
+}
+
+// 省略文本
+@mixin text-ellipsis($lines: 1) {
+  @if $lines == 1 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  } @else {
+    display: -webkit-box;
+    -webkit-line-clamp: $lines;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
+  }
+}
+
+// 絕對定位居中
+@mixin center-absolute {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+// Flexbox 居中
+@mixin center-flex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+// 漸變背景
+@mixin gradient-bg($start, $end, $direction: to right) {
+  background: linear-gradient($direction, $start, $end);
+}
+
+// 陰影效果
+@mixin shadow($type: base) {
+  @if map-has-key($shadows, $type) {
+    box-shadow: map-get($shadows, $type);
+  } @else {
+    box-shadow: $type;
+  }
+}
+
+// 過渡動畫
+@mixin transition($properties: all, $duration: normal, $easing: ease) {
+  $duration-value: map-get($durations, $duration);
+  $easing-value: map-get($easings, $easing);
+  
+  @if $duration-value == null {
+    $duration-value: $duration;
+  }
+  
+  @if $easing-value == null {
+    $easing-value: $easing;
+  }
+  
+  transition: $properties $duration-value $easing-value;
+}
+
+// 動畫
+@mixin animation($name, $duration: normal, $easing: ease, $delay: 0s, $iteration: 1, $direction: normal, $fill-mode: both) {
+  $duration-value: map-get($durations, $duration);
+  $easing-value: map-get($easings, $easing);
+  
+  @if $duration-value == null {
+    $duration-value: $duration;
+  }
+  
+  @if $easing-value == null {
+    $easing-value: $easing;
+  }
+  
+  animation: $name $duration-value $easing-value $delay $iteration $direction $fill-mode;
+}
+
+// 按鈕樣式
+@mixin button-style($bg-color, $text-color: white, $border-color: $bg-color) {
+  background-color: $bg-color;
+  color: $text-color;
+  border: 1px solid $border-color;
+  padding: 8px 16px;
+  border-radius: map-get($border-radius, base);
+  cursor: pointer;
+  @include transition(all, fast);
+  
+  &:hover {
+    background-color: lighten($bg-color, 5%);
+    border-color: lighten($border-color, 5%);
+  }
+  
+  &:active {
+    background-color: darken($bg-color, 5%);
+    border-color: darken($border-color, 5%);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+// 卡片樣式
+@mixin card-style($padding: lg, $shadow: base) {
+  background-color: var(--el-bg-color);
+  border: 1px solid var(--el-border-color);
+  border-radius: map-get($border-radius, base);
+  padding: map-get($spacings, $padding);
+  @include shadow($shadow);
+}
+
+// 輸入框樣式
+@mixin input-style {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--el-border-color);
+  border-radius: map-get($border-radius, base);
+  font-size: map-get($font-sizes, base);
+  @include transition(border-color, fast);
+  
+  &:focus {
+    outline: none;
+    border-color: var(--el-color-primary);
+  }
+  
+  &::placeholder {
+    color: var(--el-text-color-placeholder);
+  }
+}
+
+// 載入動畫
+@mixin loading-spinner($size: 20px, $color: var(--el-color-primary)) {
+  width: $size;
+  height: $size;
+  border: 2px solid transparent;
+  border-top: 2px solid $color;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+// 脈衝動畫
+@mixin pulse-animation($color: var(--el-color-primary)) {
+  animation: pulse 2s infinite;
+  
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba($color, 0.7);
+    }
+    70% {
+      box-shadow: 0 0 0 10px rgba($color, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba($color, 0);
+    }
+  }
+}
+
+// 模糊背景
+@mixin backdrop-blur($blur: 10px) {
+  backdrop-filter: blur($blur);
+  -webkit-backdrop-filter: blur($blur);
+}
+
+// 滾動條樣式
+@mixin scrollbar-style($width: 8px, $track-color: transparent, $thumb-color: var(--el-border-color)) {
+  &::-webkit-scrollbar {
+    width: $width;
+    height: $width;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: $track-color;
+    border-radius: $width / 2;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: $thumb-color;
+    border-radius: $width / 2;
+    
+    &:hover {
+      background: darken($thumb-color, 10%);
+    }
+  }
+}
+
+// 網格佈局
+@mixin grid-layout($columns: 12, $gap: 20px) {
+  display: grid;
+  grid-template-columns: repeat($columns, 1fr);
+  gap: $gap;
+}
+
+// Flexbox 佈局
+@mixin flex-layout($direction: row, $justify: flex-start, $align: stretch, $wrap: nowrap) {
+  display: flex;
+  flex-direction: $direction;
+  justify-content: $justify;
+  align-items: $align;
+  flex-wrap: $wrap;
+}
+
+// 隱藏元素
+@mixin visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+// 重置按鈕樣式
+@mixin reset-button {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  outline: none;
+}
+
+// 重置清單樣式
+@mixin reset-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+// 文字選中樣式
+@mixin selection-style($bg-color: var(--el-color-primary), $text-color: white) {
+  ::selection {
+    background-color: $bg-color;
+    color: $text-color;
+  }
+  
+  ::-moz-selection {
+    background-color: $bg-color;
+    color: $text-color;
+  }
+}
+
+// 打印樣式
+@mixin print-hidden {
+  @media print {
+    display: none !important;
+  }
+}
+
+@mixin print-visible {
+  @media print {
+    display: block !important;
+  }
+}

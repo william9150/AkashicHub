@@ -1,0 +1,527 @@
+<template>
+  <div class="app-footer">
+    <div class="footer-content">
+      <!-- 左側信息 -->
+      <div class="footer-left">
+        <span class="copyright">
+          © {{ currentYear }} 阿卡西 IT 資源管理系統
+        </span>
+        <span class="version">
+          版本 {{ version }}
+        </span>
+      </div>
+
+      <!-- 右側信息 -->
+      <div class="footer-right">
+        <div class="footer-links">
+          <a href="#" class="footer-link" @click="showAbout">
+            關於我們
+          </a>
+          <a href="#" class="footer-link" @click="showHelp">
+            幫助中心
+          </a>
+          <a href="#" class="footer-link" @click="showPrivacy">
+            隱私政策
+          </a>
+        </div>
+        
+        <div class="footer-status">
+          <div class="status-item">
+            <el-icon class="status-icon" :color="getStatusColor('system')">
+              <component :is="getStatusIcon('system')" />
+            </el-icon>
+            <span class="status-text">系統狀態</span>
+          </div>
+          
+          <div class="status-item">
+            <el-icon class="status-icon" :color="getStatusColor('database')">
+              <component :is="getStatusIcon('database')" />
+            </el-icon>
+            <span class="status-text">資料庫</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 系統信息對話框 -->
+    <el-dialog
+      v-model="aboutVisible"
+      title="關於系統"
+      width="500px"
+      center
+    >
+      <div class="about-content">
+        <div class="about-header">
+          <img src="/favicon.ico" alt="Logo" class="about-logo" />
+          <div class="about-title">
+            <h2>阿卡西 IT 資源管理系統</h2>
+            <p>AkashicHub IT Resource Management System</p>
+          </div>
+        </div>
+        
+        <div class="about-info">
+          <div class="info-item">
+            <span class="info-label">版本號：</span>
+            <span class="info-value">{{ version }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">構建時間：</span>
+            <span class="info-value">{{ buildTime }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">技術架構：</span>
+            <span class="info-value">Vue 3 + TypeScript + Element Plus</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">後端技術：</span>
+            <span class="info-value">Node.js + Express + MySQL</span>
+          </div>
+        </div>
+        
+        <div class="about-description">
+          <p>
+            阿卡西 IT 資源管理系統是一個專為 IT 部門設計的綜合性資源管理平台，
+            提供伺服器、資料庫、應用程序等 IT 資源的集中管理和監控功能。
+          </p>
+        </div>
+      </div>
+      
+      <template #footer>
+        <el-button @click="aboutVisible = false">關閉</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 幫助中心對話框 -->
+    <el-dialog
+      v-model="helpVisible"
+      title="幫助中心"
+      width="600px"
+      center
+    >
+      <div class="help-content">
+        <el-collapse v-model="activeHelp">
+          <el-collapse-item title="如何添加新的資源？" name="1">
+            <div>
+              <p>1. 進入「資源管理」頁面</p>
+              <p>2. 點擊「新增資源」按鈕</p>
+              <p>3. 填寫資源的基本信息</p>
+              <p>4. 設置資源的標籤和分類</p>
+              <p>5. 保存設置</p>
+            </div>
+          </el-collapse-item>
+          
+          <el-collapse-item title="如何管理用戶權限？" name="2">
+            <div>
+              <p>1. 進入「用戶管理」頁面（需管理員權限）</p>
+              <p>2. 選擇要編輯的用戶</p>
+              <p>3. 修改用戶角色和權限</p>
+              <p>4. 保存更改</p>
+            </div>
+          </el-collapse-item>
+          
+          <el-collapse-item title="如何查看系統日誌？" name="3">
+            <div>
+              <p>1. 進入「日誌管理」頁面</p>
+              <p>2. 選擇日誌類型（系統日誌或審計日誌）</p>
+              <p>3. 使用篩選條件查找特定日誌</p>
+              <p>4. 查看詳細日誌信息</p>
+            </div>
+          </el-collapse-item>
+          
+          <el-collapse-item title="如何搜索資源？" name="4">
+            <div>
+              <p>1. 使用頂部搜索框進行快速搜索</p>
+              <p>2. 進入「搜尋」頁面進行高級搜索</p>
+              <p>3. 使用標籤篩選資源</p>
+              <p>4. 使用資源類型篩選</p>
+            </div>
+          </el-collapse-item>
+        </el-collapse>
+      </div>
+      
+      <template #footer>
+        <el-button @click="helpVisible = false">關閉</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 隱私政策對話框 -->
+    <el-dialog
+      v-model="privacyVisible"
+      title="隱私政策"
+      width="600px"
+      center
+    >
+      <div class="privacy-content">
+        <h3>數據收集</h3>
+        <p>本系統僅收集必要的用戶信息和操作日誌，用於系統功能的正常運作和安全審計。</p>
+        
+        <h3>數據使用</h3>
+        <p>收集的數據僅用於系統內部功能，不會向第三方披露或用於其他用途。</p>
+        
+        <h3>數據保護</h3>
+        <p>系統採用加密技術保護用戶數據，並定期進行安全更新和備份。</p>
+        
+        <h3>Cookie 政策</h3>
+        <p>系統使用 Cookie 來維持用戶登入狀態和個人化設置。</p>
+        
+        <h3>聯繫方式</h3>
+        <p>如有隱私相關問題，請聯繫系統管理員。</p>
+      </div>
+      
+      <template #footer>
+        <el-button @click="privacyVisible = false">關閉</el-button>
+      </template>
+    </el-dialog>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { ElMessage } from 'element-plus'
+import {
+  CircleCheckFilled,
+  CircleCloseFilled,
+  WarningFilled,
+  Monitor,
+  Coin
+} from '@element-plus/icons-vue'
+import { useAppStore } from '@/stores/app'
+
+// 狀態管理
+const appStore = useAppStore()
+
+// 響應式數據
+const aboutVisible = ref(false)
+const helpVisible = ref(false)
+const privacyVisible = ref(false)
+const activeHelp = ref(['1'])
+
+// 系統狀態模擬數據
+const systemStatus = ref({
+  system: 'healthy',
+  database: 'healthy'
+})
+
+// 計算屬性
+const currentYear = computed(() => new Date().getFullYear())
+const version = computed(() => import.meta.env.VITE_APP_VERSION || '1.0.0')
+const buildTime = computed(() => import.meta.env.VITE_BUILD_TIME || '2024-01-01 00:00:00')
+
+// 顯示關於對話框
+const showAbout = () => {
+  aboutVisible.value = true
+}
+
+// 顯示幫助對話框
+const showHelp = () => {
+  helpVisible.value = true
+}
+
+// 顯示隱私政策對話框
+const showPrivacy = () => {
+  privacyVisible.value = true
+}
+
+// 獲取狀態圖標
+const getStatusIcon = (type: string) => {
+  const status = systemStatus.value[type as keyof typeof systemStatus.value]
+  
+  switch (status) {
+    case 'healthy':
+      return 'CircleCheckFilled'
+    case 'warning':
+      return 'WarningFilled'
+    case 'error':
+      return 'CircleCloseFilled'
+    default:
+      return 'Monitor'
+  }
+}
+
+// 獲取狀態顏色
+const getStatusColor = (type: string) => {
+  const status = systemStatus.value[type as keyof typeof systemStatus.value]
+  
+  switch (status) {
+    case 'healthy':
+      return '#67c23a'
+    case 'warning':
+      return '#e6a23c'
+    case 'error':
+      return '#f56c6c'
+    default:
+      return '#909399'
+  }
+}
+</script>
+
+<style lang="scss" scoped>
+.app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  background: var(--el-bg-color);
+  border-top: 1px solid var(--el-border-color);
+  
+  .footer-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0 20px;
+    
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      
+      .copyright {
+        font-size: 13px;
+        color: var(--el-text-color-regular);
+      }
+      
+      .version {
+        font-size: 12px;
+        color: var(--el-text-color-placeholder);
+        padding: 2px 6px;
+        background: var(--el-bg-color-page);
+        border-radius: 4px;
+      }
+    }
+    
+    .footer-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      
+      .footer-links {
+        display: flex;
+        gap: 16px;
+        
+        .footer-link {
+          font-size: 13px;
+          color: var(--el-text-color-regular);
+          text-decoration: none;
+          cursor: pointer;
+          transition: color 0.3s ease;
+          
+          &:hover {
+            color: var(--el-color-primary);
+          }
+        }
+      }
+      
+      .footer-status {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        
+        .status-item {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          
+          .status-icon {
+            font-size: 12px;
+          }
+          
+          .status-text {
+            font-size: 12px;
+            color: var(--el-text-color-placeholder);
+          }
+        }
+      }
+    }
+  }
+}
+
+// 對話框樣式
+.about-content {
+  .about-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    
+    .about-logo {
+      width: 48px;
+      height: 48px;
+    }
+    
+    .about-title {
+      h2 {
+        margin: 0 0 4px 0;
+        font-size: 20px;
+        color: var(--el-text-color-primary);
+      }
+      
+      p {
+        margin: 0;
+        font-size: 14px;
+        color: var(--el-text-color-regular);
+      }
+    }
+  }
+  
+  .about-info {
+    margin-bottom: 20px;
+    
+    .info-item {
+      display: flex;
+      margin-bottom: 8px;
+      
+      .info-label {
+        width: 100px;
+        font-weight: 500;
+        color: var(--el-text-color-primary);
+      }
+      
+      .info-value {
+        color: var(--el-text-color-regular);
+      }
+    }
+  }
+  
+  .about-description {
+    padding: 16px;
+    background: var(--el-bg-color-page);
+    border-radius: 8px;
+    border-left: 4px solid var(--el-color-primary);
+    
+    p {
+      margin: 0;
+      line-height: 1.6;
+      color: var(--el-text-color-regular);
+    }
+  }
+}
+
+.help-content {
+  :deep(.el-collapse) {
+    .el-collapse-item {
+      .el-collapse-item__header {
+        font-weight: 500;
+      }
+      
+      .el-collapse-item__content {
+        p {
+          margin: 4px 0;
+          line-height: 1.5;
+        }
+      }
+    }
+  }
+}
+
+.privacy-content {
+  h3 {
+    margin-top: 20px;
+    margin-bottom: 8px;
+    color: var(--el-text-color-primary);
+    font-size: 16px;
+    
+    &:first-child {
+      margin-top: 0;
+    }
+  }
+  
+  p {
+    margin-bottom: 12px;
+    line-height: 1.6;
+    color: var(--el-text-color-regular);
+  }
+}
+
+// 響應式設計
+@media (max-width: 768px) {
+  .app-footer {
+    .footer-content {
+      flex-direction: column;
+      gap: 12px;
+      padding: 0 16px;
+      
+      .footer-left {
+        gap: 12px;
+      }
+      
+      .footer-right {
+        gap: 16px;
+        
+        .footer-links {
+          gap: 12px;
+        }
+        
+        .footer-status {
+          gap: 8px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .app-footer {
+    .footer-content {
+      .footer-left {
+        flex-direction: column;
+        gap: 8px;
+      }
+      
+      .footer-right {
+        flex-direction: column;
+        gap: 8px;
+        
+        .footer-status {
+          .status-item {
+            .status-text {
+              display: none;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// 暗黑模式
+.dark {
+  .app-footer {
+    background: var(--el-bg-color);
+    border-top-color: var(--el-border-color);
+    
+    .footer-content {
+      .footer-left {
+        .copyright {
+          color: var(--el-text-color-regular);
+        }
+        
+        .version {
+          color: var(--el-text-color-placeholder);
+          background: var(--el-bg-color-page);
+        }
+      }
+      
+      .footer-right {
+        .footer-links {
+          .footer-link {
+            color: var(--el-text-color-regular);
+            
+            &:hover {
+              color: var(--el-color-primary);
+            }
+          }
+        }
+        
+        .footer-status {
+          .status-item {
+            .status-text {
+              color: var(--el-text-color-placeholder);
+            }
+          }
+        }
+      }
+    }
+  }
+}
+</style>

@@ -1,0 +1,67 @@
+{
+  "success": true,
+  "data": {
+    "resources": [
+      {
+        "id": 1,
+        "name": "Web Server 01",
+        "type": "resource",
+        "resourceType": "Server",
+        "ipAddress": "192.168.1.100",
+        "description": "主要的 Web 伺服器",
+        "createdAt": "2024-01-01T00:00:00Z",
+        "updatedAt": "2024-01-15T10:30:00Z"
+      },
+      {
+        "id": 2,
+        "name": "Web Server 02",
+        "type": "resource",
+        "resourceType": "Server",
+        "ipAddress": "192.168.1.200",
+        "description": "備用 Web 伺服器",
+        "createdAt": "2024-01-02T00:00:00Z",
+        "updatedAt": "2024-01-14T15:45:00Z"
+      }
+    ],
+    "users": [
+      {
+        "id": 1,
+        "name": "系統管理員",
+        "type": "user",
+        "displayName": "系統管理員",
+        "loginAccount": "admin",
+        "department": "IT部門",
+        "role": "Admin",
+        "description": "系統超級管理員",
+        "createdAt": "2024-01-01T00:00:00Z",
+        "updatedAt": "2024-01-10T08:30:00Z"
+      }
+    ],
+    "tags": [
+      {
+        "id": 1,
+        "name": "生產環境",
+        "type": "tag",
+        "category": "Environment",
+        "color": "#f56c6c",
+        "usageCount": 25,
+        "description": "生產環境標籤",
+        "createdAt": "2024-01-01T00:00:00Z",
+        "updatedAt": "2024-01-12T14:20:00Z"
+      },
+      {
+        "id": 2,
+        "name": "Web服務",
+        "type": "tag",
+        "category": "Technology",
+        "color": "#409eff",
+        "usageCount": 15,
+        "description": "Web 相關服務標籤",
+        "createdAt": "2024-01-01T00:00:00Z",
+        "updatedAt": "2024-01-11T16:10:00Z"
+      }
+    ],
+    "searchTime": 156,
+    "totalResults": 5
+  }
+}

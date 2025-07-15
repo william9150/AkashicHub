@@ -1,0 +1,73 @@
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": 1,
+        "name": "Web Server 01",
+        "resourceType": "Server",
+        "ipAddress": "192.168.1.100",
+        "loginUser": "admin",
+        "status": "active",
+        "tags": [
+          {
+            "id": 1,
+            "name": "生產環境",
+            "category": "Environment",
+            "color": "#f56c6c"
+          },
+          {
+            "id": 2,
+            "name": "高優先級",
+            "category": "Priority",
+            "color": "#e6a23c"
+          }
+        ],
+        "createdAt": "2024-01-01T00:00:00Z",
+        "updatedAt": "2024-01-15T10:30:00Z"
+      },
+      {
+        "id": 2,
+        "name": "MySQL Database",
+        "resourceType": "Database",
+        "ipAddress": "192.168.1.101",
+        "loginUser": "dbuser",
+        "status": "active",
+        "tags": [
+          {
+            "id": 1,
+            "name": "生產環境",
+            "category": "Environment",
+            "color": "#f56c6c"
+          }
+        ],
+        "createdAt": "2024-01-02T00:00:00Z",
+        "updatedAt": "2024-01-14T15:45:00Z"
+      },
+      {
+        "id": 3,
+        "name": "Redis Cache",
+        "resourceType": "Cache",
+        "ipAddress": "192.168.1.102",
+        "loginUser": "redis",
+        "status": "maintenance",
+        "tags": [
+          {
+            "id": 3,
+            "name": "測試環境",
+            "category": "Environment",
+            "color": "#409eff"
+          }
+        ],
+        "createdAt": "2024-01-03T00:00:00Z",
+        "updatedAt": "2024-01-13T09:20:00Z"
+      }
+    ],
+    "pagination": {
+      "total": 3,
+      "currentPage": 1,
+      "pageSize": 20,
+      "totalPages": 1
+    }
+  }
+}

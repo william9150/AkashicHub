@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AkashicHub 連接測試</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .success {
+        color: #67c23a;
+        background: #f0f9ff;
+        padding: 15px;
+        border-radius: 5px;
+        border-left: 4px solid #67c23a;
+      }
+      .info {
+        color: #409eff;
+        background: #ecf5ff;
+        padding: 15px;
+        border-radius: 5px;
+        border-left: 4px solid #409eff;
+      }
+      .test-item {
+        margin: 10px 0;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 5px;
+      }
+      .status {
+        font-weight: bold;
+        padding: 5px 10px;
+        border-radius: 3px;
+        color: white;
+      }
+      .status.ok {
+        background: #67c23a;
+      }
+      .status.error {
+        background: #f56c6c;
+      }
+      .status.loading {
+        background: #e6a23c;
+      }
+      button {
+        background: #409eff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      button:hover {
+        background: #337ab7;
+      }
+      .log {
+        background: #2d3748;
+        color: #e2e8f0;
+        padding: 15px;
+        border-radius: 5px;
+        font-family: monospace;
+        white-space: pre-wrap;
+        max-height: 300px;
+        overflow-y: auto;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🚀 AkashicHub 連接測試</h1>
+
+      <div class="success">
+        <strong>✅ 靜態文件服務正常！</strong><br />
+        如果您能看到這個頁面，說明 Vite 開發服務器已經成功啟動並能夠提供靜態文件服務。
+      </div>
+
+      <div class="info">
+        <strong>📋 系統資訊</strong><br />
+        當前時間: <span id="currentTime"></span><br />
+        用戶代理: <span id="userAgent"></span><br />
+        頁面URL: <span id="pageUrl"></span><br />
+        協議: <span id="protocol"></span>
+      </div>
+
+      <h2>🔧 連接測試</h2>
+
+      <div class="test-item">
+        <strong>主應用訪問測試:</strong>
+        <span id="appStatus" class="status loading">測試中...</span>
+        <button onclick="testApp()">重新測試</button>
+      </div>
+
+      <div class="test-item">
+        <strong>API連接測試:</strong>
+        <span id="apiStatus" class="status loading">測試中...</span>
+        <button onclick="testAPI()">重新測試</button>
+      </div>
+
+      <div class="test-item">
+        <strong>WebSocket測試:</strong>
+        <span id="wsStatus" class="status loading">測試中...</span>
+        <button onclick="testWebSocket()">重新測試</button>
+      </div>
+
+      <h2>🌐 替代訪問地址</h2>
+      <div class="test-item">
+        <p>如果 localhost 無法訪問，請嘗試以下地址:</p>
+        <ul>
+          <li><a href="http://127.0.0.1:5173/" target="_blank">http://127.0.0.1:5173/</a></li>
+          <li><a href="http://0.0.0.0:5173/" target="_blank">http://0.0.0.0:5173/</a></li>
+          <li id="networkAddresses">檢測中...</li>
+        </ul>
+      </div>
+
+      <h2>🔍 故障排除</h2>
+      <div class="test-item">
+        <button onclick="runDiagnostics()">運行診斷</button>
+        <button onclick="clearLog()">清除日誌</button>
+      </div>
+
+      <div id="logContainer" class="log"></div>
+    </div>
+
+    <script>
+      let logContainer = document.getElementById('logContainer')
+
+      function log(message) {
+        const timestamp = new Date().toLocaleTimeString()
+        logContainer.textContent += `[${timestamp}] ${message}\n`
+        logContainer.scrollTop = logContainer.scrollHeight
+      }
+
+      function updateStatus(elementId, status, text) {
+        const element = document.getElementById(elementId)
+        element.className = `status ${status}`
+        element.textContent = text
+      }
+
+      function clearLog() {
+        logContainer.textContent = ''
+      }
+
+      // 更新系統資訊
+      document.getElementById('currentTime').textContent = new Date().toLocaleString()
+      document.getElementById('userAgent').textContent = navigator.userAgent
+      document.getElementById('pageUrl').textContent = window.location.href
+      document.getElementById('protocol').textContent = window.location.protocol
+
+      // 測試主應用
+      async function testApp() {
+        log('測試主應用連接...')
+        updateStatus('appStatus', 'loading', '測試中...')
+
+        try {
+          const response = await fetch('/')
+          if (response.ok) {
+            const text = await response.text()
+            if (text.includes('載入中') || text.includes('app')) {
+              updateStatus('appStatus', 'ok', '正常')
+              log('✅ 主應用連接正常')
+            } else {
+              updateStatus('appStatus', 'error', '內容異常')
+              log('⚠️ 主應用返回了異常內容')
+            }
+          } else {
+            updateStatus('appStatus', 'error', `錯誤: ${response.status}`)
+            log(`❌ 主應用連接失敗: ${response.status}`)
+          }
+        } catch (error) {
+          updateStatus('appStatus', 'error', '連接失敗')
+          log(`❌ 主應用連接錯誤: ${error.message}`)
+        }
+      }
+
+      // 測試API
+      async function testAPI() {
+        log('測試API連接...')
+        updateStatus('apiStatus', 'loading', '測試中...')
+
+        try {
+          const response = await fetch('/api/health')
+          if (response.ok) {
+            updateStatus('apiStatus', 'ok', '正常')
+            log('✅ API連接正常')
+          } else {
+            updateStatus('apiStatus', 'error', `錯誤: ${response.status}`)
+            log(`⚠️ API連接失敗: ${response.status} (這可能是正常的，如果後端未啟動)`)
+          }
+        } catch (error) {
+          updateStatus('apiStatus', 'error', '連接失敗')
+          log(`⚠️ API連接錯誤: ${error.message} (這可能是正常的，如果後端未啟動)`)
+        }
+      }
+
+      // 測試WebSocket
+      function testWebSocket() {
+        log('測試WebSocket連接...')
+        updateStatus('wsStatus', 'loading', '測試中...')
+
+        try {
+          const ws = new WebSocket('ws://localhost:3000')
+
+          ws.onopen = () => {
+            updateStatus('wsStatus', 'ok', '正常')
+            log('✅ WebSocket連接正常')
+            ws.close()
+          }
+
+          ws.onerror = error => {
+            updateStatus('wsStatus', 'error', '連接失敗')
+            log(`⚠️ WebSocket連接錯誤 (這可能是正常的，如果後端未啟動)`)
+          }
+
+          ws.onclose = () => {
+            log('WebSocket連接已關閉')
+          }
+
+          // 5秒後超時
+          setTimeout(() => {
+            if (ws.readyState === WebSocket.CONNECTING) {
+              ws.close()
+              updateStatus('wsStatus', 'error', '超時')
+              log('❌ WebSocket連接超時')
+            }
+          }, 5000)
+        } catch (error) {
+          updateStatus('wsStatus', 'error', '連接失敗')
+          log(`❌ WebSocket錯誤: ${error.message}`)
+        }
+      }
+
+      // 運行診斷
+      function runDiagnostics() {
+        log('=== 開始診斷 ===')
+        log(`瀏覽器: ${navigator.userAgent}`)
+        log(`頁面URL: ${window.location.href}`)
+        log(`協議: ${window.location.protocol}`)
+        log(`主機: ${window.location.host}`)
+        log(`端口: ${window.location.port}`)
+        log(`路徑: ${window.location.pathname}`)
+        log(`在線狀態: ${navigator.onLine ? '在線' : '離線'}`)
+        log(`語言: ${navigator.language}`)
+        log(`平台: ${navigator.platform}`)
+        log(`Cookie啟用: ${navigator.cookieEnabled ? '是' : '否'}`)
+        log(`Java啟用: ${navigator.javaEnabled() ? '是' : '否'}`)
+        log(`屏幕解析度: ${screen.width}x${screen.height}`)
+        log(`視窗大小: ${window.innerWidth}x${window.innerHeight}`)
+        log('=== 診斷完成 ===')
+      }
+
+      // 檢測網絡地址
+      function detectNetworkAddresses() {
+        const addresses = []
+        return
+        // 嘗試常見的私有IP範圍
+        const commonRanges = [
+          '192.168.1',
+          '192.168.0',
+          '192.168.2',
+          '10.0.0',
+          '172.16.0',
+          '172.17.0',
+        ]
+
+        let addressesHtml = ''
+        for (let i = 1; i <= 254; i++) {
+          commonRanges.forEach(range => {
+            const ip = `${range}.${i}`
+            addressesHtml += `<li><a href="http://${ip}:5173/" target="_blank">http://${ip}:5173/</a></li>`
+          })
+        }
+
+        document.getElementById('networkAddresses').innerHTML =
+          '<p>常見網絡地址 (請嘗試與您的IP地址匹配的地址):</p><ul>' + addressesHtml + '</ul>'
+      }
+
+      // 初始化測試
+      window.onload = function () {
+        log('頁面載入完成，開始測試...')
+        testApp()
+        testAPI()
+        testWebSocket()
+        detectNetworkAddresses()
+      }
+    </script>
+  </body>
+</html>

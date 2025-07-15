@@ -1,0 +1,49 @@
+{
+  "name": "akashichub-api",
+  "type": "module",
+  "version": "1.0.0",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --coverage",
+    "init-db": "node ./scripts/init.js",
+    "dev": "node index.js",
+    "dev:ubuntu": "cp .env.ubuntu .env && node index.js",
+    "dev:windows": "copy .env.windows .env && node index.js",
+    "start": "node index.js",
+    "start:ubuntu": "cp .env.ubuntu .env && node index.js",
+    "start:windows": "cp .env.windows .env && node index.js",
+    "init-db:ubuntu": "cp .env.ubuntu .env && node ./scripts/init.js",
+    "init-db:windows": "cp .env.windows .env && node ./scripts/init.js",
+    "add-indexes": "node ./scripts/addIndexes.js",
+    "add-indexes:ubuntu": "cp .env.ubuntu .env && node ./scripts/addIndexes.js",
+    "add-indexes:windows": "cp .env.windows .env && node ./scripts/addIndexes.js",
+    "remove-indexes": "node ./scripts/addIndexes.js remove"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@datalust/winston-seq": "^0.1.0",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "express-rate-limit": "^7.5.1",
+    "ioredis": "^5.6.1",
+    "jsonwebtoken": "^9.0.2",
+    "mysql2": "^3.14.1",
+    "redis": "^5.6.0",
+    "sequelize": "^6.37.7",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
+    "winston": "^3.17.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3"
+  }
+}
