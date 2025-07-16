@@ -11,30 +11,18 @@
           <router-link to="/dashboard" v-if="isLoggedIn">儀表板</router-link>
           <router-link to="/resources" v-if="isLoggedIn">資源</router-link>
           <router-link to="/tags" v-if="isLoggedIn">標籤</router-link>
-          <router-link to="/users" v-if="isLoggedIn">用戶</router-link>
-          <router-link to="/login" v-if="!isLoggedIn">登入</router-link>
+          <router-link to="/users" v-if="isLoggedIn && canEditUsers">用戶群</router-link>
           
-          <!-- 用戶資訊 -->
-          <div v-if="isLoggedIn" class="user-info">
-            <el-dropdown>
-              <span class="user-name">
-                {{ currentUser?.DisplayName || currentUser?.LoginAccount || '用戶' }}
-                <el-icon class="el-icon--right"><arrow-down /></el-icon>
-              </span>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item @click="goToProfile">
-                    <el-icon><User /></el-icon>
-                    個人資料
-                  </el-dropdown-item>
-                  <el-dropdown-item divided @click="logout">
-                    <el-icon><SwitchButton /></el-icon>
-                    登出
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </div>
+          <!-- 未登入狀態 -->
+          <router-link to="/login" v-if="!isLoggedIn" class="login-btn">登入</router-link>
+          
+          <!-- 已登入狀態 -->
+          <template v-if="isLoggedIn">
+            <router-link to="/profile" class="profile-link">
+              {{ currentUser?.DisplayName || currentUser?.LoginAccount || '用戶' }}
+            </router-link>
+            <button @click="logout" class="logout-btn">登出</button>
+          </template>
         </nav>
       </div>
     </header>
@@ -54,7 +42,6 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { ArrowDown, User, SwitchButton } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const currentUser = ref(null)
@@ -62,6 +49,13 @@ const currentUser = ref(null)
 // 簡單的登入狀態檢查
 const isLoggedIn = computed(() => {
   return !!localStorage.getItem('akashichub_token')
+})
+
+// 檢查用戶權限
+const canEditUsers = computed(() => {
+  if (!currentUser.value) return false
+  const role = currentUser.value.Role
+  return role === 'SuperAdmin' || role === 'ITManager'
 })
 
 // 載入用戶資訊
@@ -126,7 +120,8 @@ onMounted(() => {
   align-items: center;
 }
 
-.nav a {
+.nav a,
+.nav .profile-link {
   color: white;
   text-decoration: none;
   padding: 8px 16px;
@@ -135,8 +130,21 @@ onMounted(() => {
 }
 
 .nav a:hover,
-.nav a.router-link-active {
+.nav a.router-link-active,
+.nav .profile-link:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+
+.login-btn {
+  background: #67c23a;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: background 0.3s;
+}
+
+.login-btn:hover {
+  background: #85ce61;
 }
 
 .logout-btn {
@@ -153,25 +161,12 @@ onMounted(() => {
   background: #f78989;
 }
 
-.user-info {
-  display: flex;
-  align-items: center;
-  margin-left: 10px;
-}
-
-.user-name {
-  color: white;
-  cursor: pointer;
-  padding: 8px 12px;
-  border-radius: 4px;
-  transition: background 0.3s;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.user-name:hover {
-  background: rgba(255, 255, 255, 0.2);
+.profile-link {
+  font-weight: 500;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .main-content {

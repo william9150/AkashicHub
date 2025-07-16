@@ -110,7 +110,7 @@
               </div>
               
               <div class="permission-section">
-                <h4>用戶管理權限</h4>
+                <h4>用戶群權限</h4>
                 <div class="permission-list">
                   <div class="permission-item">
                     <el-icon :color="user.role === 'Admin' ? '#67c23a' : '#f56c6c'">

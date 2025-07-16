@@ -130,7 +130,7 @@
               </ul>
             </div>
             <div class="permission-group">
-              <h4>用戶管理</h4>
+              <h4>用戶群</h4>
               <ul>
                 <li>
                   <el-icon :color="form.role === 'Admin' ? '#67c23a' : '#f56c6c'">

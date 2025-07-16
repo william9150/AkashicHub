@@ -205,7 +205,7 @@ const menuItems = computed(() => {
     },
     {
       id: 'users',
-      title: '用戶管理',
+      title: '用戶群',
       icon: 'User',
       path: '/users',
       disabled: !authStore.canEditUsers,
@@ -290,7 +290,18 @@ const menuItems = computed(() => {
 
   // 根據權限過濾菜單
   return items.filter(item => {
+    // 如果菜單項被禁用，則不顯示
     if (item.disabled) return false
+    
+    // 對於用戶管理，只有有權限的用戶才能看到
+    if (item.id === 'users' && !authStore.canEditUsers) return false
+    
+    // 對於日誌管理，只有超級管理員才能看到
+    if (item.id === 'logs' && !authStore.isSuperAdmin) return false
+    
+    // 對於系統設定，只有超級管理員才能看到
+    if (item.id === 'settings' && !authStore.isSuperAdmin) return false
+    
     return true
   })
 })

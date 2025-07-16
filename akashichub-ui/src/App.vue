@@ -13,7 +13,7 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useAppStore } from '@/stores/app'
-// import DefaultLayout from '@/layouts/DefaultLayout.vue'
+import SimpleLayout from '@/layouts/SimpleLayout.vue'
 
 // 獲取應用狀態
 const appStore = useAppStore()
@@ -33,8 +33,8 @@ const getLayout = (route: any) => {
       // 這些情況下不使用任何佈局，直接顯示組件
       return 'div'
     default:
-      // 暫時使用簡單的 div，避免複雜佈局的載入問題
-      return 'div'
+      // 使用SimpleLayout作為預設佈局
+      return SimpleLayout
   }
 }
 

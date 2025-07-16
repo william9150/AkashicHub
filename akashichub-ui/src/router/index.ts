@@ -42,8 +42,7 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/dashboard',
     name: 'Dashboard',
-     component: () => import('@/views/Dashboard/Index.vue'),
-    // component: () => import('@/views/Dashboard/Simple.vue'),
+    component: () => import('@/views/Dashboard/Index.vue'),
     meta: {
       title: '儀表板',
       requiresAuth: true,
@@ -187,13 +186,13 @@ const routes: RouteRecordRaw[] = [
     name: 'Users',
     component: () => import('@/views/Users/Index.vue'),
     meta: {
-      title: '用戶管理',
+      title: '用戶群',
       requiresAuth: true,
       requiresAdmin: true,
       icon: 'User',
       breadcrumb: [
         { title: '首頁', path: '/dashboard' },
-        { title: '用戶管理' }
+        { title: '用戶群' }
       ]
     },
     children: [

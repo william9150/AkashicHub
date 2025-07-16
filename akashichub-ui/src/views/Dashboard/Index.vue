@@ -1,5 +1,11 @@
 <template>
   <div class="dashboard-container">
+    <!-- 歡迎標題 -->
+    <div class="welcome-header">
+      <h1>🎯 儀表板</h1>
+      <p>歡迎來到 AkashicHub 儀表板！</p>
+    </div>
+    
     <!-- 頂部統計卡片 -->
     <div class="stats-cards">
       <el-row :gutter="20">
@@ -175,6 +181,28 @@
         <!-- 快速操作 -->
         <el-card class="quick-actions-card" header="快速操作">
           <div class="quick-actions">
+            <el-button
+              type="primary"
+              @click="goToResources"
+              block
+            >
+              管理資源
+            </el-button>
+            <el-button
+              v-if="authStore.canEditUsers"
+              type="success"
+              @click="goToUsers"
+              block
+            >
+              管理用戶
+            </el-button>
+            <el-button
+              type="info"
+              @click="goToTags"
+              block
+            >
+              管理標籤
+            </el-button>
             <el-button
               v-if="authStore.canEditITData"
               type="primary"
@@ -1057,6 +1085,24 @@ onUnmounted(() => {
 <style lang="scss" scoped>
 .dashboard-container {
   padding: 0;
+}
+
+.welcome-header {
+  text-align: center;
+  margin-bottom: 20px;
+  padding: 20px;
+  
+  h1 {
+    color: #409eff;
+    margin-bottom: 10px;
+    font-size: 32px;
+  }
+  
+  p {
+    color: var(--el-text-color-regular);
+    font-size: 16px;
+    margin: 0;
+  }
 }
 
 .stats-cards {

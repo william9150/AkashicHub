@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import router from './router/index.simple'
-import App from './App.simple.vue'
+import router from './router/index'
+import App from './App.vue'
 
 // 全域樣式
 import '@/styles/global.scss'
@@ -20,8 +20,8 @@ const pinia = createPinia()
 app.use(pinia)
 app.use(router)
 
-// 初始化認證狀態 - 簡化版本
-import { useAuthStore } from '@/stores/simple'
+// 初始化認證狀態
+import { useAuthStore } from '@/stores/auth'
 const authStore = useAuthStore()
 authStore.initialize()
 
