@@ -1,7 +1,7 @@
 // 認證相關類型定義
 
-// 用戶角色
-export type UserRole = 'Admin' | 'User'
+// 用戶角色 - 三層權限等級
+export type UserRole = 'SuperAdmin' | 'ITManager' | 'Viewer'
 
 // 登入請求
 export interface LoginRequest {
@@ -21,8 +21,8 @@ export interface UserInfo {
   loginAccount: string
   displayName: string
   role: UserRole
-  createdAt: string
-  updatedAt: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 // JWT Token 負載

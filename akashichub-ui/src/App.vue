@@ -1,22 +1,42 @@
 <template>
-  <router-view v-slot="{ Component }">
-    <transition name="fade-transform" mode="out-in">
-      <keep-alive :include="cachedViews">
-        <component :is="Component" />
-      </keep-alive>
-    </transition>
+  <router-view v-slot="{ Component, route }">
+    <component :is="getLayout(route)" v-if="Component">
+      <transition name="fade-transform" mode="out-in">
+        <keep-alive :include="cachedViews">
+          <component :is="Component" />
+        </keep-alive>
+      </transition>
+    </component>
   </router-view>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useAppStore } from '@/stores/app'
+// import DefaultLayout from '@/layouts/DefaultLayout.vue'
 
 // 獲取應用狀態
 const appStore = useAppStore()
 
 // 計算需要緩存的視圖
 const cachedViews = computed(() => appStore.cachedViews)
+
+// 根據路由選擇佈局
+const getLayout = (route: any) => {
+  const layout = route.meta?.layout
+  
+  switch (layout) {
+    case 'auth':
+    case 'error':
+    case 'maintenance':
+    case 'none':
+      // 這些情況下不使用任何佈局，直接顯示組件
+      return 'div'
+    default:
+      // 暫時使用簡單的 div，避免複雜佈局的載入問題
+      return 'div'
+  }
+}
 
 // 初始化應用
 onMounted(() => {
@@ -52,8 +72,7 @@ body {
 }
 
 #app {
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
 }
 
 // 頁面切換動畫

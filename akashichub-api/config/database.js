@@ -27,15 +27,12 @@ const sequelize = new Sequelize(process.env.DB_NAME, process.env.DB_USER, proces
   // 查詢優化配置
   dialectOptions: {
     charset: 'utf8mb4',
-    collate: 'utf8mb4_unicode_ci',
     supportBigNumbers: true,
     bigNumberStrings: true,
     dateStrings: true,
     typeCast: true,
     // 連接超時設置
     connectTimeout: parseInt(process.env.DB_CONNECT_TIMEOUT) || 60000,
-    acquireTimeout: parseInt(process.env.DB_ACQUIRE_TIMEOUT) || 60000,
-    timeout: parseInt(process.env.DB_TIMEOUT) || 60000,
     // SSL配置（如果需要）
     ssl: process.env.DB_SSL_ENABLED === 'true' ? {
       rejectUnauthorized: false

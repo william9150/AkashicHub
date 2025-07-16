@@ -205,7 +205,7 @@ export type Locale = 'zh-TW' | 'zh-CN' | 'en-US' | 'ja-JP'
 // 權限類型
 export type Permission = string
 
-export type Role = 'Admin' | 'User'
+export type Role = 'SuperAdmin' | 'ITManager' | 'Viewer'
 
 // 時間格式類型
 export type TimeFormat = 'YYYY-MM-DD' | 'YYYY-MM-DD HH:mm:ss' | 'MM/DD/YYYY' | 'DD/MM/YYYY'

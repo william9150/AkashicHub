@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run init-db:*)",
+      "Bash(curl:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npm install)",
+      "Bash(cat:*)",
+      "Bash(node:*)",
+      "Bash(npm start)",
+      "Bash(pkill:*)",
+      "Bash(true)"
+    ],
+    "deny": []
+  }
+}

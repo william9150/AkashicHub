@@ -10,12 +10,20 @@
           前往儀表板
         </el-button>
         <el-button @click="goToResources">
-          <el-icon><Server /></el-icon>
+          <el-icon><Service /></el-icon>
           資源管理
         </el-button>
         <el-button @click="goToUsers">
           <el-icon><User /></el-icon>
           用戶管理
+        </el-button>
+        <el-button v-if="!isAuthenticated" @click="goToLogin">
+          <el-icon><User /></el-icon>
+          登入系統
+        </el-button>
+        <el-button v-if="isAuthenticated" @click="goToProfile">
+          <el-icon><UserFilled /></el-icon>
+          個人資料
         </el-button>
       </div>
       
@@ -23,9 +31,9 @@
         <h3>系統資訊</h3>
         <ul>
           <li>應用版本: v1.0.0</li>
-          <li>構建時間: {{ new Date().toLocaleString() }}</li>
-          <li>環境: {{ import.meta.env.MODE }}</li>
-          <li>API 地址: {{ import.meta.env.VITE_API_BASE_URL }}</li>
+        <li>構建時間: {{ buildTime }}</li>
+<li>環境: {{ MODE }}</li>
+ <li>API 地址: {{ VITE_API_BASE_URL }}</li>
         </ul>
       </div>
     </div>
@@ -33,13 +41,28 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Odometer, Server, User } from '@element-plus/icons-vue'
+import { Odometer, Service, User, UserFilled } from '@element-plus/icons-vue'
+import { useAuthStore } from '@/stores/auth'
+
+const { MODE, VITE_API_BASE_URL } = import.meta.env   // ✅ 取出環境變數
+const buildTime = new Date().toLocaleString()         // ✅ 只計算一次
 
 const router = useRouter()
+const authStore = useAuthStore()
+
+// 檢查用戶是否已登入
+const isAuthenticated = computed(() => authStore.isAuthenticated)
 
 const goToDashboard = () => {
-  router.push('/dashboard')
+  // 檢查用戶是否已登入
+  const token = localStorage.getItem('akashichub_token')
+  if (!token) {
+    router.push('/login?redirect=/dashboard')
+  } else {
+    router.push('/dashboard')
+  }
 }
 
 const goToResources = () => {
@@ -48,6 +71,14 @@ const goToResources = () => {
 
 const goToUsers = () => {
   router.push('/users')
+}
+
+const goToLogin = () => {
+  router.push('/login')
+}
+
+const goToProfile = () => {
+  router.push('/profile')
 }
 </script>
 

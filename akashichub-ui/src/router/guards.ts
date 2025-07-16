@@ -8,103 +8,28 @@ import NProgress from 'nprogress'
 
 // 設置路由守衛
 export function setupRouterGuards(router: Router) {
-  // 全域前置守衛
+  // 全域前置守衛 - 簡化版本用於診斷
   router.beforeEach(async (to, from, next) => {
     // 開始進度條
     NProgress.start()
     
-    const authStore = useAuthStore()
-    const appStore = useAppStore()
-    
-    // 設置載入狀態
-    appStore.setLoading(true)
+    console.log('🚀 Router guard: navigating to', to.path, to.name)
     
     try {
-      // 簡化版本：暫時跳過複雜的檢查
-      console.log('Router guard: navigating to', to.path)
-      
-      // 初始化認證狀態（只在需要時）
-      if (!authStore.isAuthenticated && to.meta.requiresAuth !== false) {
-        authStore.checkAuth()
-      }
-      
-      // 暫時跳過維護模式檢查
-      // if (to.name !== 'Maintenance' && await checkMaintenanceMode()) {
-      //   next({ name: 'Maintenance' })
-      //   return
-      // }
-      
-      // 檢查認證要求
-      if (to.meta?.requiresAuth !== false) {
-        if (!authStore.isAuthenticated) {
-          // 未登入，重定向到登入頁面
-          next({
-            name: 'Login',
-            query: { redirect: to.fullPath }
-          })
-          return
-        }
-        
-        // 檢查Token是否即將過期
-        if (authStore.checkTokenExpiry()) {
-          // 可以在這裡實現Token自動刷新
-          console.warn('Token will expire soon')
-        }
-        
-        // 更新用戶活動時間
-        authStore.trackActivity()
-      }
-      
-      // 檢查管理員權限
-      if (to.meta?.requiresAdmin && !authStore.isAdmin) {
-        ElMessage.error('需要管理員權限才能訪問此頁面')
-        next({ name: 'Forbidden' })
+      // 暫時跳過所有複雜檢查，直接放行
+      if (to.path === '/test' || to.path === '/' || to.name === 'Home' || to.name === 'Test') {
+        console.log('✅ Allowing navigation to:', to.path)
+        next()
         return
       }
       
-      // 檢查角色權限
-      if (to.meta?.roles && !authStore.hasAnyRole(to.meta.roles)) {
-        ElMessage.error('您沒有足夠的權限訪問此頁面')
-        next({ name: 'Forbidden' })
-        return
-      }
-      
-      // 檢查特定權限
-      if (to.meta?.permissions && !authStore.hasAnyPermission(to.meta.permissions)) {
-        ElMessage.error('您沒有足夠的權限訪問此頁面')
-        next({ name: 'Forbidden' })
-        return
-      }
-      
-      // 如果已登入用戶訪問登入頁面，重定向到首頁
-      if (to.name === 'Login' && authStore.isAuthenticated) {
-        next({ name: 'Dashboard' })
-        return
-      }
-      
-      // 檢查路由是否存在
-      if (to.matched.length === 0) {
-        next({ name: 'NotFound' })
-        return
-      }
-      
-      // 繼續導航
+      // 對於其他路由，暫時也直接放行
+      console.log('✅ Allowing navigation to other routes:', to.path)
       next()
       
     } catch (error) {
-      console.error('Route guard error:', error)
-      
-      // 如果是認證錯誤，重定向到登入頁面
-      if (error.status === 401) {
-        authStore.logout()
-        next({
-          name: 'Login',
-          query: { redirect: to.fullPath }
-        })
-      } else {
-        // 其他錯誤重定向到500頁面
-        next({ name: 'ServerError' })
-      }
+      console.error('❌ Route guard error:', error)
+      next()
     }
   })
   

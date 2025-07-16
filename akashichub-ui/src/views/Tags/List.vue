@@ -4,7 +4,7 @@
     <div class="header-actions">
       <div class="actions-left">
         <el-button
-          v-if="authStore.isAdmin"
+          v-if="authStore.canEditITData"
           type="primary"
           icon="Plus"
           @click="goToCreate"
@@ -12,7 +12,7 @@
           新增標籤
         </el-button>
         <el-button
-          v-if="authStore.isAdmin && selectedRows.length > 0"
+          v-if="authStore.canDeleteAnyData && selectedRows.length > 0"
           type="danger"
           icon="Delete"
           @click="handleBatchDelete"
@@ -20,7 +20,7 @@
           批量刪除 ({{ selectedRows.length }})
         </el-button>
         <el-button
-          v-if="authStore.isAdmin && selectedRows.length > 1"
+          v-if="authStore.canDeleteAnyData && selectedRows.length > 1"
           type="warning"
           icon="Promotion"
           @click="handleBatchMerge"
@@ -193,7 +193,7 @@
         @sort-change="handleSortChange"
       >
         <el-table-column
-          v-if="authStore.isAdmin"
+          v-if="authStore.canDeleteAnyData"
           type="selection"
           width="55"
         />
@@ -298,7 +298,7 @@
               查看使用
             </el-button>
             <el-button
-              v-if="authStore.isAdmin"
+              v-if="authStore.canEditITData"
               size="small"
               type="primary"
               @click="goToEdit(row.id)"
@@ -306,7 +306,7 @@
               編輯
             </el-button>
             <el-button
-              v-if="authStore.isAdmin"
+              v-if="canDeleteTag(row)"
               size="small"
               type="danger"
               @click="handleDelete(row)"
@@ -574,7 +574,7 @@ const mockData = ref([
     description: '生產環境相關資源',
     usageCount: 25,
     color: '#f56c6c',
-    createdBy: 'admin',
+    createdBy: 1,
     createdAt: new Date('2024-01-10T08:00:00')
   },
   {
@@ -584,7 +584,7 @@ const mockData = ref([
     description: '測試環境相關資源',
     usageCount: 12,
     color: '#e6a23c',
-    createdBy: 'admin',
+    createdBy: 1,
     createdAt: new Date('2024-01-11T09:00:00')
   },
   {
@@ -594,7 +594,7 @@ const mockData = ref([
     description: '開發環境相關資源',
     usageCount: 8,
     color: '#67c23a',
-    createdBy: 'admin',
+    createdBy: 1,
     createdAt: new Date('2024-01-12T10:00:00')
   },
   {
@@ -604,7 +604,7 @@ const mockData = ref([
     description: '高優先級資源',
     usageCount: 15,
     color: '#f56c6c',
-    createdBy: 'admin',
+    createdBy: 1,
     createdAt: new Date('2024-01-13T11:00:00')
   },
   {
@@ -614,7 +614,7 @@ const mockData = ref([
     description: '中優先級資源',
     usageCount: 20,
     color: '#e6a23c',
-    createdBy: 'admin',
+    createdBy: 1,
     createdAt: new Date('2024-01-14T12:00:00')
   },
   {
@@ -624,7 +624,7 @@ const mockData = ref([
     description: '低優先級資源',
     usageCount: 8,
     color: '#909399',
-    createdBy: 'admin',
+    createdBy: 1,
     createdAt: new Date('2024-01-15T13:00:00')
   },
   {
@@ -634,7 +634,7 @@ const mockData = ref([
     description: '前端開發相關',
     usageCount: 6,
     color: '#409eff',
-    createdBy: 'user1',
+    createdBy: 2,
     createdAt: new Date('2024-01-16T14:00:00')
   },
   {
@@ -644,7 +644,7 @@ const mockData = ref([
     description: '後端開發相關',
     usageCount: 10,
     color: '#67c23a',
-    createdBy: 'user1',
+    createdBy: 2,
     createdAt: new Date('2024-01-17T15:00:00')
   },
   {
@@ -654,7 +654,7 @@ const mockData = ref([
     description: '暫未使用的標籤',
     usageCount: 0,
     color: '#909399',
-    createdBy: 'admin',
+    createdBy: 1,
     createdAt: new Date('2024-01-18T16:00:00')
   }
 ])
@@ -760,6 +760,21 @@ const getResourceTypeColor = (type: string) => {
     Cache: '#722ed1'
   }
   return colorMap[type] || '#909399'
+}
+
+// 檢查是否可以刪除標籤
+const canDeleteTag = (tag: any) => {
+  // SuperAdmin 可以刪除所有標籤
+  if (authStore.canDeleteAnyData) {
+    return true
+  }
+  
+  // ITManager 只能刪除自己創建的標籤
+  if (authStore.canDeleteOwnData && authStore.user?.id === tag.createdBy) {
+    return true
+  }
+  
+  return false
 }
 
 // 格式化日期時間

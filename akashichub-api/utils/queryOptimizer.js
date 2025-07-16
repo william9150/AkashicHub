@@ -62,7 +62,7 @@ export function buildTagFilterConditions(tags) {
 /**
  * 建立日期範圍篩選條件
  */
-export function buildDateRangeConditions(startDate, endDate, dateField = 'createdAt') {
+export function buildDateRangeConditions(startDate, endDate, dateField = 'Id') {
   const conditions = {};
   
   if (startDate) {
@@ -85,7 +85,7 @@ export function buildDateRangeConditions(startDate, endDate, dateField = 'create
 /**
  * 建立排序配置
  */
-export function buildOrderConfig(sortBy = 'createdAt', sortOrder = 'DESC') {
+export function buildOrderConfig(sortBy = 'Id', sortOrder = 'DESC') {
   const validSortOrders = ['ASC', 'DESC'];
   const normalizedSortOrder = validSortOrders.includes(sortOrder.toUpperCase()) 
     ? sortOrder.toUpperCase() 
@@ -122,7 +122,7 @@ export function buildResourceQuery(options = {}) {
     keyword,
     tags,
     resourceType,
-    sortBy = 'createdAt',
+    sortBy = 'Id',
     sortOrder = 'DESC',
     includeTags = true,
     includeRelationships = false
@@ -217,7 +217,7 @@ export function buildTagQuery(options = {}) {
   }
   
   const attributes = includeResourceCount 
-    ? ['id', 'name', 'category', 'createdAt', 'updatedAt']
+    ? ['id', 'name', 'category']
     : undefined;
   
   return {
@@ -238,7 +238,7 @@ export function buildUserQuery(options = {}) {
     limit = 10,
     keyword,
     role,
-    sortBy = 'createdAt',
+    sortBy = 'Id',
     sortOrder = 'DESC'
   } = options;
 

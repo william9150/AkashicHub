@@ -6,6 +6,28 @@ import ResourceRelationship from "./ResourceRelationship.js";
 
 // 定義模型關聯
 
+// User - Resource (一對多關聯)
+User.hasMany(Resource, {
+  foreignKey: "CreatedBy",
+  as: "CreatedResources"
+});
+
+Resource.belongsTo(User, {
+  foreignKey: "CreatedBy",
+  as: "Creator"
+});
+
+// User - Tag (一對多關聯)
+User.hasMany(Tag, {
+  foreignKey: "CreatedBy",
+  as: "CreatedTags"
+});
+
+Tag.belongsTo(User, {
+  foreignKey: "CreatedBy",
+  as: "Creator"
+});
+
 // Resource - Tag (多對多關聯)
 Resource.belongsToMany(Tag, {
   through: ResourceTag,

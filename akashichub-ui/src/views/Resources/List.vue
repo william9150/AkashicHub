@@ -4,7 +4,7 @@
     <div class="header-actions">
       <div class="actions-left">
         <el-button
-          v-if="authStore.isAdmin"
+          v-if="authStore.canEditITData"
           type="primary"
           icon="Plus"
           @click="goToCreate"
@@ -12,7 +12,7 @@
           新增資源
         </el-button>
         <el-button
-          v-if="authStore.isAdmin && selectedRows.length > 0"
+          v-if="authStore.canDeleteAnyData && selectedRows.length > 0"
           type="danger"
           icon="Delete"
           @click="handleBatchDelete"
@@ -135,7 +135,7 @@
         @sort-change="handleSortChange"
       >
         <el-table-column
-          v-if="authStore.isAdmin"
+          v-if="authStore.canDeleteAnyData"
           type="selection"
           width="55"
         />
@@ -236,7 +236,7 @@
               查看
             </el-button>
             <el-button
-              v-if="authStore.isAdmin"
+              v-if="authStore.canEditITData"
               size="small"
               type="primary"
               @click="goToEdit(row.id)"
@@ -244,7 +244,7 @@
               編輯
             </el-button>
             <el-button
-              v-if="authStore.isAdmin"
+              v-if="canDeleteResource(row)"
               size="small"
               type="danger"
               @click="handleDelete(row)"
@@ -351,6 +351,7 @@ const mockData = ref([
     ipAddress: '192.168.1.100',
     loginUser: 'admin',
     status: 'active',
+    createdBy: 1, // admin (SuperAdmin) 創建
     tags: [
       { id: 1, name: '生產環境', category: 'Environment' },
       { id: 4, name: '高優先級', category: 'Priority' }
@@ -364,6 +365,7 @@ const mockData = ref([
     ipAddress: '192.168.1.101',
     loginUser: 'dbuser',
     status: 'active',
+    createdBy: 2, // willy (ITManager) 創建
     tags: [
       { id: 1, name: '生產環境', category: 'Environment' }
     ],
@@ -376,6 +378,7 @@ const mockData = ref([
     ipAddress: '192.168.1.102',
     loginUser: 'redis',
     status: 'maintenance',
+    createdBy: 1, // admin (SuperAdmin) 創建
     tags: [
       { id: 2, name: '測試環境', category: 'Environment' },
       { id: 5, name: '中優先級', category: 'Priority' }
@@ -389,6 +392,7 @@ const mockData = ref([
     ipAddress: '192.168.1.103',
     loginUser: 'storage',
     status: 'active',
+    createdBy: 2, // willy (ITManager) 創建
     tags: [
       { id: 3, name: '開發環境', category: 'Environment' },
       { id: 6, name: '低優先級', category: 'Priority' }
@@ -505,6 +509,21 @@ const getStatusText = (status: string) => {
 // 格式化日期時間
 const formatDateTime = (date: Date) => {
   return format(date, 'yyyy-MM-dd HH:mm:ss')
+}
+
+// 檢查是否可以刪除資源
+const canDeleteResource = (resource: any) => {
+  // SuperAdmin 可以刪除所有資源
+  if (authStore.canDeleteAnyData) {
+    return true
+  }
+  
+  // ITManager 只能刪除自己創建的資源
+  if (authStore.canDeleteOwnData && authStore.user?.id === resource.createdBy) {
+    return true
+  }
+  
+  return false
 }
 
 // 載入數據

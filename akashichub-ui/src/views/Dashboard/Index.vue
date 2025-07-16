@@ -176,7 +176,7 @@
         <el-card class="quick-actions-card" header="快速操作">
           <div class="quick-actions">
             <el-button
-              v-if="authStore.isAdmin"
+              v-if="authStore.canEditITData"
               type="primary"
               icon="Plus"
               @click="goToCreateResource"
@@ -185,13 +185,22 @@
               新增資源
             </el-button>
             <el-button
-              v-if="authStore.isAdmin"
+              v-if="authStore.canEditUsers"
               type="success"
               icon="User"
               @click="goToCreateUser"
               block
             >
               新增用戶
+            </el-button>
+            <el-button
+              v-if="authStore.canEditITData"
+              type="warning"
+              icon="CollectionTag"
+              @click="goToCreateTag"
+              block
+            >
+              新增標籤
             </el-button>
             <el-button
               type="info"
@@ -202,7 +211,7 @@
               搜索資源
             </el-button>
             <el-button
-              v-if="authStore.isAdmin"
+              v-if="authStore.isSuperAdmin"
               type="warning"
               icon="Document"
               @click="goToLogs"
@@ -988,6 +997,7 @@ const goToUsers = () => router.push('/users')
 const goToTags = () => router.push('/tags')
 const goToCreateResource = () => router.push('/resources/create')
 const goToCreateUser = () => router.push('/users/create')
+const goToCreateTag = () => router.push('/tags/create')
 const goToSearch = () => router.push('/resources?search=true')
 const goToLogs = () => router.push('/logs')
 const goToResource = (id: number) => router.push(`/resources/${id}`)
@@ -1466,7 +1476,7 @@ onUnmounted(() => {
       }
     }
   }
-  
+}
   .main-content {
     .chart-card {
       .chart-container {

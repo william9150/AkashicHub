@@ -19,7 +19,9 @@
       "Bash(npm test:*)",
       "Bash(npx cypress run:*)",
       "Bash(npx cypress:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(timeout 5 npm run build)",
+      "Bash(timeout 10 npx vite build)"
     ],
     "deny": []
   }

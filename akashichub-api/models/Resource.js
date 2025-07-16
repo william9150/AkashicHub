@@ -45,6 +45,15 @@ const Resource = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    CreatedBy: {
+      type: DataTypes.INTEGER,
+      allowNull: true, // 暫時設為可選，避免現有資料出錯
+      references: {
+        model: 'Users',
+        key: 'Id'
+      },
+      comment: "資料創建者ID，用於權限控制"
+    },
   },
   {
     tableName: "Resources",

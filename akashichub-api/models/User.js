@@ -25,9 +25,10 @@ const User = sequelize.define(
       allowNull: false,
     },
     Role: {
-      type: DataTypes.ENUM("Admin", "User"),
+      type: DataTypes.ENUM("SuperAdmin", "ITManager", "Viewer"),
       allowNull: false,
-      defaultValue: "User",
+      defaultValue: "Viewer",
+      comment: "SuperAdmin: 可編輯人員和IT資料, ITManager: 可新增修改IT資料並刪除自己創建的, Viewer: 只能瀏覽資料",
     },
   },
   {

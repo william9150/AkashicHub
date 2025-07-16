@@ -178,7 +178,7 @@ const menuItems = computed(() => {
           id: 'resources-create',
           title: '新增資源',
           path: '/resources/create',
-          disabled: !authStore.isAdmin
+          disabled: !authStore.canEditITData
         }
       ]
     },
@@ -199,7 +199,7 @@ const menuItems = computed(() => {
           id: 'tags-create',
           title: '新增標籤',
           path: '/tags/create',
-          disabled: !authStore.isAdmin
+          disabled: !authStore.canEditITData
         }
       ]
     },
@@ -208,19 +208,19 @@ const menuItems = computed(() => {
       title: '用戶管理',
       icon: 'User',
       path: '/users',
-      disabled: !authStore.isAdmin,
+      disabled: !authStore.canEditUsers,
       children: [
         {
           id: 'users-list',
           title: '用戶列表',
           path: '/users',
-          disabled: !authStore.isAdmin
+          disabled: !authStore.canEditUsers
         },
         {
           id: 'users-create',
           title: '新增用戶',
           path: '/users/create',
-          disabled: !authStore.isAdmin
+          disabled: !authStore.canEditUsers
         }
       ]
     },
@@ -229,19 +229,19 @@ const menuItems = computed(() => {
       title: '日誌管理',
       icon: 'Document',
       path: '/logs',
-      disabled: !authStore.isAdmin,
+      disabled: !authStore.isSuperAdmin,
       children: [
         {
           id: 'logs-system',
           title: '系統日誌',
           path: '/logs/system',
-          disabled: !authStore.isAdmin
+          disabled: !authStore.isSuperAdmin
         },
         {
           id: 'logs-audit',
           title: '審計日誌',
           path: '/logs/audit',
-          disabled: !authStore.isAdmin
+          disabled: !authStore.isSuperAdmin
         }
       ]
     },
@@ -257,25 +257,25 @@ const menuItems = computed(() => {
       title: '系統設定',
       icon: 'Setting',
       path: '/settings',
-      disabled: !authStore.isAdmin,
+      disabled: !authStore.isSuperAdmin,
       children: [
         {
           id: 'settings-general',
           title: '一般設定',
           path: '/settings/general',
-          disabled: !authStore.isAdmin
+          disabled: !authStore.isSuperAdmin
         },
         {
           id: 'settings-security',
           title: '安全設定',
           path: '/settings/security',
-          disabled: !authStore.isAdmin
+          disabled: !authStore.isSuperAdmin
         },
         {
           id: 'settings-system',
           title: '系統狀態',
           path: '/settings/system',
-          disabled: !authStore.isAdmin
+          disabled: !authStore.isSuperAdmin
         }
       ]
     },
@@ -307,7 +307,7 @@ const handleUserCommand = (command: string) => {
       router.push('/profile')
       break
     case 'settings':
-      if (authStore.isAdmin) {
+      if (authStore.isSuperAdmin) {
         router.push('/settings')
       } else {
         ElMessage.warning('您沒有權限訪問系統設定')

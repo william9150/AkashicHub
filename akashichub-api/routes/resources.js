@@ -1,6 +1,6 @@
 import express from "express";
-import { getResources, createResource, getResource, updateResource, deleteResource, decryptPassword } from "../controllers/resourceController.js";
-import { authenticateToken, authorizeAdmin } from "../middlewares/authMiddleware.js";
+import { getResources, createResource, getResource, updateResource, deleteResource, decryptPassword } from "../controllers/resourceController.simple.js";
+import { authenticateToken, authorizeAdmin, authorizeITEdit, authorizeResourceOwner } from "../middlewares/authMiddleware.js";
 import { validateRequired, validateIdParam, validateResourceType, validatePagination } from "../middlewares/validation.js";
 import { passwordDecryptLimiter, adminLimiter } from "../middlewares/rateLimiter.js";
 import { resourceListCache, invalidateResourceCache } from "../middlewares/cache.js";
@@ -173,7 +173,7 @@ router.get("/", resourceListCache, validatePagination, getResources);
  */
 router.post("/", 
   adminLimiter,
-  authorizeAdmin, 
+  authorizeITEdit, 
   validateRequired(["resourceType", "name"]),
   validateResourceType,
   invalidateResourceCache,
@@ -310,7 +310,7 @@ router.get("/:id", validateIdParam, getResource);
 router.put("/:id", 
   validateIdParam,
   adminLimiter,
-  authorizeAdmin, 
+  authorizeITEdit, 
   validateResourceType,
   invalidateResourceCache,
   updateResource
@@ -356,7 +356,7 @@ router.put("/:id",
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete("/:id", validateIdParam, adminLimiter, authorizeAdmin, invalidateResourceCache, deleteResource);
+router.delete("/:id", validateIdParam, adminLimiter, authorizeResourceOwner, invalidateResourceCache, deleteResource);
 
 /**
  * @swagger

@@ -1,8 +1,9 @@
 // 全域樣式檔案
+@use "sass:map";
 
 // 導入變數和混合器
-@import './variables.scss';
-@import './mixins.scss';
+@use './variables.scss' as *;
+@use './mixins.scss' as *;
 
 // 全域樣式重置
 * {
@@ -20,9 +21,9 @@ html {
 
 body {
   height: 100%;
-  font-family: map-get($font-families, primary);
-  font-size: map-get($font-sizes, base);
-  line-height: map-get($line-heights, normal);
+  font-family: map.get($font-families, primary);
+  font-size: map.get($font-sizes, base);
+  line-height: map.get($line-heights, normal);
   color: var(--el-text-color-primary);
   background-color: var(--el-bg-color);
   -webkit-font-smoothing: antialiased;
@@ -40,20 +41,20 @@ body {
 .text-uppercase { text-transform: uppercase; }
 .text-capitalize { text-transform: capitalize; }
 
-.font-weight-light { font-weight: map-get($font-weights, light); }
-.font-weight-normal { font-weight: map-get($font-weights, normal); }
-.font-weight-medium { font-weight: map-get($font-weights, medium); }
-.font-weight-semibold { font-weight: map-get($font-weights, semibold); }
-.font-weight-bold { font-weight: map-get($font-weights, bold); }
+.font-weight-light { font-weight: map.get($font-weights, light); }
+.font-weight-normal { font-weight: map.get($font-weights, normal); }
+.font-weight-medium { font-weight: map.get($font-weights, medium); }
+.font-weight-semibold { font-weight: map.get($font-weights, semibold); }
+.font-weight-bold { font-weight: map.get($font-weights, bold); }
 
 .text-truncate { @include text-ellipsis; }
 .text-break { word-wrap: break-word; }
 
 // 顏色工具類
 @each $name, $color in $colors {
-  .text-#{$name} { color: $color; }
-  .bg-#{$name} { background-color: $color; }
-  .border-#{$name} { border-color: $color; }
+  .text-#{$name} { color: #{$color}; }
+  .bg-#{$name} { background-color: #{$color}; }
+  .border-#{$name} { border-color: #{$color}; }
 }
 
 // 間距工具類

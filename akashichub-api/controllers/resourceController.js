@@ -79,6 +79,7 @@ export const createResource = asyncHandler(async (req, res) => {
     Port: port,
     DbName: dbName,
     DbVersion: dbVersion,
+    CreatedBy: req.user.id,
   });
 
   // 關聯既有標籤
@@ -241,6 +242,15 @@ export const deleteResource = asyncHandler(async (req, res) => {
       error: { code: "NOT_FOUND", message: "Resource 不存在" },
     });
   }
+
+  // 檢查擁有者權限（如果中介軟體設定了 checkOwnership）
+  if (req.checkOwnership && resource.CreatedBy !== req.user.id) {
+    return res.status(403).json({
+      success: false,
+      error: { code: "FORBIDDEN", message: "只能刪除自己創建的資源" },
+    });
+  }
+
   await resource.destroy();
 
   logger.info("RESOURCE_DELETED", { resourceId: id, userId: req.user?.Id });

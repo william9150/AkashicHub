@@ -17,9 +17,24 @@ const Tag = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    CreatedBy: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'Users',
+        key: 'Id'
+      },
+      comment: "標籤創建者ID，用於權限控制"
+    },
   },
   {
     tableName: "Tags",
+    indexes: [
+      {
+        unique: true,
+        fields: ['Name', 'Category']
+      }
+    ]
   }
 );
 

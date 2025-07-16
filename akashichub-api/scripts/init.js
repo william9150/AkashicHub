@@ -1,15 +1,58 @@
 import dotenv from "dotenv";
 import path from "path";
 import bcrypt from "bcrypt";
+import { Sequelize } from "sequelize";
 import sequelize from "../config/database.js";
 import { User, Resource, Tag, ResourceTag, ResourceRelationship } from "../models/index.js";
 import { encrypt } from "../utils/crypto.js";
 
 dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
+async function createDatabaseIfNotExists() {
+  // 建立不含資料庫名稱的連線來檢查和建立資料庫
+  const tempSequelize = new Sequelize("", process.env.DB_USER, process.env.DB_PASSWORD, {
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    dialect: "mysql",
+    logging: false,
+  });
+
+  try {
+    console.log("檢查資料庫是否存在...");
+    await tempSequelize.authenticate();
+
+    // 檢查資料庫是否存在
+    const [results] = await tempSequelize.query(`SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '${process.env.DB_NAME}'`);
+
+    if (results.length === 0) {
+      console.log(`建立資料庫 ${process.env.DB_NAME}...`);
+      await tempSequelize.query(`CREATE DATABASE \`${process.env.DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+      console.log(`資料庫 ${process.env.DB_NAME} 建立成功`);
+    } else {
+      console.log(`資料庫 ${process.env.DB_NAME} 已存在`);
+    }
+  } catch (error) {
+    console.error("資料庫檢查或建立失敗:", error.message);
+    throw error;
+  } finally {
+    await tempSequelize.close();
+  }
+}
+
 async function init() {
   try {
-    await sequelize.sync();
+    // 先檢查並建立資料庫
+    await createDatabaseIfNotExists();
+
+    // 檢查資料庫連線
+    console.log("檢查資料庫連線...");
+    await sequelize.authenticate();
+    console.log("資料庫連線成功");
+
+    // 刪除並重新創建資料表
+    console.log("刪除現有資料表並重新創建...");
+    await sequelize.sync({ force: true });
+    console.log("資料表重新創建完成");
 
     const adminAccount = process.env.DEFAULT_ADMIN_ACCOUNT || "admin";
     const adminPassword = process.env.DEFAULT_ADMIN_PASSWORD || "admin";
@@ -22,11 +65,28 @@ async function init() {
         LoginAccount: adminAccount,
         DisplayName: "系統管理員",
         PasswordHash: hash,
-        Role: "Admin",
+        Role: "SuperAdmin",
       });
       console.log("預設管理員帳號已建立:", adminAccount);
     } else {
       console.log("預設管理員帳號已存在:", adminAccount);
+    }
+
+    // 建立 willy 用戶帳號
+    const willyAccount = "willy";
+    const willyPassword = "55665566";
+    const existingWilly = await User.findOne({ where: { LoginAccount: willyAccount } });
+    if (!existingWilly) {
+      const willyHash = await bcrypt.hash(willyPassword, 10);
+      await User.create({
+        LoginAccount: willyAccount,
+        DisplayName: "Willy",
+        PasswordHash: willyHash,
+        Role: "ITManager",
+      });
+      console.log("Willy 用戶帳號已建立:", willyAccount);
+    } else {
+      console.log("Willy 用戶帳號已存在:", willyAccount);
     }
 
     // 建立範例標籤
@@ -42,12 +102,31 @@ async function init() {
     ];
 
     for (const tagData of sampleTags) {
-      const existingTag = await Tag.findOne({ where: { Name: tagData.Name } });
-      if (!existingTag) {
-        await Tag.create(tagData);
+      try {
+        const existingTag = await Tag.findOne({
+          where: {
+            Name: tagData.Name,
+            Category: tagData.Category,
+          },
+        });
+        if (!existingTag) {
+          await Tag.create(tagData);
+          console.log(`建立標籤: ${tagData.Name} (${tagData.Category})`);
+        }
+      } catch (error) {
+        // 如果是唯一性約束違反，忽略錯誤
+        if (error.name === "SequelizeUniqueConstraintError") {
+          console.log(`標籤已存在: ${tagData.Name} (${tagData.Category})`);
+        } else {
+          throw error;
+        }
       }
     }
     console.log("範例標籤已建立");
+
+    // 獲取管理員用戶 ID
+    const adminUser = await User.findOne({ where: { LoginAccount: adminAccount } });
+    const adminUserId = adminUser.Id;
 
     // 建立範例資源
     const sampleResources = [
@@ -59,6 +138,7 @@ async function init() {
         LoginPasswordEncrypted: encrypt("webserver123"),
         Description: "主要的生產環境Web伺服器，運行公司官網和主要應用程式",
         Port: 80,
+        CreatedBy: adminUserId,
       },
       {
         ResourceType: "資料庫",
@@ -70,6 +150,7 @@ async function init() {
         Port: 3306,
         DbName: "production_db",
         DbVersion: "8.0.32",
+        CreatedBy: adminUserId,
       },
       {
         ResourceType: "API服務",
@@ -79,6 +160,7 @@ async function init() {
         LoginPasswordEncrypted: encrypt("apikey789"),
         Description: "處理用戶註冊、登入和管理功能的RESTful API服務",
         Port: 8080,
+        CreatedBy: adminUserId,
       },
       {
         ResourceType: "伺服器",
@@ -88,6 +170,7 @@ async function init() {
         LoginPasswordEncrypted: encrypt("testpass123"),
         Description: "用於功能測試和QA驗證的測試環境伺服器",
         Port: 8000,
+        CreatedBy: adminUserId,
       },
       {
         ResourceType: "網站",
@@ -97,6 +180,7 @@ async function init() {
         LoginPasswordEncrypted: encrypt("website456"),
         Description: "公司對外官方網站，提供產品資訊和客戶服務",
         Port: 443,
+        CreatedBy: adminUserId,
       },
     ];
 
@@ -122,13 +206,13 @@ async function init() {
     ];
 
     for (const mapping of resourceTagMappings) {
-      const resource = createdResources.find(r => r.Name === mapping.resourceName);
+      const resource = createdResources.find((r) => r.Name === mapping.resourceName);
       if (resource) {
         for (const tagName of mapping.tags) {
           const tag = await Tag.findOne({ where: { Name: tagName } });
           if (tag) {
             const existingMapping = await ResourceTag.findOne({
-              where: { ResourceId: resource.Id, TagId: tag.Id }
+              where: { ResourceId: resource.Id, TagId: tag.Id },
             });
             if (!existingMapping) {
               await ResourceTag.create({
@@ -150,18 +234,18 @@ async function init() {
     ];
 
     for (const rel of resourceRelationships) {
-      const sourceResource = createdResources.find(r => r.Name === rel.source);
-      const targetResource = createdResources.find(r => r.Name === rel.target);
-      
+      const sourceResource = createdResources.find((r) => r.Name === rel.source);
+      const targetResource = createdResources.find((r) => r.Name === rel.target);
+
       if (sourceResource && targetResource) {
         const existingRel = await ResourceRelationship.findOne({
           where: {
             SourceResourceId: sourceResource.Id,
             TargetResourceId: targetResource.Id,
-            RelationshipType: rel.type
-          }
+            RelationshipType: rel.type,
+          },
         });
-        
+
         if (!existingRel) {
           await ResourceRelationship.create({
             SourceResourceId: sourceResource.Id,

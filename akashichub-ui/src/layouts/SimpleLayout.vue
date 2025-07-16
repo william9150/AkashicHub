@@ -1,0 +1,211 @@
+<template>
+  <div class="simple-layout">
+    <!-- 簡單頂部導航 -->
+    <header class="header">
+      <div class="header-content">
+        <div class="logo">
+          <h2>🗂️ AkashicHub</h2>
+        </div>
+        <nav class="nav">
+          <router-link to="/">首頁</router-link>
+          <router-link to="/dashboard" v-if="isLoggedIn">儀表板</router-link>
+          <router-link to="/resources" v-if="isLoggedIn">資源</router-link>
+          <router-link to="/tags" v-if="isLoggedIn">標籤</router-link>
+          <router-link to="/users" v-if="isLoggedIn">用戶</router-link>
+          <router-link to="/login" v-if="!isLoggedIn">登入</router-link>
+          
+          <!-- 用戶資訊 -->
+          <div v-if="isLoggedIn" class="user-info">
+            <el-dropdown>
+              <span class="user-name">
+                {{ currentUser?.DisplayName || currentUser?.LoginAccount || '用戶' }}
+                <el-icon class="el-icon--right"><arrow-down /></el-icon>
+              </span>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="goToProfile">
+                    <el-icon><User /></el-icon>
+                    個人資料
+                  </el-dropdown-item>
+                  <el-dropdown-item divided @click="logout">
+                    <el-icon><SwitchButton /></el-icon>
+                    登出
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
+        </nav>
+      </div>
+    </header>
+
+    <!-- 主要內容 -->
+    <main class="main-content">
+      <slot />
+    </main>
+
+    <!-- 簡單底部 -->
+    <footer class="footer">
+      <p>&copy; 2024 AkashicHub - IT 資源管理系統</p>
+    </footer>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { computed, ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { ArrowDown, User, SwitchButton } from '@element-plus/icons-vue'
+
+const router = useRouter()
+const currentUser = ref(null)
+
+// 簡單的登入狀態檢查
+const isLoggedIn = computed(() => {
+  return !!localStorage.getItem('akashichub_token')
+})
+
+// 載入用戶資訊
+const loadUserInfo = () => {
+  try {
+    const userStr = localStorage.getItem('akashichub_user')
+    if (userStr) {
+      currentUser.value = JSON.parse(userStr)
+    }
+  } catch (error) {
+    console.warn('Failed to parse user info:', error)
+  }
+}
+
+const goToProfile = () => {
+  router.push('/profile')
+}
+
+const logout = () => {
+  localStorage.removeItem('akashichub_token')
+  localStorage.removeItem('akashichub_user')
+  currentUser.value = null
+  router.push('/login')
+}
+
+onMounted(() => {
+  loadUserInfo()
+})
+</script>
+
+<style scoped>
+.simple-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  background: #409eff;
+  color: white;
+  padding: 0 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 60px;
+}
+
+.logo h2 {
+  margin: 0;
+  color: white;
+}
+
+.nav {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.nav a {
+  color: white;
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: background 0.3s;
+}
+
+.nav a:hover,
+.nav a.router-link-active {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.logout-btn {
+  background: #f56c6c;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.logout-btn:hover {
+  background: #f78989;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  margin-left: 10px;
+}
+
+.user-name {
+  color: white;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.user-name:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.main-content {
+  flex: 1;
+  background: #f5f5f5;
+  min-height: calc(100vh - 120px);
+}
+
+.footer {
+  background: #303133;
+  color: white;
+  text-align: center;
+  padding: 20px;
+}
+
+.footer p {
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    height: auto;
+    padding: 10px 0;
+  }
+  
+  .nav {
+    margin-top: 10px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .main-content {
+    min-height: calc(100vh - 140px);
+  }
+}
+</style>

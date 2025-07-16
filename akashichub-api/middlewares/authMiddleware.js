@@ -33,14 +33,50 @@ export function authenticateToken(req, res, next) {
 }
 
 /**
- * 僅允許 Admin 角色存取
+ * 僅允許 SuperAdmin 角色存取
  */
-export function authorizeAdmin(req, res, next) {
-  if (req.user?.role !== "Admin") {
+export function authorizeSuperAdmin(req, res, next) {
+  if (req.user?.role !== "SuperAdmin") {
     return res.status(403).json({
       success: false,
-      error: { code: "FORBIDDEN", message: "需要管理員權限" },
+      error: { code: "FORBIDDEN", message: "需要超級管理員權限" },
     });
   }
   next();
+}
+
+/**
+ * 允許可以編輯IT資料的角色存取 (SuperAdmin, ITManager)
+ */
+export function authorizeITEdit(req, res, next) {
+  const allowedRoles = ["SuperAdmin", "ITManager"];
+  if (!allowedRoles.includes(req.user?.role)) {
+    return res.status(403).json({
+      success: false,
+      error: { code: "FORBIDDEN", message: "需要IT編輯權限" },
+    });
+  }
+  next();
+}
+
+/**
+ * 檢查資源擁有者權限或超級管理員權限
+ */
+export function authorizeResourceOwner(req, res, next) {
+  // SuperAdmin 可以存取所有資源
+  if (req.user?.role === "SuperAdmin") {
+    return next();
+  }
+  
+  // ITManager 只能存取自己創建的資源
+  // 這個檢查需要在 controller 中實現，因為需要查詢資料庫
+  req.checkOwnership = true;
+  next();
+}
+
+/**
+ * 向下兼容的 Admin 授權 (映射到 SuperAdmin)
+ */
+export function authorizeAdmin(req, res, next) {
+  return authorizeSuperAdmin(req, res, next);
 }

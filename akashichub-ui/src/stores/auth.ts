@@ -31,11 +31,39 @@ export const useAuthStore = defineStore('auth', () => {
   })
 
   const isAdmin = computed(() => {
-    return user.value?.role === 'Admin'
+    return user.value?.role === 'SuperAdmin'
   })
 
-  const isUser = computed(() => {
-    return user.value?.role === 'User'
+  const isSuperAdmin = computed(() => {
+    return user.value?.role === 'SuperAdmin'
+  })
+
+  const isITManager = computed(() => {
+    return user.value?.role === 'ITManager'
+  })
+
+  const isViewer = computed(() => {
+    return user.value?.role === 'Viewer'
+  })
+
+  const canEditUsers = computed(() => {
+    return user.value?.role === 'SuperAdmin'
+  })
+
+  const canEditITData = computed(() => {
+    return user.value?.role === 'SuperAdmin' || user.value?.role === 'ITManager'
+  })
+
+  const canDeleteOwnData = computed(() => {
+    return user.value?.role === 'SuperAdmin' || user.value?.role === 'ITManager'
+  })
+
+  const canDeleteAnyData = computed(() => {
+    return user.value?.role === 'SuperAdmin'
+  })
+
+  const canViewData = computed(() => {
+    return true // 所有已認證用戶都能瀏覽資料
   })
 
   const userName = computed(() => {
@@ -50,7 +78,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const permissions = computed(() => {
     // 根據角色返回權限列表
-    if (user.value?.role === 'Admin') {
+    if (user.value?.role === 'SuperAdmin') {
       return [
         'user:read',
         'user:write',
@@ -58,13 +86,26 @@ export const useAuthStore = defineStore('auth', () => {
         'resource:read',
         'resource:write',
         'resource:delete',
+        'resource:delete:any',
         'tag:read',
         'tag:write',
         'tag:delete',
+        'tag:delete:any',
         'system:read',
         'system:write'
       ]
-    } else if (user.value?.role === 'User') {
+    } else if (user.value?.role === 'ITManager') {
+      return [
+        'resource:read',
+        'resource:write',
+        'resource:delete:own',
+        'tag:read',
+        'tag:write',
+        'tag:delete:own',
+        'profile:read',
+        'profile:write'
+      ]
+    } else if (user.value?.role === 'Viewer') {
       return [
         'resource:read',
         'tag:read',
@@ -85,10 +126,17 @@ export const useAuthStore = defineStore('auth', () => {
       
       // 保存認證資訊
       token.value = response.token
-      user.value = response.user
+      // Handle both old and new response formats
+      const userData = response.user || {
+        id: response.id,
+        loginAccount: credentials.loginAccount,
+        displayName: response.displayName,
+        role: response.role
+      }
+      user.value = userData
       
       setToken(response.token)
-      setUserInfo(response.user)
+      setUserInfo(userData)
       
       // 記錄登入歷史
       addLoginHistory(credentials.loginAccount)
@@ -257,7 +305,14 @@ export const useAuthStore = defineStore('auth', () => {
     // 計算屬性
     isAuthenticated,
     isAdmin,
-    isUser,
+    isSuperAdmin,
+    isITManager,
+    isViewer,
+    canEditUsers,
+    canEditITData,
+    canDeleteOwnData,
+    canDeleteAnyData,
+    canViewData,
     userName,
     userRole,
     userInfo,

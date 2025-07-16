@@ -1,6 +1,6 @@
 import express from "express";
 import { getAllTags, createTag, updateTag, deleteTag } from "../controllers/tagController.js";
-import { authenticateToken, authorizeAdmin } from "../middlewares/authMiddleware.js";
+import { authenticateToken, authorizeAdmin, authorizeITEdit, authorizeResourceOwner } from "../middlewares/authMiddleware.js";
 import { validateRequired, validateIdParam } from "../middlewares/validation.js";
 import { tagListCache, invalidateTagCache } from "../middlewares/cache.js";
 
@@ -98,7 +98,7 @@ router.get("/", tagListCache, getAllTags);
  *               $ref: '#/components/schemas/Error'
  */
 router.post("/", 
-  authorizeAdmin, 
+  authorizeITEdit, 
   validateRequired(["name", "category"]), 
   invalidateTagCache,
   createTag
@@ -165,7 +165,7 @@ router.post("/",
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put("/:id", validateIdParam, authorizeAdmin, invalidateTagCache, updateTag);
+router.put("/:id", validateIdParam, authorizeITEdit, invalidateTagCache, updateTag);
 
 /**
  * @swagger
@@ -207,6 +207,6 @@ router.put("/:id", validateIdParam, authorizeAdmin, invalidateTagCache, updateTa
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.delete("/:id", validateIdParam, authorizeAdmin, invalidateTagCache, deleteTag);
+router.delete("/:id", validateIdParam, authorizeResourceOwner, invalidateTagCache, deleteTag);
 
 export default router;

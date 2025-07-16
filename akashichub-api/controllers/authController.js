@@ -29,8 +29,12 @@ export async function login(req, res) {
     success: true,
     data: {
       token,
-      displayName: user.DisplayName,
-      role: user.Role,
+      user: {
+        id: user.Id,
+        loginAccount: user.LoginAccount,
+        displayName: user.DisplayName,
+        role: user.Role,
+      },
     },
   });
 }

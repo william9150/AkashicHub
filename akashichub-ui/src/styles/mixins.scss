@@ -1,9 +1,11 @@
 // SCSS Mixins 工具函數
+@use './variables' as *;
+@use "sass:map";
 
 // 響應式斷點
 @mixin respond-to($breakpoint) {
-  @if map-has-key($breakpoints, $breakpoint) {
-    @media (min-width: map-get($breakpoints, $breakpoint)) {
+  @if map.has-key($breakpoints, $breakpoint) {
+    @media (min-width: map.get($breakpoints, $breakpoint)) {
       @content;
     }
   } @else {
@@ -13,8 +15,8 @@
 
 // 最大寬度斷點
 @mixin respond-to-max($breakpoint) {
-  @if map-has-key($breakpoints, $breakpoint) {
-    @media (max-width: map-get($breakpoints, $breakpoint) - 1px) {
+  @if map.has-key($breakpoints, $breakpoint) {
+    @media (max-width: calc(map.get($breakpoints, $breakpoint) - 1px)) {
       @content;
     }
   } @else {
@@ -24,8 +26,8 @@
 
 // 範圍斷點
 @mixin respond-between($min, $max) {
-  @if map-has-key($breakpoints, $min) and map-has-key($breakpoints, $max) {
-    @media (min-width: map-get($breakpoints, $min)) and (max-width: map-get($breakpoints, $max) - 1px) {
+  @if map.has-key($breakpoints, $min) and map.has-key($breakpoints, $max) {
+    @media (min-width: map.get($breakpoints, $min)) and (max-width: calc(map.get($breakpoints, $max) - 1px)) {
       @content;
     }
   } @else {
@@ -80,8 +82,8 @@
 
 // 陰影效果
 @mixin shadow($type: base) {
-  @if map-has-key($shadows, $type) {
-    box-shadow: map-get($shadows, $type);
+  @if map.has-key($shadows, $type) {
+    box-shadow: map.get($shadows, $type);
   } @else {
     box-shadow: $type;
   }
@@ -89,8 +91,8 @@
 
 // 過渡動畫
 @mixin transition($properties: all, $duration: normal, $easing: ease) {
-  $duration-value: map-get($durations, $duration);
-  $easing-value: map-get($easings, $easing);
+  $duration-value: map.get($durations, $duration);
+  $easing-value: map.get($easings, $easing);
   
   @if $duration-value == null {
     $duration-value: $duration;
@@ -105,8 +107,8 @@
 
 // 動畫
 @mixin animation($name, $duration: normal, $easing: ease, $delay: 0s, $iteration: 1, $direction: normal, $fill-mode: both) {
-  $duration-value: map-get($durations, $duration);
-  $easing-value: map-get($easings, $easing);
+  $duration-value: map.get($durations, $duration);
+  $easing-value: map.get($easings, $easing);
   
   @if $duration-value == null {
     $duration-value: $duration;
@@ -125,7 +127,7 @@
   color: $text-color;
   border: 1px solid $border-color;
   padding: 8px 16px;
-  border-radius: map-get($border-radius, base);
+  border-radius: map.get($border-radius, base);
   cursor: pointer;
   @include transition(all, fast);
   
@@ -149,8 +151,8 @@
 @mixin card-style($padding: lg, $shadow: base) {
   background-color: var(--el-bg-color);
   border: 1px solid var(--el-border-color);
-  border-radius: map-get($border-radius, base);
-  padding: map-get($spacings, $padding);
+  border-radius: map.get($border-radius, base);
+  padding: map.get($spacings, $padding);
   @include shadow($shadow);
 }
 
@@ -159,8 +161,8 @@
   width: 100%;
   padding: 8px 12px;
   border: 1px solid var(--el-border-color);
-  border-radius: map-get($border-radius, base);
-  font-size: map-get($font-sizes, base);
+  border-radius: map.get($border-radius, base);
+  font-size: map.get($font-sizes, base);
   @include transition(border-color, fast);
   
   &:focus {
@@ -220,15 +222,15 @@
   
   &::-webkit-scrollbar-track {
     background: $track-color;
-    border-radius: $width / 2;
+    border-radius: calc($width * 0.5);
   }
   
   &::-webkit-scrollbar-thumb {
     background: $thumb-color;
-    border-radius: $width / 2;
+    border-radius: calc($width * 0.5);
     
     &:hover {
-      background: darken($thumb-color, 10%);
+      background: var(--el-border-color);
     }
   }
 }

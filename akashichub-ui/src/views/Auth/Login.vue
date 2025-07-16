@@ -147,7 +147,7 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref, computed, onMounted, onUnmounted } from 'vue'
+import { reactive, ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage, ElNotification } from 'element-plus'
 import { User, Lock, UserFilled, Monitor, Clock } from '@element-plus/icons-vue'
@@ -235,9 +235,12 @@ const handleLogin = async () => {
     // 登入成功提示
     ElMessage.success('登入成功！')
     
+    // 等待下一個tick確保狀態已更新
+    await nextTick()
+    
     // 重定向到目標頁面
     const redirectPath = (route.query.redirect as string) || '/dashboard'
-    router.push(redirectPath)
+    await router.push(redirectPath)
     
   } catch (error: any) {
     console.error('Login error:', error)

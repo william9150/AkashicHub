@@ -14,7 +14,8 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/Home.vue'),
     meta: {
       title: '首頁',
-      requiresAuth: false
+      requiresAuth: false,
+      layout: 'none'
     }
   },
   {
@@ -41,7 +42,8 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/dashboard',
     name: 'Dashboard',
-    component: () => import('@/views/Dashboard/Index.vue'),
+     component: () => import('@/views/Dashboard/Index.vue'),
+    // component: () => import('@/views/Dashboard/Simple.vue'),
     meta: {
       title: '儀表板',
       requiresAuth: true,
@@ -498,7 +500,7 @@ export const routerUtils = {
   
   // 檢查路由是否需要認證
   requiresAuth: (route: any) => {
-    return route.meta?.requiresAuth !== false
+    return route.meta?.requiresAuth === true
   },
   
   // 檢查路由是否需要管理員權限
