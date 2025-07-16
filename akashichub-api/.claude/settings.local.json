@@ -9,7 +9,10 @@
       "Bash(node:*)",
       "Bash(npm start)",
       "Bash(pkill:*)",
-      "Bash(true)"
+      "Bash(true)",
+      "Bash(touch:*)",
+      "Bash(cp:*)",
+      "Bash(npm test)"
     ],
     "deny": []
   }

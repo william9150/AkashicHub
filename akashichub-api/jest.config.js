@@ -1,13 +1,6 @@
 export default {
   testEnvironment: "node",
   transform: {},
-  preset: "jest-environment-node",
-  extensionsToTreatAsEsm: ['.js'],
-  globals: {
-    'ts-jest': {
-      useESM: true
-    }
-  },
   setupFilesAfterEnv: ['<rootDir>/tests/setup.js'],
   collectCoverageFrom: [
     "controllers/**/*.js",

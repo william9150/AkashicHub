@@ -58,19 +58,25 @@ async function init() {
     const adminPassword = process.env.DEFAULT_ADMIN_PASSWORD || "admin";
 
     // 建立預設管理員帳號
-    const existing = await User.findOne({ where: { LoginAccount: adminAccount } });
-    if (!existing) {
+    let adminUser = await User.findOne({ where: { LoginAccount: adminAccount } });
+    if (!adminUser) {
       const hash = await bcrypt.hash(adminPassword, 10);
-      await User.create({
+      adminUser = await User.create({
         LoginAccount: adminAccount,
         DisplayName: "系統管理員",
         PasswordHash: hash,
         Role: "SuperAdmin",
+        Status: "Active",
+        CreatedBy: null,
+        UpdatedBy: null,
       });
       console.log("預設管理員帳號已建立:", adminAccount);
     } else {
       console.log("預設管理員帳號已存在:", adminAccount);
     }
+
+    // 獲取管理員用戶 ID (用於審計字段)
+    const adminUserId = adminUser.Id;
 
     // 建立 willy 用戶帳號
     const willyAccount = "willy";
@@ -83,6 +89,9 @@ async function init() {
         DisplayName: "Willy",
         PasswordHash: willyHash,
         Role: "ITManager",
+        Status: "Active",
+        CreatedBy: adminUserId,
+        UpdatedBy: adminUserId,
       });
       console.log("Willy 用戶帳號已建立:", willyAccount);
     } else {
@@ -91,14 +100,14 @@ async function init() {
 
     // 建立範例標籤
     const sampleTags = [
-      { Name: "生產環境", Category: "環境" },
-      { Name: "測試環境", Category: "環境" },
-      { Name: "開發環境", Category: "環境" },
-      { Name: "Web伺服器", Category: "服務類型" },
-      { Name: "資料庫", Category: "服務類型" },
-      { Name: "API服務", Category: "服務類型" },
-      { Name: "高優先級", Category: "重要性" },
-      { Name: "中優先級", Category: "重要性" },
+      { Name: "生產環境", Category: "環境", Color: "#F56C6C", Description: "生產環境資源" },
+      { Name: "測試環境", Category: "環境", Color: "#E6A23C", Description: "測試環境資源" },
+      { Name: "開發環境", Category: "環境", Color: "#67C23A", Description: "開發環境資源" },
+      { Name: "Web伺服器", Category: "服務類型", Color: "#409EFF", Description: "Web伺服器服務" },
+      { Name: "資料庫", Category: "服務類型", Color: "#909399", Description: "資料庫服務" },
+      { Name: "API服務", Category: "服務類型", Color: "#606266", Description: "API服務" },
+      { Name: "高優先級", Category: "重要性", Color: "#F56C6C", Description: "高優先級資源" },
+      { Name: "中優先級", Category: "重要性", Color: "#E6A23C", Description: "中優先級資源" },
     ];
 
     for (const tagData of sampleTags) {
@@ -110,7 +119,12 @@ async function init() {
           },
         });
         if (!existingTag) {
-          await Tag.create(tagData);
+          await Tag.create({
+            ...tagData,
+            IsActive: true,
+            CreatedBy: adminUserId,
+            UpdatedBy: adminUserId,
+          });
           console.log(`建立標籤: ${tagData.Name} (${tagData.Category})`);
         }
       } catch (error) {
@@ -124,9 +138,6 @@ async function init() {
     }
     console.log("範例標籤已建立");
 
-    // 獲取管理員用戶 ID
-    const adminUser = await User.findOne({ where: { LoginAccount: adminAccount } });
-    const adminUserId = adminUser.Id;
 
     // 建立範例資源
     const sampleResources = [
@@ -138,7 +149,9 @@ async function init() {
         LoginPasswordEncrypted: encrypt("webserver123"),
         Description: "主要的生產環境Web伺服器，運行公司官網和主要應用程式",
         Port: 80,
+        Status: "Active",
         CreatedBy: adminUserId,
+        UpdatedBy: adminUserId,
       },
       {
         ResourceType: "資料庫",
@@ -150,7 +163,9 @@ async function init() {
         Port: 3306,
         DbName: "production_db",
         DbVersion: "8.0.32",
+        Status: "Active",
         CreatedBy: adminUserId,
+        UpdatedBy: adminUserId,
       },
       {
         ResourceType: "API服務",
@@ -160,7 +175,9 @@ async function init() {
         LoginPasswordEncrypted: encrypt("apikey789"),
         Description: "處理用戶註冊、登入和管理功能的RESTful API服務",
         Port: 8080,
+        Status: "Active",
         CreatedBy: adminUserId,
+        UpdatedBy: adminUserId,
       },
       {
         ResourceType: "伺服器",
@@ -170,7 +187,9 @@ async function init() {
         LoginPasswordEncrypted: encrypt("testpass123"),
         Description: "用於功能測試和QA驗證的測試環境伺服器",
         Port: 8000,
+        Status: "Active",
         CreatedBy: adminUserId,
+        UpdatedBy: adminUserId,
       },
       {
         ResourceType: "網站",
@@ -180,7 +199,9 @@ async function init() {
         LoginPasswordEncrypted: encrypt("website456"),
         Description: "公司對外官方網站，提供產品資訊和客戶服務",
         Port: 443,
+        Status: "Active",
         CreatedBy: adminUserId,
+        UpdatedBy: adminUserId,
       },
     ];
 
@@ -218,6 +239,7 @@ async function init() {
               await ResourceTag.create({
                 ResourceId: resource.Id,
                 TagId: tag.Id,
+                CreatedBy: adminUserId,
               });
             }
           }
@@ -252,6 +274,9 @@ async function init() {
             TargetResourceId: targetResource.Id,
             RelationshipType: rel.type,
             Description: rel.description,
+            IsActive: true,
+            CreatedBy: adminUserId,
+            UpdatedBy: adminUserId,
           });
         }
       }

@@ -1,44 +1,96 @@
 import { DataTypes } from "sequelize";
 import sequelize from "../config/database.js";
 
-/**
- * ResourceRelationships
- * 多對多自關聯：資源 (Resource) 之間的依賴／引用關係
- *
- * - SourceResourceId: 來源資源
- * - TargetResourceId: 目標資源
- * - RelationshipType: 關係描述，預設 '使用'
- *
- * 複合主鍵：SourceResourceId + TargetResourceId
- */
 const ResourceRelationship = sequelize.define(
   "ResourceRelationships",
   {
-    SourceResourceId: {
+    Id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
+      autoIncrement: true,
+    },
+    SourceResourceId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
       references: {
         model: "Resources",
         key: "Id",
       },
+      comment: "來源資源ID"
     },
     TargetResourceId: {
       type: DataTypes.INTEGER,
-      primaryKey: true,
+      allowNull: false,
       references: {
         model: "Resources",
         key: "Id",
       },
+      comment: "目標資源ID"
     },
     RelationshipType: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(50),
       allowNull: false,
-      defaultValue: "使用",
+      defaultValue: "depends_on",
+      comment: "關係類型 (depends_on, connects_to, deployed_on, etc.)"
+    },
+    Description: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      comment: "關係描述"
+    },
+    IsActive: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+      comment: "關係是否啟用"
+    },
+    CreatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+      comment: "創建時間"
+    },
+    CreatedBy: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'Users',
+        key: 'Id'
+      },
+      comment: "創建者ID"
+    },
+    UpdatedAt: {
+      type: DataTypes.DATE,
+      allowNull: false,
+      defaultValue: DataTypes.NOW,
+      comment: "更新時間"
+    },
+    UpdatedBy: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'Users',
+        key: 'Id'
+      },
+      comment: "更新者ID"
     },
   },
   {
     tableName: "ResourceRelationships",
-    timestamps: false,
+    indexes: [
+      {
+        fields: ['SourceResourceId']
+      },
+      {
+        fields: ['TargetResourceId']
+      },
+      {
+        fields: ['RelationshipType']
+      },
+      {
+        fields: ['CreatedAt']
+      }
+    ]
   }
 );
 

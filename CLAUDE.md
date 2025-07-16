@@ -93,3 +93,4 @@ The project uses `.env` files for configuration. Key variables:
 - Structured logging to Seq for monitoring and debugging
 - Password encryption for sensitive resource credentials
 - Comprehensive error handling with standardized error codes
+- Do not run Docker in Ubuntu
