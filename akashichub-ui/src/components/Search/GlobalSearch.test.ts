@@ -5,11 +5,6 @@ import { mountComponent, setInputValue, clickElement } from '@/tests/utils'
 
 // Mock vue-router
 const mockPush = vi.fn()
-vi.mock('vue-router', () => ({
-  useRouter: () => ({
-    push: mockPush
-  })
-}))
 
 describe('GlobalSearch', () => {
   beforeEach(() => {

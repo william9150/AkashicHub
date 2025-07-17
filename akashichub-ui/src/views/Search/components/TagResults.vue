@@ -4,71 +4,69 @@
       <div
         v-for="tag in results"
         :key="tag.id"
-        class="tag-item"
+        class="tag-item card mb-3"
         @click="$emit('filterByTag', tag)"
+        style="cursor: pointer;"
       >
-        <div class="tag-icon">
-          <el-icon :color="getCategoryColor(tag.category)">
-            <CollectionTag />
-          </el-icon>
-        </div>
-        <div class="tag-content">
-          <div class="tag-header">
-            <div class="tag-display">
-              <el-tag
-                :type="getCategoryTagType(tag.category)"
-                :color="tag.color"
-                effect="light"
-                size="large"
-                class="tag-element"
-              >
-                <span v-html="highlightText(tag.name, keyword)"></span>
-              </el-tag>
+        <div class="card-body">
+          <div class="d-flex align-items-start">
+            <div class="tag-icon me-3">
+              <div class="icon-container" :style="{ backgroundColor: getCategoryColor(tag.category) }">
+                <i class="bi bi-tags icon"></i>
+              </div>
             </div>
-            <div class="tag-category">
-              <el-tag type="info" size="small" effect="plain">
-                {{ getCategoryLabel(tag.category) }}
-              </el-tag>
+            <div class="tag-content flex-grow-1">
+              <div class="tag-header d-flex justify-content-between align-items-start mb-2">
+                <div class="tag-display">
+                  <span
+                    :class="getCategoryTagClass(tag.category)"
+                    class="tag-element"
+                    :style="{ backgroundColor: tag.color }"
+                  >
+                    <span v-html="highlightText(tag.name, keyword)"></span>
+                  </span>
+                </div>
+                <div class="tag-category">
+                  <span class="badge bg-info">
+                    {{ getCategoryLabel(tag.category) }}
+                  </span>
+                </div>
+              </div>
+              <div class="tag-stats mb-2">
+                <div class="stat-item d-flex align-items-center mb-1">
+                  <i class="bi bi-graph-up me-2"></i>
+                  <span class="small text-muted">使用 {{ tag.usageCount }} 次</span>
+                </div>
+                <div class="stat-item d-flex align-items-center mb-1">
+                  <i class="bi bi-calendar me-2"></i>
+                  <span class="small text-muted">創建於 {{ formatDate(tag.createdAt) }}</span>
+                </div>
+                <div class="stat-item d-flex align-items-center">
+                  <i class="bi bi-pencil me-2"></i>
+                  <span class="small text-muted">更新於 {{ formatDate(tag.updatedAt) }}</span>
+                </div>
+              </div>
+              <div v-if="tag.description" class="tag-description">
+                <p class="small text-muted mb-0">{{ tag.description }}</p>
+              </div>
+            </div>
+            <div class="tag-actions">
+              <button class="btn btn-sm btn-primary" @click.stop="$emit('filterByTag', tag)">
+                篩選資源
+              </button>
             </div>
           </div>
-          <div class="tag-stats">
-            <div class="stat-item">
-              <el-icon><DataLine /></el-icon>
-              <span>使用 {{ tag.usageCount }} 次</span>
-            </div>
-            <div class="stat-item">
-              <el-icon><Calendar /></el-icon>
-              <span>創建於 {{ formatDate(tag.createdAt) }}</span>
-            </div>
-            <div class="stat-item">
-              <el-icon><Edit /></el-icon>
-              <span>更新於 {{ formatDate(tag.updatedAt) }}</span>
-            </div>
-          </div>
-          <div v-if="tag.description" class="tag-description">
-            <p>{{ tag.description }}</p>
-          </div>
-        </div>
-        <div class="tag-actions">
-          <el-button size="small" type="primary" @click.stop="$emit('filterByTag', tag)">
-            篩選資源
-          </el-button>
         </div>
       </div>
     </div>
-    <div v-else class="no-results">
-      <el-empty description="沒有找到相關標籤" :image-size="80" />
+    <div v-else class="no-results text-center text-muted py-5">
+      <i class="bi bi-search fs-1"></i>
+      <p class="mt-2">沒有找到相關標籤</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import {
-  CollectionTag,
-  DataLine,
-  Calendar,
-  Edit
-} from '@element-plus/icons-vue'
 import { format } from 'date-fns'
 
 interface Props {
@@ -97,16 +95,16 @@ const getCategoryColor = (category: string) => {
 }
 
 // 獲取分類標籤類型
-const getCategoryTagType = (category: string) => {
+const getCategoryTagClass = (category: string) => {
   const typeMap: Record<string, string> = {
-    Environment: 'success',
-    Priority: 'warning',
-    Department: 'primary',
-    Project: 'info',
-    Technology: 'danger',
-    Other: ''
+    Environment: 'badge bg-success',
+    Priority: 'badge bg-warning',
+    Department: 'badge bg-primary',
+    Project: 'badge bg-info',
+    Technology: 'badge bg-danger',
+    Other: 'badge bg-secondary'
   }
-  return typeMap[category] || ''
+  return typeMap[category] || 'badge bg-secondary'
 }
 
 // 獲取分類標籤
@@ -126,7 +124,7 @@ const getCategoryLabel = (category: string) => {
 const highlightText = (text: string, query: string) => {
   if (!query) return text
   const regex = new RegExp(`(${query})`, 'gi')
-  return text.replace(regex, '<mark>$1</mark>')
+  return text.replace(regex, '<mark class="bg-warning">$1</mark>')
 }
 
 // 格式化日期
@@ -140,105 +138,63 @@ const formatDate = (date: Date) => {
   .results-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-    gap: 16px;
+    gap: 1rem;
     
     .tag-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
-      padding: 20px;
-      border: 1px solid var(--el-border-color-lighter);
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all 0.2s ease;
       
       &:hover {
-        border-color: var(--el-color-primary);
-        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       }
       
       .tag-icon {
-        flex-shrink: 0;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: var(--el-bg-color-page);
-        border-radius: 8px;
-        
-        .el-icon {
-          font-size: 20px;
+        .icon-container {
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 8px;
+          
+          .icon {
+            font-size: 20px;
+            color: white;
+          }
         }
       }
       
       .tag-content {
-        flex: 1;
-        
-        .tag-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          margin-bottom: 12px;
+        .tag-element {
+          font-weight: 500;
+          border-radius: 0.375rem;
+          padding: 0.25rem 0.5rem;
           
-          .tag-display {
-            .tag-element {
-              font-weight: 500;
-              
-              :deep(span) {
-                :deep(mark) {
-                  background: rgba(255, 255, 255, 0.8);
-                  color: inherit;
-                  padding: 1px 2px;
-                  border-radius: 2px;
-                  font-weight: 600;
-                }
-              }
-            }
+          :deep(mark) {
+            background: rgba(255, 255, 255, 0.8);
+            color: inherit;
+            padding: 0.1em 0.2em;
+            border-radius: 0.2em;
+            font-weight: 600;
           }
         }
         
-        .tag-stats {
-          display: flex;
-          flex-direction: column;
-          gap: 6px;
-          margin-bottom: 12px;
-          
-          .stat-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 13px;
-            color: var(--el-text-color-regular);
-            
-            .el-icon {
-              font-size: 14px;
-              color: var(--el-text-color-placeholder);
-            }
+        .stat-item {
+          i {
+            font-size: 0.875rem;
+            color: var(--bs-gray-500);
           }
         }
-        
-        .tag-description {
-          p {
-            margin: 0;
-            font-size: 13px;
-            color: var(--el-text-color-placeholder);
-            line-height: 1.5;
-          }
-        }
-      }
-      
-      .tag-actions {
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
       }
     }
   }
   
   .no-results {
-    text-align: center;
-    padding: 60px 20px;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
   }
 }
 
@@ -249,58 +205,28 @@ const formatDate = (date: Date) => {
       grid-template-columns: 1fr;
       
       .tag-item {
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        
-        .tag-content {
-          width: 100%;
+        .d-flex {
+          flex-direction: column;
+          align-items: center;
+          text-align: center;
           
-          .tag-header {
-            flex-direction: column;
-            gap: 8px;
-            align-items: center;
+          .tag-icon {
+            margin-bottom: 1rem;
+            margin-right: 0 !important;
           }
           
-          .tag-stats {
-            align-items: center;
+          .tag-content {
+            width: 100%;
             
-            .stat-item {
-              justify-content: center;
+            .tag-header {
+              flex-direction: column;
+              gap: 0.5rem;
+              align-items: center;
             }
-          }
-        }
-      }
-    }
-  }
-}
-
-// 暗黑模式
-.dark {
-  .tag-results {
-    .results-list {
-      .tag-item {
-        border-color: var(--el-border-color-lighter);
-        
-        &:hover {
-          border-color: var(--el-color-primary);
-          box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
-        }
-        
-        .tag-icon {
-          background: var(--el-bg-color-page);
-        }
-        
-        .tag-content {
-          .tag-header {
-            .tag-display {
-              .tag-element {
-                :deep(span) {
-                  :deep(mark) {
-                    background: rgba(0, 0, 0, 0.3);
-                    color: inherit;
-                  }
-                }
+            
+            .tag-stats {
+              .stat-item {
+                justify-content: center;
               }
             }
           }

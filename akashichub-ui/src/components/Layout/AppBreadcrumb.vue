@@ -1,36 +1,35 @@
 <template>
   <div class="app-breadcrumb">
-    <el-breadcrumb separator="/">
-      <el-breadcrumb-item
-        v-for="(item, index) in breadcrumbs"
-        :key="index"
-        :to="item.path"
-      >
-        <div class="breadcrumb-item">
-          <el-icon v-if="item.icon" class="breadcrumb-icon">
-            <component :is="item.icon" />
-          </el-icon>
-          <span class="breadcrumb-title">{{ item.title }}</span>
-        </div>
-      </el-breadcrumb-item>
-    </el-breadcrumb>
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li
+          v-for="(item, index) in breadcrumbs"
+          :key="index"
+          :class="['breadcrumb-item', { active: index === breadcrumbs.length - 1 }]"
+        >
+          <router-link
+            v-if="index !== breadcrumbs.length - 1"
+            :to="item.path"
+            class="breadcrumb-link"
+          >
+            <div class="breadcrumb-content">
+              <i v-if="item.icon" :class="item.icon" class="breadcrumb-icon"></i>
+              <span class="breadcrumb-title">{{ item.title }}</span>
+            </div>
+          </router-link>
+          <div v-else class="breadcrumb-content">
+            <i v-if="item.icon" :class="item.icon" class="breadcrumb-icon"></i>
+            <span class="breadcrumb-title">{{ item.title }}</span>
+          </div>
+        </li>
+      </ol>
+    </nav>
   </div>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import {
-  House,
-  Server,
-  CollectionTag,
-  User,
-  Document,
-  Search,
-  Setting,
-  InfoFilled,
-  UserFilled
-} from '@element-plus/icons-vue'
 import { useAppStore } from '@/stores/app'
 
 // 狀態管理
@@ -53,34 +52,34 @@ const breadcrumbs = computed(() => {
 // 獲取面包屑圖標
 const getBreadcrumbIcon = (title: string, isFirst: boolean) => {
   if (isFirst) {
-    return 'House'
+    return 'bi bi-house'
   }
   
   const iconMap: Record<string, string> = {
-    '資源管理': 'Server',
-    '資源列表': 'Server',
-    '新增資源': 'Server',
-    '資源詳情': 'Server',
-    '編輯資源': 'Server',
-    '標籤管理': 'CollectionTag',
-    '標籤列表': 'CollectionTag',
-    '新增標籤': 'CollectionTag',
-    '編輯標籤': 'CollectionTag',
-    '用戶管理': 'User',
-    '用戶列表': 'User',
-    '新增用戶': 'User',
-    '用戶詳情': 'User',
-    '編輯用戶': 'User',
-    '日誌管理': 'Document',
-    '系統日誌': 'Document',
-    '審計日誌': 'Document',
-    '搜尋': 'Search',
-    '系統設定': 'Setting',
-    '一般設定': 'Setting',
-    '安全設定': 'Setting',
-    '系統狀態': 'Setting',
-    '關於系統': 'InfoFilled',
-    '個人資料': 'UserFilled'
+    '資源管理': 'bi bi-server',
+    '資源列表': 'bi bi-server',
+    '新增資源': 'bi bi-server',
+    '資源詳情': 'bi bi-server',
+    '編輯資源': 'bi bi-server',
+    '標籤管理': 'bi bi-tags',
+    '標籤列表': 'bi bi-tags',
+    '新增標籤': 'bi bi-tags',
+    '編輯標籤': 'bi bi-tags',
+    '用戶管理': 'bi bi-person',
+    '用戶列表': 'bi bi-person',
+    '新增用戶': 'bi bi-person',
+    '用戶詳情': 'bi bi-person',
+    '編輯用戶': 'bi bi-person',
+    '日誌管理': 'bi bi-file-text',
+    '系統日誌': 'bi bi-file-text',
+    '審計日誌': 'bi bi-file-text',
+    '搜尋': 'bi bi-search',
+    '系統設定': 'bi bi-gear',
+    '一般設定': 'bi bi-gear',
+    '安全設定': 'bi bi-gear',
+    '系統狀態': 'bi bi-gear',
+    '關於系統': 'bi bi-info-circle',
+    '個人資料': 'bi bi-person-fill'
   }
   
   return iconMap[title] || null
@@ -93,47 +92,31 @@ const getBreadcrumbIcon = (title: string, isFirst: boolean) => {
   align-items: center;
   height: 100%;
   
-  :deep(.el-breadcrumb) {
-    .el-breadcrumb__item {
-      .el-breadcrumb__inner {
-        display: flex;
-        align-items: center;
-        font-size: 14px;
-        color: var(--el-text-color-regular);
+  .breadcrumb {
+    margin-bottom: 0;
+    
+    .breadcrumb-item {
+      .breadcrumb-link {
         text-decoration: none;
+        color: var(--bs-secondary);
         transition: color 0.3s ease;
         
         &:hover {
-          color: var(--el-color-primary);
-        }
-        
-        &.is-link {
-          &:hover {
-            color: var(--el-color-primary);
-          }
+          color: var(--bs-primary);
         }
       }
       
-      &:last-child {
-        .el-breadcrumb__inner {
-          color: var(--el-text-color-primary);
+      &.active {
+        .breadcrumb-content {
+          color: var(--bs-emphasis-color);
           font-weight: 500;
-          
-          &:hover {
-            color: var(--el-text-color-primary);
-          }
         }
-      }
-      
-      .el-breadcrumb__separator {
-        margin: 0 8px;
-        color: var(--el-text-color-placeholder);
       }
     }
   }
 }
 
-.breadcrumb-item {
+.breadcrumb-content {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -152,20 +135,17 @@ const getBreadcrumbIcon = (title: string, isFirst: boolean) => {
 // 響應式設計
 @media (max-width: 768px) {
   .app-breadcrumb {
-    :deep(.el-breadcrumb) {
-      .el-breadcrumb__item {
-        .el-breadcrumb__inner {
+    .breadcrumb {
+      .breadcrumb-item {
+        .breadcrumb-link,
+        .breadcrumb-content {
           font-size: 13px;
-        }
-        
-        .el-breadcrumb__separator {
-          margin: 0 6px;
         }
       }
     }
   }
   
-  .breadcrumb-item {
+  .breadcrumb-content {
     gap: 4px;
     
     .breadcrumb-icon {
@@ -180,10 +160,10 @@ const getBreadcrumbIcon = (title: string, isFirst: boolean) => {
 
 @media (max-width: 480px) {
   .app-breadcrumb {
-    :deep(.el-breadcrumb) {
-      .el-breadcrumb__item {
+    .breadcrumb {
+      .breadcrumb-item {
         &:not(:last-child) {
-          .breadcrumb-item {
+          .breadcrumb-content {
             .breadcrumb-title {
               display: none;
             }
@@ -195,30 +175,22 @@ const getBreadcrumbIcon = (title: string, isFirst: boolean) => {
 }
 
 // 暗黑模式
-.dark {
+[data-bs-theme="dark"] {
   .app-breadcrumb {
-    :deep(.el-breadcrumb) {
-      .el-breadcrumb__item {
-        .el-breadcrumb__inner {
-          color: var(--el-text-color-regular);
+    .breadcrumb {
+      .breadcrumb-item {
+        .breadcrumb-link {
+          color: var(--bs-secondary);
           
           &:hover {
-            color: var(--el-color-primary);
+            color: var(--bs-primary);
           }
         }
         
-        &:last-child {
-          .el-breadcrumb__inner {
-            color: var(--el-text-color-primary);
-            
-            &:hover {
-              color: var(--el-text-color-primary);
-            }
+        &.active {
+          .breadcrumb-content {
+            color: var(--bs-emphasis-color);
           }
-        }
-        
-        .el-breadcrumb__separator {
-          color: var(--el-text-color-placeholder);
         }
       }
     }

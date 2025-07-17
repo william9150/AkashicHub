@@ -149,8 +149,8 @@
 
 // 卡片樣式
 @mixin card-style($padding: lg, $shadow: base) {
-  background-color: var(--el-bg-color);
-  border: 1px solid var(--el-border-color);
+  background-color: var(--bs-body-bg);
+  border: 1px solid var(--bs-border-color);
   border-radius: map.get($border-radius, base);
   padding: map.get($spacings, $padding);
   @include shadow($shadow);
@@ -160,23 +160,23 @@
 @mixin input-style {
   width: 100%;
   padding: 8px 12px;
-  border: 1px solid var(--el-border-color);
+  border: 1px solid var(--bs-border-color);
   border-radius: map.get($border-radius, base);
   font-size: map.get($font-sizes, base);
   @include transition(border-color, fast);
   
   &:focus {
     outline: none;
-    border-color: var(--el-color-primary);
+    border-color: var(--bs-primary);
   }
   
   &::placeholder {
-    color: var(--el-text-color-placeholder);
+    color: var(--bs-secondary-color);
   }
 }
 
 // 載入動畫
-@mixin loading-spinner($size: 20px, $color: var(--el-color-primary)) {
+@mixin loading-spinner($size: 20px, $color: var(--bs-primary)) {
   width: $size;
   height: $size;
   border: 2px solid transparent;
@@ -191,7 +191,7 @@
 }
 
 // 脈衝動畫
-@mixin pulse-animation($color: var(--el-color-primary)) {
+@mixin pulse-animation($color: var(--bs-primary)) {
   animation: pulse 2s infinite;
   
   @keyframes pulse {
@@ -214,7 +214,7 @@
 }
 
 // 滾動條樣式
-@mixin scrollbar-style($width: 8px, $track-color: transparent, $thumb-color: var(--el-border-color)) {
+@mixin scrollbar-style($width: 8px, $track-color: transparent, $thumb-color: var(--bs-border-color)) {
   &::-webkit-scrollbar {
     width: $width;
     height: $width;
@@ -230,7 +230,7 @@
     border-radius: calc($width * 0.5);
     
     &:hover {
-      background: var(--el-border-color);
+      background: var(--bs-border-color);
     }
   }
 }
@@ -284,7 +284,7 @@
 }
 
 // 文字選中樣式
-@mixin selection-style($bg-color: var(--el-color-primary), $text-color: white) {
+@mixin selection-style($bg-color: var(--bs-primary), $text-color: white) {
   ::selection {
     background-color: $bg-color;
     color: $text-color;

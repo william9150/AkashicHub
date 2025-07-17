@@ -2,21 +2,11 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { nextTick } from 'vue'
 import ResourcesList from './List.vue'
 import { mountComponent, setInputValue, clickElement, setupAuthState, createMockResource } from '@/tests/utils'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { showAlert, showConfirm } from '@/utils/bootstrap-alerts'
 
 // Mock vue-router
 const mockPush = vi.fn()
 const mockReplace = vi.fn()
-vi.mock('vue-router', () => ({
-  useRouter: () => ({
-    push: mockPush,
-    replace: mockReplace
-  }),
-  useRoute: () => ({
-    path: '/resources',
-    query: {}
-  })
-}))
 
 describe('Resources List Component', () => {
   beforeEach(() => {
@@ -208,17 +198,17 @@ describe('Resources List Component', () => {
     const mockResource = createMockResource({ id: 1, name: 'Test Server' })
     
     // Mock confirmation dialog
-    vi.mocked(ElMessageBox.confirm).mockResolvedValue('confirm')
+    vi.mocked(showConfirm).mockResolvedValue(true)
     wrapper.vm.loadData = vi.fn()
     
     await wrapper.vm.handleDelete(mockResource)
     
-    expect(ElMessageBox.confirm).toHaveBeenCalledWith(
+    expect(showConfirm).toHaveBeenCalledWith(
       '確定要刪除資源 "Test Server" 嗎？此操作不可恢復。',
       '確認刪除',
       expect.any(Object)
     )
-    expect(ElMessage.success).toHaveBeenCalledWith('刪除成功')
+    expect(showAlert).toHaveBeenCalledWith('刪除成功', 'success')
     expect(wrapper.vm.loadData).toHaveBeenCalled()
   })
 
@@ -227,12 +217,12 @@ describe('Resources List Component', () => {
     const mockResource = createMockResource()
     
     // Mock user cancelling confirmation
-    vi.mocked(ElMessageBox.confirm).mockRejectedValue('cancel')
+    vi.mocked(showConfirm).mockResolvedValue(false)
     
     await wrapper.vm.handleDelete(mockResource)
     
     // 不應該調用成功消息或重載數據
-    expect(ElMessage.success).not.toHaveBeenCalled()
+    expect(showAlert).not.toHaveBeenCalled()
   })
 
   it('should handle batch delete with confirmation', async () => {
@@ -244,17 +234,17 @@ describe('Resources List Component', () => {
     ]
     
     // Mock confirmation dialog
-    vi.mocked(ElMessageBox.confirm).mockResolvedValue('confirm')
+    vi.mocked(showConfirm).mockResolvedValue(true)
     wrapper.vm.loadData = vi.fn()
     
     await wrapper.vm.handleBatchDelete()
     
-    expect(ElMessageBox.confirm).toHaveBeenCalledWith(
+    expect(showConfirm).toHaveBeenCalledWith(
       '確定要刪除選中的 2 個資源嗎？此操作不可恢復。',
       '確認批量刪除',
       expect.any(Object)
     )
-    expect(ElMessage.success).toHaveBeenCalledWith('批量刪除成功')
+    expect(showAlert).toHaveBeenCalledWith('批量刪除成功', 'success')
     expect(wrapper.vm.selectedRows).toEqual([])
   })
 
@@ -265,7 +255,7 @@ describe('Resources List Component', () => {
     
     await wrapper.vm.handleBatchDelete()
     
-    expect(ElMessage.warning).toHaveBeenCalledWith('請選擇要刪除的資源')
+    expect(showAlert).toHaveBeenCalledWith('請選擇要刪除的資源', 'warning')
   })
 
   it('should handle selection changes', async () => {

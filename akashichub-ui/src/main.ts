@@ -6,11 +6,15 @@ import App from './App.vue'
 // 全域樣式
 import '@/styles/global.scss'
 
-// Element Plus 樣式
-import 'element-plus/dist/index.css'
+// Bootstrap 樣式
+import 'bootstrap/dist/css/bootstrap.min.css'
+import 'bootstrap-icons/font/bootstrap-icons.css'
 
 // 進度條樣式
 import 'nprogress/nprogress.css'
+
+// Bootstrap JS
+import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 
 // 創建應用實例
 const app = createApp(App)
@@ -26,7 +30,7 @@ const authStore = useAuthStore()
 authStore.initialize()
 
 // 全域屬性
-app.config.globalProperties.$ELEMENT = {}
+app.config.globalProperties.$BOOTSTRAP = {}
 
 // 錯誤處理
 app.config.errorHandler = (err, instance, info) => {

@@ -65,8 +65,8 @@ body {
     sans-serif;
   font-size: 14px;
   line-height: 1.5;
-  color: var(--el-text-color-primary);
-  background-color: var(--el-bg-color);
+  color: var(--bs-body-color);
+  background-color: var(--bs-body-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -98,16 +98,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--el-bg-color);
+  background: var(--bs-body-bg);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--el-border-color);
+  background: var(--bs-border-color);
   border-radius: 4px;
   
   &:hover {
-    background: var(--el-border-color-darker);
+    background: var(--bs-border-color-dark);
   }
 }
 
@@ -127,8 +127,8 @@ html.dark {
   color-scheme: dark;
   
   body {
-    background-color: var(--el-bg-color);
-    color: var(--el-text-color-primary);
+    background-color: var(--bs-body-bg);
+    color: var(--bs-body-color);
   }
 }
 

@@ -7,310 +7,506 @@
     </div>
 
     <!-- 搜索表單 -->
-    <el-card class="search-form-card">
-      <el-form
-        ref="searchFormRef"
-        :model="searchForm"
-        label-width="120px"
-        class="search-form"
-      >
-        <el-row :gutter="20">
-          <!-- 關鍵字搜索 -->
-          <el-col :span="24">
-            <el-form-item label="關鍵字" prop="keyword">
-              <el-input
-                v-model="searchForm.keyword"
-                placeholder="輸入搜索關鍵字..."
-                prefix-icon="Search"
-                clearable
-                @keyup.enter="handleSearch"
-              >
-                <template #append>
-                  <el-button type="primary" @click="handleSearch">
-                    搜索
-                  </el-button>
-                </template>
-              </el-input>
-            </el-form-item>
-          </el-col>
-
-          <!-- 搜索範圍 -->
-          <el-col :span="12">
-            <el-form-item label="搜索範圍" prop="scope">
-              <el-select
-                v-model="searchForm.scope"
-                placeholder="選擇搜索範圍"
-                style="width: 100%"
-                multiple
-                collapse-tags
-                collapse-tags-tooltip
-              >
-                <el-option label="資源" value="resources" />
-                <el-option label="用戶" value="users" />
-                <el-option label="標籤" value="tags" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-
-          <!-- 排序方式 -->
-          <el-col :span="12">
-            <el-form-item label="排序方式" prop="sortBy">
-              <el-select v-model="searchForm.sortBy" placeholder="選擇排序方式" style="width: 100%">
-                <el-option label="相關性" value="relevance" />
-                <el-option label="創建時間" value="createdAt" />
-                <el-option label="更新時間" value="updatedAt" />
-                <el-option label="名稱" value="name" />
-              </el-select>
-            </el-form-item>
-          </el-col>
-        </el-row>
-
-        <!-- 高級篩選 -->
-        <el-divider content-position="left">高級篩選</el-divider>
-
-        <!-- 資源篩選 -->
-        <div v-if="searchForm.scope.includes('resources')" class="filter-section">
-          <h4>資源篩選</h4>
-          <el-row :gutter="20">
-            <el-col :span="12">
-              <el-form-item label="資源類型" prop="resourceType">
-                <el-select
-                  v-model="searchForm.resourceType"
-                  placeholder="選擇資源類型"
-                  style="width: 100%"
-                  multiple
-                  clearable
+    <div class="card search-form-card">
+      <div class="card-body">
+        <form class="search-form" @submit.prevent="handleSearch">
+          <div class="row g-3">
+            <!-- 關鍵字搜索 -->
+            <div class="col-12">
+              <label class="form-label">關鍵字</label>
+              <div class="input-group">
+                <span class="input-group-text">
+                  <i class="bi bi-search"></i>
+                </span>
+                <input
+                  type="text"
+                  class="form-control"
+                  v-model="searchForm.keyword"
+                  placeholder="輸入搜索關鍵字..."
+                  @keyup.enter="handleSearch"
                 >
-                  <el-option label="伺服器" value="Server" />
-                  <el-option label="資料庫" value="Database" />
-                  <el-option label="網站" value="Website" />
-                  <el-option label="儲存" value="Storage" />
-                  <el-option label="快取" value="Cache" />
-                </el-select>
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="IP地址" prop="ipAddress">
-                <el-input
+                <button type="button" class="btn btn-primary" @click="handleSearch">
+                  搜索
+                </button>
+              </div>
+            </div>
+
+            <!-- 搜索範圍 -->
+            <div class="col-md-6">
+              <label class="form-label">搜索範圍</label>
+              <div class="form-check-container">
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="scopeResources"
+                    value="resources"
+                    v-model="searchForm.scope"
+                  >
+                  <label class="form-check-label" for="scopeResources">資源</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="scopeUsers"
+                    value="users"
+                    v-model="searchForm.scope"
+                  >
+                  <label class="form-check-label" for="scopeUsers">用戶</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="scopeTags"
+                    value="tags"
+                    v-model="searchForm.scope"
+                  >
+                  <label class="form-check-label" for="scopeTags">標籤</label>
+                </div>
+              </div>
+            </div>
+
+            <!-- 排序方式 -->
+            <div class="col-md-6">
+              <label class="form-label">排序方式</label>
+              <select class="form-select" v-model="searchForm.sortBy">
+                <option value="relevance">相關性</option>
+                <option value="createdAt">創建時間</option>
+                <option value="updatedAt">更新時間</option>
+                <option value="name">名稱</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- 高級篩選分隔線 -->
+          <div class="col-12">
+            <hr class="my-4">
+            <h5 class="mb-3">高級篩選</h5>
+          </div>
+
+          <!-- 資源篩選 -->
+          <div v-if="searchForm.scope.includes('resources')" class="col-12 filter-section">
+            <h6 class="mb-3">資源篩選</h6>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">資源類型</label>
+                <div class="form-check-container">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="typeServer"
+                      value="Server"
+                      v-model="searchForm.resourceType"
+                    >
+                    <label class="form-check-label" for="typeServer">伺服器</label>
+                  </div>
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="typeDatabase"
+                      value="Database"
+                      v-model="searchForm.resourceType"
+                    >
+                    <label class="form-check-label" for="typeDatabase">資料庫</label>
+                  </div>
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="typeWebsite"
+                      value="Website"
+                      v-model="searchForm.resourceType"
+                    >
+                    <label class="form-check-label" for="typeWebsite">網站</label>
+                  </div>
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="typeStorage"
+                      value="Storage"
+                      v-model="searchForm.resourceType"
+                    >
+                    <label class="form-check-label" for="typeStorage">儲存</label>
+                  </div>
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="typeCache"
+                      value="Cache"
+                      v-model="searchForm.resourceType"
+                    >
+                    <label class="form-check-label" for="typeCache">快取</label>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">IP地址</label>
+                <input
+                  type="text"
+                  class="form-control"
                   v-model="searchForm.ipAddress"
                   placeholder="輸入IP地址或範圍"
-                  clearable
-                />
-              </el-form-item>
-            </el-col>
-          </el-row>
-        </div>
+                >
+              </div>
+            </div>
+          </div>
 
-        <!-- 用戶篩選 -->
-        <div v-if="searchForm.scope.includes('users')" class="filter-section">
-          <h4>用戶篩選</h4>
-          <el-row :gutter="20">
-            <el-col :span="8">
-              <el-form-item label="用戶角色" prop="userRole">
-                <el-select
-                  v-model="searchForm.userRole"
-                  placeholder="選擇用戶角色"
-                  style="width: 100%"
-                  multiple
-                  clearable
-                >
-                  <el-option label="管理員" value="Admin" />
-                  <el-option label="用戶" value="User" />
-                </el-select>
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item label="部門" prop="department">
-                <el-select
-                  v-model="searchForm.department"
-                  placeholder="選擇部門"
-                  style="width: 100%"
-                  multiple
-                  clearable
-                  filterable
-                >
-                  <el-option
+          <!-- 用戶篩選 -->
+          <div v-if="searchForm.scope.includes('users')" class="col-12 filter-section">
+            <h6 class="mb-3">用戶篩選</h6>
+            <div class="row g-3">
+              <div class="col-md-4">
+                <label class="form-label">用戶角色</label>
+                <div class="form-check-container">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="roleAdmin"
+                      value="Admin"
+                      v-model="searchForm.userRole"
+                    >
+                    <label class="form-check-label" for="roleAdmin">管理員</label>
+                  </div>
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="roleUser"
+                      value="User"
+                      v-model="searchForm.userRole"
+                    >
+                    <label class="form-check-label" for="roleUser">用戶</label>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label" for="department">部門</label>
+                <select class="form-select" id="department" v-model="selectedDepartment" @change="addDepartment">
+                  <option value="">選擇部門</option>
+                  <option
                     v-for="dept in departments"
                     :key="dept"
-                    :label="dept"
                     :value="dept"
-                  />
-                </el-select>
-              </el-form-item>
-            </el-col>
-            <el-col :span="8">
-              <el-form-item label="帳號狀態" prop="userStatus">
-                <el-select
-                  v-model="searchForm.userStatus"
-                  placeholder="選擇帳號狀態"
-                  style="width: 100%"
-                  multiple
-                  clearable
-                >
-                  <el-option label="啟用" value="active" />
-                  <el-option label="停用" value="inactive" />
-                  <el-option label="鎖定" value="locked" />
-                </el-select>
-              </el-form-item>
-            </el-col>
-          </el-row>
-        </div>
+                    :disabled="searchForm.department.includes(dept)"
+                  >
+                    {{ dept }}
+                  </option>
+                </select>
+                <div class="selected-items mt-2">
+                  <span
+                    v-for="dept in searchForm.department"
+                    :key="dept"
+                    class="badge bg-secondary me-1 mb-1"
+                  >
+                    {{ dept }}
+                    <button
+                      type="button"
+                      class="btn-close btn-close-white ms-1"
+                      @click="removeDepartment(dept)"
+                    ></button>
+                  </span>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">帳號狀態</label>
+                <div class="form-check-container">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="statusActive"
+                      value="active"
+                      v-model="searchForm.userStatus"
+                    >
+                    <label class="form-check-label" for="statusActive">啟用</label>
+                  </div>
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="statusInactive"
+                      value="inactive"
+                      v-model="searchForm.userStatus"
+                    >
+                    <label class="form-check-label" for="statusInactive">停用</label>
+                  </div>
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="statusLocked"
+                      value="locked"
+                      v-model="searchForm.userStatus"
+                    >
+                    <label class="form-check-label" for="statusLocked">鎖定</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-        <!-- 標籤篩選 -->
-        <div v-if="searchForm.scope.includes('tags')" class="filter-section">
-          <h4>標籤篩選</h4>
-          <el-row :gutter="20">
-            <el-col :span="12">
-              <el-form-item label="標籤分類" prop="tagCategory">
-                <el-select
-                  v-model="searchForm.tagCategory"
-                  placeholder="選擇標籤分類"
-                  style="width: 100%"
-                  multiple
-                  clearable
-                >
-                  <el-option label="環境" value="Environment" />
-                  <el-option label="優先級" value="Priority" />
-                  <el-option label="部門" value="Department" />
-                  <el-option label="項目" value="Project" />
-                  <el-option label="技術" value="Technology" />
-                  <el-option label="其他" value="Other" />
-                </el-select>
-              </el-form-item>
-            </el-col>
-            <el-col :span="12">
-              <el-form-item label="使用次數" prop="usageCount">
-                <el-input-number
-                  v-model="searchForm.minUsageCount"
-                  :min="0"
-                  controls-position="right"
-                  placeholder="最小使用次數"
-                  style="width: 48%"
-                />
-                <span style="margin: 0 8px;">-</span>
-                <el-input-number
-                  v-model="searchForm.maxUsageCount"
-                  :min="searchForm.minUsageCount || 0"
-                  controls-position="right"
-                  placeholder="最大使用次數"
-                  style="width: 48%"
-                />
-              </el-form-item>
-            </el-col>
-          </el-row>
-        </div>
+          <!-- 標籤篩選 -->
+          <div v-if="searchForm.scope.includes('tags')" class="col-12 filter-section">
+            <h6 class="mb-3">標籤篩選</h6>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">標籤分類</label>
+                <div class="form-check-container">
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="catEnvironment"
+                      value="Environment"
+                      v-model="searchForm.tagCategory"
+                    >
+                    <label class="form-check-label" for="catEnvironment">環境</label>
+                  </div>
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="catPriority"
+                      value="Priority"
+                      v-model="searchForm.tagCategory"
+                    >
+                    <label class="form-check-label" for="catPriority">優先級</label>
+                  </div>
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="catDepartment"
+                      value="Department"
+                      v-model="searchForm.tagCategory"
+                    >
+                    <label class="form-check-label" for="catDepartment">部門</label>
+                  </div>
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="catProject"
+                      value="Project"
+                      v-model="searchForm.tagCategory"
+                    >
+                    <label class="form-check-label" for="catProject">項目</label>
+                  </div>
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="catTechnology"
+                      value="Technology"
+                      v-model="searchForm.tagCategory"
+                    >
+                    <label class="form-check-label" for="catTechnology">技術</label>
+                  </div>
+                  <div class="form-check">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      id="catOther"
+                      value="Other"
+                      v-model="searchForm.tagCategory"
+                    >
+                    <label class="form-check-label" for="catOther">其他</label>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">使用次數範圍</label>
+                <div class="row g-2">
+                  <div class="col-6">
+                    <input
+                      type="number"
+                      class="form-control"
+                      v-model.number="searchForm.minUsageCount"
+                      placeholder="最小使用次數"
+                      min="0"
+                    >
+                  </div>
+                  <div class="col-6">
+                    <input
+                      type="number"
+                      class="form-control"
+                      v-model.number="searchForm.maxUsageCount"
+                      placeholder="最大使用次數"
+                      :min="searchForm.minUsageCount || 0"
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-        <!-- 時間範圍 -->
-        <el-divider content-position="left">時間範圍</el-divider>
-        <el-row :gutter="20">
-          <el-col :span="12">
-            <el-form-item label="創建時間" prop="createdDateRange">
-              <el-date-picker
-                v-model="searchForm.createdDateRange"
-                type="datetimerange"
-                start-placeholder="開始日期"
-                end-placeholder="結束日期"
-                format="YYYY-MM-DD HH:mm"
-                value-format="YYYY-MM-DD HH:mm:ss"
-                style="width: 100%"
-              />
-            </el-form-item>
-          </el-col>
-          <el-col :span="12">
-            <el-form-item label="更新時間" prop="updatedDateRange">
-              <el-date-picker
-                v-model="searchForm.updatedDateRange"
-                type="datetimerange"
-                start-placeholder="開始日期"
-                end-placeholder="結束日期"
-                format="YYYY-MM-DD HH:mm"
-                value-format="YYYY-MM-DD HH:mm:ss"
-                style="width: 100%"
-              />
-            </el-form-item>
-          </el-col>
-        </el-row>
+          <!-- 時間範圍 -->
+          <div class="col-12">
+            <hr class="my-4">
+            <h6 class="mb-3">時間範圍</h6>
+            <div class="row g-3">
+              <div class="col-md-6">
+                <label class="form-label">創建時間</label>
+                <div class="row g-2">
+                  <div class="col-6">
+                    <input
+                      type="datetime-local"
+                      class="form-control"
+                      v-model="searchForm.createdStartDate"
+                      placeholder="開始日期"
+                    >
+                  </div>
+                  <div class="col-6">
+                    <input
+                      type="datetime-local"
+                      class="form-control"
+                      v-model="searchForm.createdEndDate"
+                      placeholder="結束日期"
+                    >
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">更新時間</label>
+                <div class="row g-2">
+                  <div class="col-6">
+                    <input
+                      type="datetime-local"
+                      class="form-control"
+                      v-model="searchForm.updatedStartDate"
+                      placeholder="開始日期"
+                    >
+                  </div>
+                  <div class="col-6">
+                    <input
+                      type="datetime-local"
+                      class="form-control"
+                      v-model="searchForm.updatedEndDate"
+                      placeholder="結束日期"
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-        <!-- 操作按鈕 -->
-        <el-form-item>
-          <el-button type="primary" @click="handleSearch" :loading="searching">
-            <el-icon><Search /></el-icon>
-            搜索
-          </el-button>
-          <el-button @click="handleReset">
-            <el-icon><RefreshLeft /></el-icon>
-            重置
-          </el-button>
-          <el-button @click="saveSearchTemplate">
-            <el-icon><Collection /></el-icon>
-            保存為模板
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+          <!-- 操作按鈕 -->
+          <div class="col-12">
+            <hr class="my-4">
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-primary" @click="handleSearch" :disabled="searching">
+                <span v-if="searching" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                <i v-else class="bi bi-search me-2"></i>
+                {{ searching ? '搜索中...' : '搜索' }}
+              </button>
+              <button type="button" class="btn btn-outline-secondary" @click="handleReset">
+                <i class="bi bi-arrow-clockwise me-2"></i>
+                重置
+              </button>
+              <button type="button" class="btn btn-outline-info" @click="saveSearchTemplate">
+                <i class="bi bi-collection me-2"></i>
+                保存為模板
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
 
     <!-- 搜索結果統計 -->
     <div v-if="hasSearched" class="search-stats">
-      <el-alert
-        :title="`找到 ${totalResults} 個結果 (耗時 ${searchTime}ms)`"
-        type="info"
-        :closable="false"
-        show-icon
-      />
+      <div class="alert alert-info" role="alert">
+        <i class="bi bi-info-circle me-2"></i>
+        找到 {{ totalResults }} 個結果 (耗時 {{ searchTime }}ms)
+      </div>
     </div>
 
     <!-- 搜索結果 -->
     <div v-if="hasSearched" class="search-results">
-      <!-- 標籤頁切換 -->
-      <el-tabs v-model="activeTab" @tab-change="handleTabChange">
+        <!-- 標籤頁切換 -->
+      <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            :class="{ active: activeTab === 'all' }"
+            @click="handleTabChange('all')"
+          >
+            全部
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            :class="{ active: activeTab === 'resources' }"
+            @click="handleTabChange('resources')"
+          >
+            資源 ({{ searchResults.resources.length }})
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            :class="{ active: activeTab === 'users' }"
+            @click="handleTabChange('users')"
+          >
+            用戶 ({{ searchResults.users.length }})
+          </button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button
+            class="nav-link"
+            :class="{ active: activeTab === 'tags' }"
+            @click="handleTabChange('tags')"
+          >
+            標籤 ({{ searchResults.tags.length }})
+          </button>
+        </li>
+      </ul>
+      
+      <div class="tab-content">
         <!-- 全部結果 -->
-        <el-tab-pane label="全部" name="all">
+        <div class="tab-pane fade" :class="{ 'show active': activeTab === 'all' }">
           <div class="results-summary">
-            <el-row :gutter="20">
-              <el-col :span="8">
-                <el-statistic
-                  title="資源"
-                  :value="searchResults.resources.length"
-                  suffix="個"
-                >
-                  <template #prefix>
-                    <el-icon style="vertical-align: -0.125em">
-                      <Server />
-                    </el-icon>
-                  </template>
-                </el-statistic>
-              </el-col>
-              <el-col :span="8">
-                <el-statistic
-                  title="用戶"
-                  :value="searchResults.users.length"
-                  suffix="個"
-                >
-                  <template #prefix>
-                    <el-icon style="vertical-align: -0.125em">
-                      <User />
-                    </el-icon>
-                  </template>
-                </el-statistic>
-              </el-col>
-              <el-col :span="8">
-                <el-statistic
-                  title="標籤"
-                  :value="searchResults.tags.length"
-                  suffix="個"
-                >
-                  <template #prefix>
-                    <el-icon style="vertical-align: -0.125em">
-                      <CollectionTag />
-                    </el-icon>
-                  </template>
-                </el-statistic>
-              </el-col>
-            </el-row>
+            <div class="row g-3">
+              <div class="col-md-4">
+                <div class="card text-center">
+                  <div class="card-body">
+                    <i class="bi bi-server text-primary" style="font-size: 2rem;"></i>
+                    <h5 class="card-title mt-2">{{ searchResults.resources.length }}</h5>
+                    <p class="card-text text-muted">資源</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card text-center">
+                  <div class="card-body">
+                    <i class="bi bi-people text-success" style="font-size: 2rem;"></i>
+                    <h5 class="card-title mt-2">{{ searchResults.users.length }}</h5>
+                    <p class="card-text text-muted">用戶</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="card text-center">
+                  <div class="card-body">
+                    <i class="bi bi-tags text-warning" style="font-size: 2rem;"></i>
+                    <h5 class="card-title mt-2">{{ searchResults.tags.length }}</h5>
+                    <p class="card-text text-muted">標籤</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           
           <!-- 混合結果列表 -->
-          <div class="mixed-results">
+          <div class="mixed-results mt-4">
             <div
               v-for="item in allResults"
               :key="`${item.type}-${item.id}`"
@@ -318,14 +514,12 @@
               @click="goToDetail(item)"
             >
               <div class="item-type">
-                <el-tag :type="getItemTypeColor(item.type)">
+                <span :class="getItemTypeClass(item.type)">
                   {{ getItemTypeLabel(item.type) }}
-                </el-tag>
+                </span>
               </div>
               <div class="item-icon">
-                <el-icon>
-                  <component :is="getItemIcon(item)" />
-                </el-icon>
+                <i :class="getItemIconClass(item)" class="text-primary"></i>
               </div>
               <div class="item-content">
                 <div class="item-title" v-html="highlightText(item.name, searchForm.keyword)"></div>
@@ -336,105 +530,98 @@
                 </div>
               </div>
               <div class="item-actions">
-                <el-button size="small" type="primary" link>查看詳情</el-button>
+                <button type="button" class="btn btn-sm btn-primary">查看詳情</button>
               </div>
             </div>
           </div>
-        </el-tab-pane>
+        </div>
 
         <!-- 資源結果 -->
-        <el-tab-pane
-          :label="`資源 (${searchResults.resources.length})`"
-          name="resources"
-        >
+        <div class="tab-pane fade" :class="{ 'show active': activeTab === 'resources' }">
           <ResourceResults
             :results="searchResults.resources"
             :keyword="searchForm.keyword"
             @view-detail="goToResourceDetail"
           />
-        </el-tab-pane>
+        </div>
 
         <!-- 用戶結果 -->
-        <el-tab-pane
-          :label="`用戶 (${searchResults.users.length})`"
-          name="users"
-        >
+        <div class="tab-pane fade" :class="{ 'show active': activeTab === 'users' }">
           <UserResults
             :results="searchResults.users"
             :keyword="searchForm.keyword"
             @view-detail="goToUserDetail"
           />
-        </el-tab-pane>
+        </div>
 
         <!-- 標籤結果 -->
-        <el-tab-pane
-          :label="`標籤 (${searchResults.tags.length})`"
-          name="tags"
-        >
+        <div class="tab-pane fade" :class="{ 'show active': activeTab === 'tags' }">
           <TagResults
             :results="searchResults.tags"
             :keyword="searchForm.keyword"
             @filter-by-tag="filterByTag"
           />
-        </el-tab-pane>
-      </el-tabs>
+        </div>
+      </div>
     </div>
 
     <!-- 無搜索結果 -->
-    <div v-if="hasSearched && totalResults === 0" class="no-results">
-      <el-empty description="沒有找到相關結果">
-        <el-button type="primary" @click="handleReset">
-          重新搜索
-        </el-button>
-      </el-empty>
+    <div v-if="hasSearched && totalResults === 0" class="no-results text-center py-5">
+      <i class="bi bi-search text-muted" style="font-size: 4rem;"></i>
+      <h4 class="text-muted mt-3">沒有找到相關結果</h4>
+      <p class="text-muted">請嘗試修改搜索条件或關鍵字</p>
+      <button type="button" class="btn btn-primary" @click="handleReset">
+        重新搜索
+      </button>
     </div>
 
     <!-- 搜索模板對話框 -->
-    <el-dialog
-      v-model="templateDialogVisible"
-      title="保存搜索模板"
-      width="400px"
-    >
-      <el-form :model="templateForm" label-width="100px">
-        <el-form-item label="模板名稱" required>
-          <el-input
-            v-model="templateForm.name"
-            placeholder="輸入模板名稱"
-          />
-        </el-form-item>
-        <el-form-item label="描述">
-          <el-input
-            v-model="templateForm.description"
-            type="textarea"
-            placeholder="輸入模板描述（可選）"
-            :rows="3"
-          />
-        </el-form-item>
-      </el-form>
-      
-      <template #footer>
-        <el-button @click="templateDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="confirmSaveTemplate">
-          保存
-        </el-button>
-      </template>
-    </el-dialog>
+    <div class="modal fade" :class="{ show: templateDialogVisible }" :style="{ display: templateDialogVisible ? 'block' : 'none' }">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">保存搜索模板</h5>
+            <button type="button" class="btn-close" @click="templateDialogVisible = false"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">模板名稱 <span class="text-danger">*</span></label>
+              <input
+                type="text"
+                class="form-control"
+                v-model="templateForm.name"
+                placeholder="輸入模板名稱"
+              />
+            </div>
+            <div class="mb-3">
+              <label class="form-label">描述</label>
+              <textarea
+                class="form-control"
+                v-model="templateForm.description"
+                placeholder="輸入模板描述（可選）"
+                rows="3"
+              ></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="templateDialogVisible = false">
+              取消
+            </button>
+            <button type="button" class="btn btn-primary" @click="confirmSaveTemplate">
+              保存
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-if="templateDialogVisible" class="modal-backdrop fade show"></div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import {
-  Search,
-  RefreshLeft,
-  Collection,
-  Server,
-  User,
-  CollectionTag
-} from '@element-plus/icons-vue'
-import type { FormInstance } from 'element-plus'
+import { showAlert } from '@/utils/bootstrap-alerts'
 import { format } from 'date-fns'
 import ResourceResults from './components/ResourceResults.vue'
 import UserResults from './components/UserResults.vue'
@@ -445,12 +632,12 @@ const route = useRoute()
 const router = useRouter()
 
 // 響應式數據
-const searchFormRef = ref<FormInstance>()
 const searching = ref(false)
 const hasSearched = ref(false)
 const searchTime = ref(0)
 const activeTab = ref('all')
 const templateDialogVisible = ref(false)
+const selectedDepartment = ref('')
 
 // 搜索表單
 const searchForm = reactive({
@@ -465,8 +652,10 @@ const searchForm = reactive({
   tagCategory: [],
   minUsageCount: undefined,
   maxUsageCount: undefined,
-  createdDateRange: null,
-  updatedDateRange: null
+  createdStartDate: '',
+  createdEndDate: '',
+  updatedStartDate: '',
+  updatedEndDate: ''
 })
 
 // 模板表單
@@ -559,14 +748,14 @@ watch(
   { immediate: true }
 )
 
-// 獲取項目類型顏色
-const getItemTypeColor = (type: string) => {
-  const colorMap: Record<string, string> = {
-    resource: 'primary',
-    user: 'success',
-    tag: 'warning'
+// 獲取項目類型類別
+const getItemTypeClass = (type: string) => {
+  const classMap: Record<string, string> = {
+    resource: 'badge bg-primary',
+    user: 'badge bg-success',
+    tag: 'badge bg-warning'
   }
-  return colorMap[type] || ''
+  return classMap[type] || 'badge bg-secondary'
 }
 
 // 獲取項目類型標籤
@@ -579,30 +768,30 @@ const getItemTypeLabel = (type: string) => {
   return labelMap[type] || type
 }
 
-// 獲取項目圖標
-const getItemIcon = (item: any) => {
+// 獲取項目圖標類別
+const getItemIconClass = (item: any) => {
   switch (item.type) {
     case 'resource':
-      return getResourceTypeIcon(item.resourceType)
+      return getResourceTypeIconClass(item.resourceType)
     case 'user':
-      return 'UserFilled'
+      return 'bi bi-person-fill'
     case 'tag':
-      return 'CollectionTag'
+      return 'bi bi-tags'
     default:
-      return 'Document'
+      return 'bi bi-file-text'
   }
 }
 
-// 獲取資源類型圖標
-const getResourceTypeIcon = (type: string) => {
+// 獲取資源類型圖標類別
+const getResourceTypeIconClass = (type: string) => {
   const iconMap: Record<string, string> = {
-    Server: 'Monitor',
-    Database: 'Coin',
-    Website: 'Basketball',
-    Storage: 'FolderOpened',
-    Cache: 'Basketball'
+    Server: 'bi bi-server',
+    Database: 'bi bi-database',
+    Website: 'bi bi-globe',
+    Storage: 'bi bi-hdd',
+    Cache: 'bi bi-lightning'
   }
-  return iconMap[type] || 'Monitor'
+  return iconMap[type] || 'bi bi-server'
 }
 
 // 獲取分類標籤
@@ -633,7 +822,7 @@ const formatDate = (date: Date) => {
 // 執行搜索
 const handleSearch = async () => {
   if (!searchForm.keyword.trim() && !hasAdvancedFilters()) {
-    ElMessage.warning('請輸入搜索關鍵字或設置篩選條件')
+    showAlert('請輸入搜索關鍵字或設置篩選條件', 'warning')
     return
   }
 
@@ -650,10 +839,10 @@ const handleSearch = async () => {
     hasSearched.value = true
     searchTime.value = Date.now() - startTime
     
-    ElMessage.success(`搜索完成，找到 ${totalResults.value} 個結果`)
+    showAlert(`搜索完成，找到 ${totalResults.value} 個結果`, 'success')
   } catch (error) {
     console.error('Search failed:', error)
-    ElMessage.error('搜索失敗')
+    showAlert('搜索失敗', 'error')
   } finally {
     searching.value = false
   }
@@ -669,8 +858,10 @@ const hasAdvancedFilters = () => {
          searchForm.tagCategory.length > 0 ||
          searchForm.minUsageCount !== undefined ||
          searchForm.maxUsageCount !== undefined ||
-         searchForm.createdDateRange ||
-         searchForm.updatedDateRange
+         searchForm.createdStartDate ||
+         searchForm.createdEndDate ||
+         searchForm.updatedStartDate ||
+         searchForm.updatedEndDate
 }
 
 // 生成模擬搜索結果
@@ -727,12 +918,24 @@ const generateMockResults = () => {
   }
 }
 
+// 添加部門
+const addDepartment = () => {
+  if (selectedDepartment.value && !searchForm.department.includes(selectedDepartment.value)) {
+    searchForm.department.push(selectedDepartment.value)
+    selectedDepartment.value = ''
+  }
+}
+
+// 移除部門
+const removeDepartment = (dept: string) => {
+  const index = searchForm.department.indexOf(dept)
+  if (index > -1) {
+    searchForm.department.splice(index, 1)
+  }
+}
+
 // 重置搜索
 const handleReset = () => {
-  if (searchFormRef.value) {
-    searchFormRef.value.resetFields()
-  }
-  
   // 手動重置一些字段
   searchForm.keyword = ''
   searchForm.scope = ['resources', 'users', 'tags']
@@ -745,8 +948,12 @@ const handleReset = () => {
   searchForm.tagCategory = []
   searchForm.minUsageCount = undefined
   searchForm.maxUsageCount = undefined
-  searchForm.createdDateRange = null
-  searchForm.updatedDateRange = null
+  searchForm.createdStartDate = ''
+  searchForm.createdEndDate = ''
+  searchForm.updatedStartDate = ''
+  searchForm.updatedEndDate = ''
+  
+  selectedDepartment.value = ''
   
   hasSearched.value = false
   searchResults.value = {
@@ -800,12 +1007,12 @@ const saveSearchTemplate = () => {
 
 const confirmSaveTemplate = () => {
   if (!templateForm.name.trim()) {
-    ElMessage.warning('請輸入模板名稱')
+    showAlert('請輸入模板名稱', 'warning')
     return
   }
   
   // 這裡可以保存到本地存儲或發送到服務器
-  ElMessage.success('搜索模板已保存')
+  showAlert('搜索模板已保存', 'success')
   templateDialogVisible.value = false
 }
 
@@ -828,12 +1035,12 @@ onMounted(() => {
       margin: 0 0 8px 0;
       font-size: 24px;
       font-weight: 600;
-      color: var(--el-text-color-primary);
+      color: var(--bs-gray-900);
     }
     
     p {
       margin: 0;
-      color: var(--el-text-color-regular);
+      color: var(--bs-gray-600);
     }
   }
   
@@ -844,11 +1051,47 @@ onMounted(() => {
       .filter-section {
         margin: 16px 0;
         
-        h4 {
+        h6 {
           margin: 0 0 16px 0;
           font-size: 16px;
           font-weight: 600;
-          color: var(--el-text-color-primary);
+          color: var(--bs-gray-900);
+        }
+      }
+      
+      .form-check-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        
+        .form-check {
+          margin-bottom: 0;
+        }
+      }
+      
+      .selected-items {
+        min-height: 30px;
+        
+        .badge {
+          position: relative;
+          padding-right: 24px;
+          
+          .btn-close {
+            position: absolute;
+            top: 50%;
+            right: 4px;
+            transform: translateY(-50%);
+            font-size: 10px;
+            width: 12px;
+            height: 12px;
+            background: none;
+            border: none;
+            opacity: 0.8;
+            
+            &:hover {
+              opacity: 1;
+            }
+          }
         }
       }
     }
@@ -862,7 +1105,7 @@ onMounted(() => {
     .results-summary {
       margin-bottom: 24px;
       padding: 20px;
-      background: var(--el-bg-color-page);
+      background: var(--bs-gray-50);
       border-radius: 8px;
     }
     
@@ -872,14 +1115,14 @@ onMounted(() => {
         align-items: center;
         gap: 16px;
         padding: 16px;
-        border: 1px solid var(--el-border-color-lighter);
+        border: 1px solid var(--bs-border-color);
         border-radius: 8px;
         margin-bottom: 12px;
         cursor: pointer;
         transition: all 0.3s ease;
         
         &:hover {
-          border-color: var(--el-color-primary);
+          border-color: var(--bs-primary);
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
         
@@ -894,13 +1137,9 @@ onMounted(() => {
           display: flex;
           align-items: center;
           justify-content: center;
-          background: var(--el-bg-color-page);
+          background: var(--bs-gray-50);
           border-radius: 8px;
-          
-          .el-icon {
-            font-size: 20px;
-            color: var(--el-color-primary);
-          }
+          font-size: 20px;
         }
         
         .item-content {
@@ -909,7 +1148,7 @@ onMounted(() => {
           .item-title {
             font-size: 16px;
             font-weight: 500;
-            color: var(--el-text-color-primary);
+            color: var(--bs-gray-900);
             margin-bottom: 4px;
             
             :deep(mark) {
@@ -922,7 +1161,7 @@ onMounted(() => {
           
           .item-description {
             font-size: 14px;
-            color: var(--el-text-color-regular);
+            color: var(--bs-gray-600);
             margin-bottom: 8px;
           }
           
@@ -932,7 +1171,7 @@ onMounted(() => {
             
             .meta-item {
               font-size: 12px;
-              color: var(--el-text-color-placeholder);
+              color: var(--bs-gray-500);
             }
           }
         }
@@ -943,25 +1182,21 @@ onMounted(() => {
       }
     }
   }
-  
-  .no-results {
-    text-align: center;
-    padding: 60px 20px;
-  }
 }
 
 // 響應式設計
 @media (max-width: 768px) {
   .search-page {
     .search-form {
-      .el-col {
-        margin-bottom: 16px;
+      .form-check-container {
+        flex-direction: column;
+        gap: 5px;
       }
     }
     
     .results-summary {
-      :deep(.el-col) {
-        margin-bottom: 16px;
+      .row {
+        text-align: center;
       }
     }
     
@@ -992,31 +1227,61 @@ onMounted(() => {
   }
 }
 
-// 暗黑模式
-.dark {
+// 暗黑模式支援
+@media (prefers-color-scheme: dark) {
   .search-page {
+    .page-header {
+      h2 {
+        color: var(--bs-gray-100);
+      }
+      
+      p {
+        color: var(--bs-gray-300);
+      }
+    }
+    
+    .search-form {
+      .filter-section {
+        h6 {
+          color: var(--bs-gray-100);
+        }
+      }
+    }
+    
     .results-summary {
-      background: var(--el-bg-color-page);
+      background: var(--bs-gray-800);
     }
     
     .mixed-results {
       .result-item {
-        border-color: var(--el-border-color-lighter);
+        border-color: var(--bs-gray-700);
         
         &:hover {
-          border-color: var(--el-color-primary);
+          border-color: var(--bs-primary);
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
         }
         
         .item-icon {
-          background: var(--el-bg-color-page);
+          background: var(--bs-gray-800);
         }
         
         .item-content {
           .item-title {
+            color: var(--bs-gray-100);
+            
             :deep(mark) {
               background: #2d2419;
               color: #d69e2e;
+            }
+          }
+          
+          .item-description {
+            color: var(--bs-gray-300);
+          }
+          
+          .item-meta {
+            .meta-item {
+              color: var(--bs-gray-400);
             }
           }
         }

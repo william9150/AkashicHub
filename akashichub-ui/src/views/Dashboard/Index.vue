@@ -1,417 +1,403 @@
 <template>
   <div class="dashboard-container">
     <!-- 歡迎標題 -->
-    <div class="welcome-header">
-      <h1>🎯 儀表板</h1>
-      <p>歡迎來到 AkashicHub 儀表板！</p>
+    <div class="welcome-header text-center mb-4">
+      <h1 class="text-primary mb-2">🎯 儀表板</h1>
+      <p class="text-muted">歡迎來到 AkashicHub 儀表板！</p>
     </div>
     
     <!-- 頂部統計卡片 -->
-    <div class="stats-cards">
-      <el-row :gutter="20">
-        <el-col :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
+    <div class="stats-cards mb-4">
+      <div class="row g-3">
+        <div class="col-12 col-sm-6 col-md-3">
           <div class="stat-card" @click="goToResources">
             <div class="stat-icon resources">
-              <el-icon><Server /></el-icon>
+              <i class="bi bi-server"></i>
             </div>
             <div class="stat-content">
               <div class="stat-number">{{ stats.totalResources }}</div>
               <div class="stat-label">總資源數</div>
               <div class="stat-trend" :class="{ positive: stats.resourcesTrend > 0, negative: stats.resourcesTrend < 0 }">
-                <el-icon>
-                  <component :is="stats.resourcesTrend > 0 ? 'CaretTop' : stats.resourcesTrend < 0 ? 'CaretBottom' : 'Minus'" />
-                </el-icon>
+                <i :class="stats.resourcesTrend > 0 ? 'bi bi-caret-up-fill' : stats.resourcesTrend < 0 ? 'bi bi-caret-down-fill' : 'bi bi-dash'"></i>
                 {{ Math.abs(stats.resourcesTrend) }}%
               </div>
             </div>
           </div>
-        </el-col>
+        </div>
         
-        <el-col :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
+        <div class="col-12 col-sm-6 col-md-3">
           <div class="stat-card" @click="goToUsers">
             <div class="stat-icon users">
-              <el-icon><User /></el-icon>
+              <i class="bi bi-person-fill"></i>
             </div>
             <div class="stat-content">
               <div class="stat-number">{{ stats.totalUsers }}</div>
               <div class="stat-label">用戶數量</div>
               <div class="stat-trend" :class="{ positive: stats.usersTrend > 0, negative: stats.usersTrend < 0 }">
-                <el-icon>
-                  <component :is="stats.usersTrend > 0 ? 'CaretTop' : stats.usersTrend < 0 ? 'CaretBottom' : 'Minus'" />
-                </el-icon>
+                <i :class="stats.usersTrend > 0 ? 'bi bi-caret-up-fill' : stats.usersTrend < 0 ? 'bi bi-caret-down-fill' : 'bi bi-dash'"></i>
                 {{ Math.abs(stats.usersTrend) }}%
               </div>
             </div>
           </div>
-        </el-col>
+        </div>
         
-        <el-col :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
+        <div class="col-12 col-sm-6 col-md-3">
           <div class="stat-card" @click="goToTags">
             <div class="stat-icon tags">
-              <el-icon><CollectionTag /></el-icon>
+              <i class="bi bi-tags-fill"></i>
             </div>
             <div class="stat-content">
               <div class="stat-number">{{ stats.totalTags }}</div>
               <div class="stat-label">標籤數量</div>
               <div class="stat-trend" :class="{ positive: stats.tagsTrend > 0, negative: stats.tagsTrend < 0 }">
-                <el-icon>
-                  <component :is="stats.tagsTrend > 0 ? 'CaretTop' : stats.tagsTrend < 0 ? 'CaretBottom' : 'Minus'" />
-                </el-icon>
+                <i :class="stats.tagsTrend > 0 ? 'bi bi-caret-up-fill' : stats.tagsTrend < 0 ? 'bi bi-caret-down-fill' : 'bi bi-dash'"></i>
                 {{ Math.abs(stats.tagsTrend) }}%
               </div>
             </div>
           </div>
-        </el-col>
+        </div>
         
-        <el-col :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
+        <div class="col-12 col-sm-6 col-md-3">
           <div class="stat-card">
             <div class="stat-icon active">
-              <el-icon><CircleCheckFilled /></el-icon>
+              <i class="bi bi-check-circle-fill"></i>
             </div>
             <div class="stat-content">
               <div class="stat-number">{{ stats.activeResources }}</div>
               <div class="stat-label">活躍資源</div>
               <div class="stat-trend" :class="{ positive: stats.activeTrend > 0, negative: stats.activeTrend < 0 }">
-                <el-icon>
-                  <component :is="stats.activeTrend > 0 ? 'CaretTop' : stats.activeTrend < 0 ? 'CaretBottom' : 'Minus'" />
-                </el-icon>
+                <i :class="stats.activeTrend > 0 ? 'bi bi-caret-up-fill' : stats.activeTrend < 0 ? 'bi bi-caret-down-fill' : 'bi bi-dash'"></i>
                 {{ Math.abs(stats.activeTrend) }}%
               </div>
             </div>
           </div>
-        </el-col>
-      </el-row>
+        </div>
+      </div>
     </div>
 
     <!-- 時間範圍選擇器 -->
-    <div class="time-range-selector">
-      <el-radio-group v-model="timeRange" @change="handleTimeRangeChange">
-        <el-radio-button value="7d">最近7天</el-radio-button>
-        <el-radio-button value="30d">最近30天</el-radio-button>
-        <el-radio-button value="90d">最近3個月</el-radio-button>
-        <el-radio-button value="1y">最近1年</el-radio-button>
-      </el-radio-group>
+    <div class="time-range-selector d-flex justify-content-center mb-4">
+      <div class="btn-group" role="group">
+        <input type="radio" class="btn-check" id="range-7d" v-model="timeRange" value="7d" @change="handleTimeRangeChange">
+        <label class="btn btn-outline-primary" for="range-7d">最近7天</label>
+        
+        <input type="radio" class="btn-check" id="range-30d" v-model="timeRange" value="30d" @change="handleTimeRangeChange">
+        <label class="btn btn-outline-primary" for="range-30d">最近30天</label>
+        
+        <input type="radio" class="btn-check" id="range-90d" v-model="timeRange" value="90d" @change="handleTimeRangeChange">
+        <label class="btn btn-outline-primary" for="range-90d">最近3個月</label>
+        
+        <input type="radio" class="btn-check" id="range-1y" v-model="timeRange" value="1y" @change="handleTimeRangeChange">
+        <label class="btn btn-outline-primary" for="range-1y">最近1年</label>
+      </div>
     </div>
 
     <!-- 主要內容區域 -->
-    <el-row :gutter="20" class="main-content">
+    <div class="row g-4 main-content">
       <!-- 左側內容 -->
-      <el-col :xs="24" :sm="24" :md="16" :lg="16" :xl="16">
+      <div class="col-12 col-lg-8">
         <!-- 圖表區域 -->
-        <el-row :gutter="20">
+        <div class="row g-4 mb-4">
           <!-- 資源類型分佈圖表 -->
-          <el-col :span="12">
-            <el-card class="chart-card" header="資源類型分佈">
-              <div class="chart-container">
-                <div ref="resourceTypeChart" class="chart"></div>
+          <div class="col-12 col-md-6">
+            <div class="card chart-card">
+              <div class="card-header">
+                <h5 class="card-title mb-0">資源類型分佈</h5>
               </div>
-            </el-card>
-          </el-col>
+              <div class="card-body">
+                <div class="chart-container">
+                  <div ref="resourceTypeChart" class="chart"></div>
+                </div>
+              </div>
+            </div>
+          </div>
           
           <!-- 用戶活躍度圖表 -->
-          <el-col :span="12">
-            <el-card class="chart-card" header="用戶活躍度">
-              <div class="chart-container">
-                <div ref="userActivityChart" class="chart"></div>
+          <div class="col-12 col-md-6">
+            <div class="card chart-card">
+              <div class="card-header">
+                <h5 class="card-title mb-0">用戶活躍度</h5>
               </div>
-            </el-card>
-          </el-col>
-        </el-row>
+              <div class="card-body">
+                <div class="chart-container">
+                  <div ref="userActivityChart" class="chart"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- 使用趨勢圖表 -->
-        <el-card class="chart-card" header="使用趨勢">
-          <template #header>
-            <div class="chart-header">
-              <span>使用趨勢</span>
-              <el-select v-model="trendMetric" style="width: 120px" @change="updateTrendChart">
-                <el-option label="資源訪問" value="resources" />
-                <el-option label="用戶登入" value="logins" />
-                <el-option label="系統負載" value="system" />
-              </el-select>
+        <div class="card chart-card mb-4">
+          <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="card-title mb-0">使用趨勢</h5>
+              <select class="form-select form-select-sm" style="width: 120px" v-model="trendMetric" @change="updateTrendChart">
+                <option value="resources">資源訪問</option>
+                <option value="logins">用戶登入</option>
+                <option value="system">系統負載</option>
+              </select>
             </div>
-          </template>
-          <div class="chart-container">
-            <div ref="trendChart" class="chart trend-chart"></div>
           </div>
-        </el-card>
+          <div class="card-body">
+            <div class="chart-container">
+              <div ref="trendChart" class="chart trend-chart"></div>
+            </div>
+          </div>
+        </div>
 
         <!-- 最近活動 -->
-        <el-card class="activity-card">
-          <template #header>
-            <div class="activity-header">
-              <span>最近活動</span>
-              <el-button text @click="refreshActivities" :loading="activitiesLoading">
-                <el-icon><Refresh /></el-icon>
+        <div class="card activity-card">
+          <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="card-title mb-0">最近活動</h5>
+              <button class="btn btn-sm btn-outline-primary" @click="refreshActivities" :disabled="activitiesLoading">
+                <span v-if="activitiesLoading" class="spinner-border spinner-border-sm me-2"></span>
+                <i v-else class="bi bi-arrow-clockwise me-2"></i>
                 刷新
-              </el-button>
-            </div>
-          </template>
-          <div class="activity-list">
-            <div
-              v-for="activity in recentActivities"
-              :key="activity.id"
-              class="activity-item"
-            >
-              <div class="activity-icon">
-                <el-icon :color="getActivityColor(activity.type)">
-                  <component :is="getActivityIcon(activity.type)" />
-                </el-icon>
-              </div>
-              <div class="activity-content">
-                <div class="activity-title">{{ activity.title }}</div>
-                <div class="activity-description">{{ activity.description }}</div>
-                <div class="activity-time">{{ formatTime(activity.createdAt) }}</div>
-              </div>
-              <div class="activity-status">
-                <el-tag :type="getActivityStatusType(activity.status)" size="small">
-                  {{ activity.status }}
-                </el-tag>
-              </div>
-            </div>
-            
-            <div v-if="recentActivities.length === 0" class="empty-state">
-              <el-empty description="暫無活動記錄" :image-size="100" />
+              </button>
             </div>
           </div>
-        </el-card>
-      </el-col>
+          <div class="card-body">
+            <div class="activity-list">
+              <div
+                v-for="activity in recentActivities"
+                :key="activity.id"
+                class="activity-item"
+              >
+                <div class="activity-icon">
+                  <i :class="getActivityIcon(activity.type)" :style="{ color: getActivityColor(activity.type) }"></i>
+                </div>
+                <div class="activity-content">
+                  <div class="activity-title">{{ activity.title }}</div>
+                  <div class="activity-description">{{ activity.description }}</div>
+                  <div class="activity-time">{{ formatTime(activity.createdAt) }}</div>
+                </div>
+                <div class="activity-status">
+                  <span :class="'badge ' + getActivityStatusClass(activity.status)">
+                    {{ activity.status }}
+                  </span>
+                </div>
+              </div>
+              
+              <div v-if="recentActivities.length === 0" class="empty-state text-center py-5">
+                <i class="bi bi-inbox fs-1 text-muted"></i>
+                <p class="text-muted mt-2">暫無活動記錄</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- 右側內容 -->
-      <el-col :xs="24" :sm="24" :md="8" :lg="8" :xl="8">
+      <div class="col-12 col-lg-4">
         <!-- 快速操作 -->
-        <el-card class="quick-actions-card" header="快速操作">
-          <div class="quick-actions">
-            <el-button
-              type="primary"
-              @click="goToResources"
-              block
-            >
-              管理資源
-            </el-button>
-            <el-button
-              v-if="authStore.canEditUsers"
-              type="success"
-              @click="goToUsers"
-              block
-            >
-              管理用戶
-            </el-button>
-            <el-button
-              type="info"
-              @click="goToTags"
-              block
-            >
-              管理標籤
-            </el-button>
-            <el-button
-              v-if="authStore.canEditITData"
-              type="primary"
-              icon="Plus"
-              @click="goToCreateResource"
-              block
-            >
-              新增資源
-            </el-button>
-            <el-button
-              v-if="authStore.canEditUsers"
-              type="success"
-              icon="User"
-              @click="goToCreateUser"
-              block
-            >
-              新增用戶
-            </el-button>
-            <el-button
-              v-if="authStore.canEditITData"
-              type="warning"
-              icon="CollectionTag"
-              @click="goToCreateTag"
-              block
-            >
-              新增標籤
-            </el-button>
-            <el-button
-              type="info"
-              icon="Search"
-              @click="goToSearch"
-              block
-            >
-              搜索資源
-            </el-button>
-            <el-button
-              v-if="authStore.isSuperAdmin"
-              type="warning"
-              icon="Document"
-              @click="goToLogs"
-              block
-            >
-              查看日誌
-            </el-button>
-            <el-button
-              type="default"
-              icon="Download"
-              @click="exportData"
-              block
-            >
-              匯出數據
-            </el-button>
+        <div class="card quick-actions-card mb-4">
+          <div class="card-header">
+            <h5 class="card-title mb-0">快速操作</h5>
           </div>
-        </el-card>
+          <div class="card-body">
+            <div class="quick-actions">
+              <button class="btn btn-primary w-100 mb-2" @click="goToResources">
+                <i class="bi bi-server me-2"></i>管理資源
+              </button>
+              <button
+                v-if="authStore.canEditUsers"
+                class="btn btn-success w-100 mb-2"
+                @click="goToUsers"
+              >
+                <i class="bi bi-people me-2"></i>管理用戶
+              </button>
+              <button class="btn btn-info w-100 mb-2" @click="goToTags">
+                <i class="bi bi-tags me-2"></i>管理標籤
+              </button>
+              <button
+                v-if="authStore.canEditITData"
+                class="btn btn-primary w-100 mb-2"
+                @click="goToCreateResource"
+              >
+                <i class="bi bi-plus-circle me-2"></i>新增資源
+              </button>
+              <button
+                v-if="authStore.canEditUsers"
+                class="btn btn-success w-100 mb-2"
+                @click="goToCreateUser"
+              >
+                <i class="bi bi-person-plus me-2"></i>新增用戶
+              </button>
+              <button
+                v-if="authStore.canEditITData"
+                class="btn btn-warning w-100 mb-2"
+                @click="goToCreateTag"
+              >
+                <i class="bi bi-tag me-2"></i>新增標籤
+              </button>
+              <button class="btn btn-info w-100 mb-2" @click="goToSearch">
+                <i class="bi bi-search me-2"></i>搜索資源
+              </button>
+              <button
+                v-if="authStore.isSuperAdmin"
+                class="btn btn-warning w-100 mb-2"
+                @click="goToLogs"
+              >
+                <i class="bi bi-file-text me-2"></i>查看日誌
+              </button>
+              <button class="btn btn-secondary w-100" @click="exportData">
+                <i class="bi bi-download me-2"></i>匯出數據
+              </button>
+            </div>
+          </div>
+        </div>
 
         <!-- 實時監控 -->
-        <el-card class="monitoring-card" header="實時監控">
-          <div class="monitoring-items">
-            <div class="monitoring-item">
-              <div class="monitoring-label">
-                <el-icon><Connection /></el-icon>
-                在線用戶
+        <div class="card monitoring-card mb-4">
+          <div class="card-header">
+            <h5 class="card-title mb-0">實時監控</h5>
+          </div>
+          <div class="card-body">
+            <div class="monitoring-items">
+              <div class="monitoring-item">
+                <div class="monitoring-label">
+                  <i class="bi bi-wifi me-2"></i>
+                  在線用戶
+                </div>
+                <div class="monitoring-value">{{ realTimeStats.onlineUsers }}</div>
               </div>
-              <div class="monitoring-value">{{ realTimeStats.onlineUsers }}</div>
+              
+              <div class="monitoring-item">
+                <div class="monitoring-label">
+                  <i class="bi bi-clock me-2"></i>
+                  系統運行時間
+                </div>
+                <div class="monitoring-value">{{ realTimeStats.uptime }}</div>
+              </div>
+              
+              <div class="monitoring-item">
+                <div class="monitoring-label">
+                  <i class="bi bi-pc-display me-2"></i>
+                  API 請求/分鐘
+                </div>
+                <div class="monitoring-value">{{ realTimeStats.apiRequests }}</div>
+              </div>
+              
+              <div class="monitoring-item">
+                <div class="monitoring-label">
+                  <i class="bi bi-exclamation-triangle me-2"></i>
+                  錯誤率
+                </div>
+                <div class="monitoring-value" :class="{ 'text-danger': realTimeStats.errorRate > 5 }">
+                  {{ realTimeStats.errorRate }}%
+                </div>
+              </div>
             </div>
             
-            <div class="monitoring-item">
-              <div class="monitoring-label">
-                <el-icon><Clock /></el-icon>
-                系統運行時間
-              </div>
-              <div class="monitoring-value">{{ realTimeStats.uptime }}</div>
-            </div>
-            
-            <div class="monitoring-item">
-              <div class="monitoring-label">
-                <el-icon><Monitor /></el-icon>
-                API 請求/分鐘
-              </div>
-              <div class="monitoring-value">{{ realTimeStats.apiRequests }}</div>
-            </div>
-            
-            <div class="monitoring-item">
-              <div class="monitoring-label">
-                <el-icon><Warning /></el-icon>
-                錯誤率
-              </div>
-              <div class="monitoring-value" :class="{ 'high-error': realTimeStats.errorRate > 5 }">
-                {{ realTimeStats.errorRate }}%
-              </div>
+            <div class="monitoring-chart">
+              <div ref="realtimeChart" class="mini-chart"></div>
             </div>
           </div>
-          
-          <div class="monitoring-chart">
-            <div ref="realtimeChart" class="mini-chart"></div>
-          </div>
-        </el-card>
+        </div>
 
         <!-- 系統狀態 -->
-        <el-card class="system-status-card" header="系統狀態">
-          <div class="status-list">
-            <div class="status-item">
-              <div class="status-label">系統狀態</div>
-              <div class="status-value">
-                <el-tag :type="getStatusType(systemStatus.system)">
-                  {{ getStatusText(systemStatus.system) }}
-                </el-tag>
+        <div class="card system-status-card mb-4">
+          <div class="card-header">
+            <h5 class="card-title mb-0">系統狀態</h5>
+          </div>
+          <div class="card-body">
+            <div class="status-list">
+              <div class="status-item">
+                <div class="status-label">系統狀態</div>
+                <div class="status-value">
+                  <span :class="'badge ' + getStatusClass(systemStatus.system)">
+                    {{ getStatusText(systemStatus.system) }}
+                  </span>
+                </div>
               </div>
-            </div>
-            
-            <div class="status-item">
-              <div class="status-label">資料庫</div>
-              <div class="status-value">
-                <el-tag :type="getStatusType(systemStatus.database)">
-                  {{ getStatusText(systemStatus.database) }}
-                </el-tag>
+              
+              <div class="status-item">
+                <div class="status-label">資料庫</div>
+                <div class="status-value">
+                  <span :class="'badge ' + getStatusClass(systemStatus.database)">
+                    {{ getStatusText(systemStatus.database) }}
+                  </span>
+                </div>
               </div>
-            </div>
-            
-            <div class="status-item">
-              <div class="status-label">記憶體使用</div>
-              <div class="status-value">
-                <el-progress
-                  :percentage="systemStatus.memoryUsage"
-                  :color="getProgressColor(systemStatus.memoryUsage)"
-                  :show-text="true"
-                />
+              
+              <div class="status-item">
+                <div class="status-label">記憶體使用</div>
+                <div class="status-value">
+                  <div class="progress" style="height: 20px;">
+                    <div 
+                      class="progress-bar" 
+                      :class="getProgressClass(systemStatus.memoryUsage)"
+                      :style="{ width: systemStatus.memoryUsage + '%' }"
+                    >
+                      {{ systemStatus.memoryUsage }}%
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
-            
-            <div class="status-item">
-              <div class="status-label">磁碟使用</div>
-              <div class="status-value">
-                <el-progress
-                  :percentage="systemStatus.diskUsage"
-                  :color="getProgressColor(systemStatus.diskUsage)"
-                  :show-text="true"
-                />
+              
+              <div class="status-item">
+                <div class="status-label">磁碟使用</div>
+                <div class="status-value">
+                  <div class="progress" style="height: 20px;">
+                    <div 
+                      class="progress-bar" 
+                      :class="getProgressClass(systemStatus.diskUsage)"
+                      :style="{ width: systemStatus.diskUsage + '%' }"
+                    >
+                      {{ systemStatus.diskUsage }}%
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-        </el-card>
+        </div>
 
         <!-- 最近資源 -->
-        <el-card class="recent-resources-card" header="最近資源">
-          <div class="resource-list">
-            <div
-              v-for="resource in recentResources"
-              :key="resource.id"
-              class="resource-item"
-              @click="goToResource(resource.id)"
-            >
-              <div class="resource-icon">
-                <el-icon :color="getResourceTypeColor(resource.resourceType)">
-                  <component :is="getResourceTypeIcon(resource.resourceType)" />
-                </el-icon>
+        <div class="card recent-resources-card">
+          <div class="card-header">
+            <h5 class="card-title mb-0">最近資源</h5>
+          </div>
+          <div class="card-body">
+            <div class="resource-list">
+              <div
+                v-for="resource in recentResources"
+                :key="resource.id"
+                class="resource-item"
+                @click="goToResource(resource.id)"
+              >
+                <div class="resource-icon">
+                  <i :class="getResourceTypeIcon(resource.resourceType)" :style="{ color: getResourceTypeColor(resource.resourceType) }"></i>
+                </div>
+                <div class="resource-content">
+                  <div class="resource-name">{{ resource.name }}</div>
+                  <div class="resource-type text-muted">{{ resource.resourceType }}</div>
+                  <div class="resource-ip text-muted">{{ resource.ipAddress }}</div>
+                </div>
               </div>
-              <div class="resource-content">
-                <div class="resource-name">{{ resource.name }}</div>
-                <div class="resource-type">{{ resource.resourceType }}</div>
-                <div class="resource-ip">{{ resource.ipAddress }}</div>
+              
+              <div v-if="recentResources.length === 0" class="empty-state text-center py-4">
+                <i class="bi bi-server fs-1 text-muted"></i>
+                <p class="text-muted mt-2">暫無最近資源</p>
               </div>
-            </div>
-            
-            <div v-if="recentResources.length === 0" class="empty-state">
-              <el-empty description="暫無最近資源" :image-size="80" />
             </div>
           </div>
-        </el-card>
-      </el-col>
-    </el-row>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  Server,
-  User,
-  CollectionTag,
-  CircleCheckFilled,
-  Plus,
-  Search,
-  Document,
-  Monitor,
-  Database,
-  FolderOpened,
-  Basketball,
-  InfoFilled,
-  SuccessFilled,
-  WarningFilled,
-  CircleCloseFilled,
-  CaretTop,
-  CaretBottom,
-  Minus,
-  Refresh,
-  Download,
-  Connection,
-  Clock,
-  Warning,
-  Edit,
-  Delete
-} from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
 import * as echarts from 'echarts'
+import { getDashboardStats, getSystemStatus } from '@/api/dashboard'
 
 // 狀態管理
 const authStore = useAuthStore()
@@ -579,12 +565,12 @@ const initResourceTypeChart = () => {
           show: false
         },
         data: [
-          { value: 45, name: '伺服器', itemStyle: { color: '#409eff' } },
-          { value: 28, name: '資料庫', itemStyle: { color: '#67c23a' } },
-          { value: 32, name: '網站', itemStyle: { color: '#e6a23c' } },
-          { value: 18, name: '儲存', itemStyle: { color: '#f56c6c' } },
-          { value: 12, name: '緩存', itemStyle: { color: '#722ed1' } },
-          { value: 21, name: '其他', itemStyle: { color: '#909399' } }
+          { value: 45, name: '伺服器', itemStyle: { color: '#0d6efd' } },
+          { value: 28, name: '資料庫', itemStyle: { color: '#198754' } },
+          { value: 32, name: '網站', itemStyle: { color: '#fd7e14' } },
+          { value: 18, name: '儲存', itemStyle: { color: '#dc3545' } },
+          { value: 12, name: '緩存', itemStyle: { color: '#6f42c1' } },
+          { value: 21, name: '其他', itemStyle: { color: '#6c757d' } }
         ]
       }
     ]
@@ -614,9 +600,9 @@ const initUserActivityChart = () => {
         radius: '70%',
         center: ['50%', '45%'],
         data: [
-          { value: 8, name: '在線', itemStyle: { color: '#67c23a' } },
-          { value: 6, name: '活躍', itemStyle: { color: '#409eff' } },
-          { value: 10, name: '離線', itemStyle: { color: '#909399' } }
+          { value: 8, name: '在線', itemStyle: { color: '#198754' } },
+          { value: 6, name: '活躍', itemStyle: { color: '#0d6efd' } },
+          { value: 10, name: '離線', itemStyle: { color: '#6c757d' } }
         ],
         emphasis: {
           itemStyle: {
@@ -650,25 +636,25 @@ const updateTrendChart = () => {
         return {
           title: '資源訪問趨勢',
           data: [120, 132, 101, 134, 90, 230, 210, 182, 191, 234, 290, 330, 310],
-          color: '#409eff'
+          color: '#0d6efd'
         }
       case 'logins':
         return {
           title: '用戶登入趨勢',
           data: [220, 182, 191, 234, 290, 330, 310, 123, 442, 321, 90, 149, 210],
-          color: '#67c23a'
+          color: '#198754'
         }
       case 'system':
         return {
           title: '系統負載趨勢',
           data: [45, 52, 38, 24, 33, 56, 42, 38, 45, 52, 38, 24, 33],
-          color: '#e6a23c'
+          color: '#fd7e14'
         }
       default:
         return {
           title: '資源訪問趨勢',
           data: [120, 132, 101, 134, 90, 230, 210, 182, 191, 234, 290, 330, 310],
-          color: '#409eff'
+          color: '#0d6efd'
         }
     }
   }
@@ -791,7 +777,7 @@ const initRealtimeChart = () => {
           focus: 'series'
         },
         lineStyle: {
-          color: '#409eff'
+          color: '#0d6efd'
         },
         data: data
       }
@@ -842,72 +828,72 @@ const stopRealtimeUpdate = () => {
 // 獲取活動圖標
 const getActivityIcon = (type: string) => {
   const iconMap: Record<string, string> = {
-    create: 'Plus',
-    update: 'Edit',
-    delete: 'Delete',
-    login: 'User',
-    logout: 'SwitchButton',
-    error: 'WarningFilled'
+    create: 'bi bi-plus-circle',
+    update: 'bi bi-pencil-square',
+    delete: 'bi bi-trash',
+    login: 'bi bi-person-check',
+    logout: 'bi bi-person-x',
+    error: 'bi bi-exclamation-triangle-fill'
   }
-  return iconMap[type] || 'InfoFilled'
+  return iconMap[type] || 'bi bi-info-circle'
 }
 
 // 獲取活動顏色
 const getActivityColor = (type: string) => {
   const colorMap: Record<string, string> = {
-    create: '#67c23a',
-    update: '#409eff',
-    delete: '#f56c6c',
-    login: '#909399',
-    logout: '#909399',
-    error: '#f56c6c'
+    create: '#198754',
+    update: '#0d6efd',
+    delete: '#dc3545',
+    login: '#6c757d',
+    logout: '#6c757d',
+    error: '#dc3545'
   }
-  return colorMap[type] || '#909399'
+  return colorMap[type] || '#6c757d'
 }
 
-// 獲取活動狀態類型
-const getActivityStatusType = (status: string) => {
-  const typeMap: Record<string, string> = {
-    '成功': 'success',
-    '失敗': 'danger',
-    '警告': 'warning',
-    '處理中': 'info'
+// 獲取活動狀態類別
+const getActivityStatusClass = (status: string) => {
+  const classMap: Record<string, string> = {
+    '成功': 'bg-success',
+    '失敗': 'bg-danger',
+    '警告': 'bg-warning',
+    '處理中': 'bg-info'
   }
-  return typeMap[status] || 'info'
+  return classMap[status] || 'bg-secondary'
 }
 
 // 獲取資源類型圖標
 const getResourceTypeIcon = (type: string) => {
   const iconMap: Record<string, string> = {
-    Server: 'Monitor',
-    Database: 'Coin',
-    Website: 'Basketball',
-    Storage: 'FolderOpened',
-    Cache: 'Basketball'
+    Server: 'bi bi-server',
+    Database: 'bi bi-database',
+    Website: 'bi bi-globe',
+    Storage: 'bi bi-folder',
+    Cache: 'bi bi-memory'
   }
-  return iconMap[type] || 'Monitor'
+  return iconMap[type] || 'bi bi-server'
 }
 
 // 獲取資源類型顏色
 const getResourceTypeColor = (type: string) => {
   const colorMap: Record<string, string> = {
-    Server: '#409eff',
-    Database: '#67c23a',
-    Website: '#e6a23c',
-    Storage: '#f56c6c',
-    Cache: '#722ed1'
+    Server: '#0d6efd',
+    Database: '#198754',
+    Website: '#fd7e14',
+    Storage: '#dc3545',
+    Cache: '#6f42c1'
   }
-  return colorMap[type] || '#909399'
+  return colorMap[type] || '#6c757d'
 }
 
-// 獲取狀態類型
-const getStatusType = (status: string) => {
-  const typeMap: Record<string, string> = {
-    healthy: 'success',
-    warning: 'warning',
-    error: 'danger'
+// 獲取狀態類別
+const getStatusClass = (status: string) => {
+  const classMap: Record<string, string> = {
+    healthy: 'bg-success',
+    warning: 'bg-warning',
+    error: 'bg-danger'
   }
-  return typeMap[status] || 'info'
+  return classMap[status] || 'bg-secondary'
 }
 
 // 獲取狀態文本
@@ -920,11 +906,11 @@ const getStatusText = (status: string) => {
   return textMap[status] || '未知'
 }
 
-// 獲取進度條顏色
-const getProgressColor = (percentage: number) => {
-  if (percentage < 50) return '#67c23a'
-  if (percentage < 80) return '#e6a23c'
-  return '#f56c6c'
+// 獲取進度條類別
+const getProgressClass = (percentage: number) => {
+  if (percentage < 50) return 'bg-success'
+  if (percentage < 80) return 'bg-warning'
+  return 'bg-danger'
 }
 
 // 格式化時間
@@ -950,9 +936,9 @@ const refreshActivities = async () => {
     await new Promise(resolve => setTimeout(resolve, 1000))
     
     // 這裡可以重新載入活動數據
-    ElMessage.success('活動記錄已刷新')
+    showAlert('活動記錄已刷新', 'success')
   } catch (error) {
-    ElMessage.error('刷新失敗')
+    showAlert('刷新失敗', 'danger')
   } finally {
     activitiesLoading.value = false
   }
@@ -960,30 +946,20 @@ const refreshActivities = async () => {
 
 // 匯出數據
 const exportData = async () => {
-  try {
-    await ElMessageBox.confirm(
-      '確定要匯出當前的統計數據嗎？',
-      '確認匯出',
-      {
-        confirmButtonText: '確定',
-        cancelButtonText: '取消',
-        type: 'info'
-      }
-    )
-    
-    // 模擬匯出處理
-    ElMessage.success('數據匯出成功，檔案將下載到本地')
-    
-    // 這裡可以實現實際的匯出邏輯
-    // const blob = new Blob([csvData], { type: 'text/csv' })
-    // const url = URL.createObjectURL(blob)
-    // const a = document.createElement('a')
-    // a.href = url
-    // a.download = 'dashboard_data.csv'
-    // a.click()
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('匯出失敗')
+  if (confirm('確定要匯出當前的統計數據嗎？')) {
+    try {
+      // 模擬匯出處理
+      showAlert('數據匯出成功，檔案將下載到本地', 'success')
+      
+      // 這裡可以實現實際的匯出邏輯
+      // const blob = new Blob([csvData], { type: 'text/csv' })
+      // const url = URL.createObjectURL(blob)
+      // const a = document.createElement('a')
+      // a.href = url
+      // a.download = 'dashboard_data.csv'
+      // a.click()
+    } catch (error) {
+      showAlert('匯出失敗', 'danger')
     }
   }
 }
@@ -993,27 +969,32 @@ const loadDashboardData = async () => {
   try {
     loading.value = true
     
-    // 這裡調用API獲取儀表板數據
-    // const data = await dashboardApi.getStats(timeRange.value)
-    
-    // 模擬API請求
-    await new Promise(resolve => setTimeout(resolve, 500))
+    // 從後端API獲取真實數據
+    const data = await getDashboardStats()
     
     // 更新統計數據
     stats.value = {
-      totalResources: 156 + Math.floor(Math.random() * 20),
-      totalUsers: 24 + Math.floor(Math.random() * 10),
-      totalTags: 48 + Math.floor(Math.random() * 15),
-      activeResources: 142 + Math.floor(Math.random() * 10),
-      resourcesTrend: Math.round((Math.random() * 20 - 10) * 10) / 10,
-      usersTrend: Math.round((Math.random() * 20 - 10) * 10) / 10,
-      tagsTrend: Math.round((Math.random() * 20 - 10) * 10) / 10,
-      activeTrend: Math.round((Math.random() * 20 - 10) * 10) / 10
+      totalResources: data.totalResources,
+      totalUsers: data.totalUsers,
+      totalTags: data.totalTags,
+      activeResources: data.activeResources,
+      resourcesTrend: data.resourcesTrend,
+      usersTrend: data.usersTrend,
+      tagsTrend: data.tagsTrend,
+      activeTrend: data.activeTrend
     }
+    
+    // 更新最近資源數據
+    recentResources.value = data.recentResources.map(resource => ({
+      id: resource.Id,
+      name: resource.Name,
+      resourceType: resource.ResourceType,
+      ipAddress: resource.IpAddress
+    }))
     
   } catch (error) {
     console.error('Failed to load dashboard data:', error)
-    ElMessage.error('載入儀表板數據失敗')
+    showAlert('載入儀表板數據失敗', 'danger')
   } finally {
     loading.value = false
   }
@@ -1080,6 +1061,26 @@ onUnmounted(() => {
   // 移除事件監聽器
   window.removeEventListener('resize', handleResize)
 })
+
+// 顯示Bootstrap警告框
+const showAlert = (message: string, type: string) => {
+  const alertDiv = document.createElement('div')
+  alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`
+  alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 1055; max-width: 350px;'
+  alertDiv.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `
+  
+  document.body.appendChild(alertDiv)
+  
+  // 3秒後自動消失
+  setTimeout(() => {
+    if (alertDiv.parentNode) {
+      alertDiv.parentNode.removeChild(alertDiv)
+    }
+  }, 3000)
+}
 </script>
 
 <style lang="scss" scoped>
@@ -1088,28 +1089,21 @@ onUnmounted(() => {
 }
 
 .welcome-header {
-  text-align: center;
-  margin-bottom: 20px;
   padding: 20px;
   
   h1 {
-    color: #409eff;
-    margin-bottom: 10px;
     font-size: 32px;
   }
   
   p {
-    color: var(--el-text-color-regular);
     font-size: 16px;
     margin: 0;
   }
 }
 
 .stats-cards {
-  margin-bottom: 20px;
-  
   .stat-card {
-    background: var(--el-bg-color);
+    background: white;
     border-radius: 12px;
     padding: 20px;
     display: flex;
@@ -1120,6 +1114,7 @@ onUnmounted(() => {
     cursor: pointer;
     position: relative;
     overflow: hidden;
+    border: 1px solid #e9ecef;
     
     &:hover {
       transform: translateY(-4px);
@@ -1133,7 +1128,7 @@ onUnmounted(() => {
       left: 0;
       right: 0;
       height: 3px;
-      background: linear-gradient(90deg, #409eff, #67c23a);
+      background: linear-gradient(90deg, #0d6efd, #198754);
     }
     
     .stat-icon {
@@ -1144,25 +1139,25 @@ onUnmounted(() => {
       align-items: center;
       justify-content: center;
       
-      .el-icon {
+      i {
         font-size: 28px;
         color: white;
       }
       
       &.resources {
-        background: linear-gradient(135deg, #409eff, #66b3ff);
+        background: linear-gradient(135deg, #0d6efd, #6ea8fe);
       }
       
       &.users {
-        background: linear-gradient(135deg, #67c23a, #85d85a);
+        background: linear-gradient(135deg, #198754, #75b798);
       }
       
       &.tags {
-        background: linear-gradient(135deg, #e6a23c, #f2b85c);
+        background: linear-gradient(135deg, #fd7e14, #ffc107);
       }
       
       &.active {
-        background: linear-gradient(135deg, #722ed1, #9254de);
+        background: linear-gradient(135deg, #6f42c1, #d63384);
       }
     }
     
@@ -1172,14 +1167,14 @@ onUnmounted(() => {
       .stat-number {
         font-size: 32px;
         font-weight: 700;
-        color: var(--el-text-color-primary);
+        color: #212529;
         margin-bottom: 4px;
         line-height: 1;
       }
       
       .stat-label {
         font-size: 14px;
-        color: var(--el-text-color-regular);
+        color: #6c757d;
         margin-bottom: 8px;
       }
       
@@ -1191,14 +1186,14 @@ onUnmounted(() => {
         font-weight: 500;
         
         &.positive {
-          color: #67c23a;
+          color: #198754;
         }
         
         &.negative {
-          color: #f56c6c;
+          color: #dc3545;
         }
         
-        .el-icon {
+        i {
           font-size: 14px;
         }
       }
@@ -1206,24 +1201,15 @@ onUnmounted(() => {
   }
 }
 
-.time-range-selector {
-  margin-bottom: 20px;
-  display: flex;
-  justify-content: center;
-}
-
 .main-content {
   .chart-card {
-    margin-bottom: 20px;
-    
-    :deep(.el-card__header) {
-      background: var(--el-bg-color-page);
-      border-bottom: 1px solid var(--el-border-color-light);
+    .card-header {
+      background: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
       
-      .chart-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+      .card-title {
+        font-weight: 600;
+        color: #495057;
       }
     }
     
@@ -1242,16 +1228,13 @@ onUnmounted(() => {
   }
   
   .activity-card {
-    margin-bottom: 20px;
-    
-    :deep(.el-card__header) {
-      background: var(--el-bg-color-page);
-      border-bottom: 1px solid var(--el-border-color-light);
+    .card-header {
+      background: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
       
-      .activity-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+      .card-title {
+        font-weight: 600;
+        color: #495057;
       }
     }
     
@@ -1264,7 +1247,7 @@ onUnmounted(() => {
         align-items: center;
         gap: 12px;
         padding: 16px 0;
-        border-bottom: 1px solid var(--el-border-color-lighter);
+        border-bottom: 1px solid #e9ecef;
         transition: all 0.3s ease;
         
         &:last-child {
@@ -1272,14 +1255,14 @@ onUnmounted(() => {
         }
         
         &:hover {
-          background: var(--el-bg-color-page);
+          background: #f8f9fa;
           margin: 0 -16px;
           padding: 16px;
           border-radius: 8px;
         }
         
         .activity-icon {
-          .el-icon {
+          i {
             font-size: 20px;
           }
         }
@@ -1290,46 +1273,48 @@ onUnmounted(() => {
           .activity-title {
             font-weight: 500;
             margin-bottom: 4px;
-            color: var(--el-text-color-primary);
+            color: #212529;
           }
           
           .activity-description {
             font-size: 13px;
-            color: var(--el-text-color-regular);
+            color: #6c757d;
             margin-bottom: 4px;
           }
           
           .activity-time {
             font-size: 12px;
-            color: var(--el-text-color-placeholder);
+            color: #adb5bd;
           }
         }
         
         .activity-status {
-          .el-tag {
+          .badge {
             font-size: 11px;
           }
         }
-      }
-      
-      .empty-state {
-        text-align: center;
-        padding: 40px;
       }
     }
   }
   
   .quick-actions-card {
-    margin-bottom: 20px;
+    .card-header {
+      background: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
+      
+      .card-title {
+        font-weight: 600;
+        color: #495057;
+      }
+    }
     
     .quick-actions {
       display: flex;
       flex-direction: column;
-      gap: 8px;
       
-      .el-button {
-        justify-content: flex-start;
+      .btn {
         text-align: left;
+        transition: all 0.3s ease;
         
         &:hover {
           transform: translateX(4px);
@@ -1339,7 +1324,15 @@ onUnmounted(() => {
   }
   
   .monitoring-card {
-    margin-bottom: 20px;
+    .card-header {
+      background: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
+      
+      .card-title {
+        font-weight: 600;
+        color: #495057;
+      }
+    }
     
     .monitoring-items {
       .monitoring-item {
@@ -1347,7 +1340,7 @@ onUnmounted(() => {
         justify-content: space-between;
         align-items: center;
         padding: 12px 0;
-        border-bottom: 1px solid var(--el-border-color-lighter);
+        border-bottom: 1px solid #e9ecef;
         
         &:last-child {
           border-bottom: none;
@@ -1356,22 +1349,17 @@ onUnmounted(() => {
         .monitoring-label {
           display: flex;
           align-items: center;
-          gap: 8px;
           font-size: 14px;
-          color: var(--el-text-color-regular);
+          color: #6c757d;
           
-          .el-icon {
+          i {
             font-size: 16px;
           }
         }
         
         .monitoring-value {
           font-weight: 600;
-          color: var(--el-text-color-primary);
-          
-          &.high-error {
-            color: var(--el-color-danger);
-          }
+          color: #212529;
         }
       }
     }
@@ -1379,16 +1367,25 @@ onUnmounted(() => {
     .monitoring-chart {
       margin-top: 16px;
       padding-top: 16px;
-      border-top: 1px solid var(--el-border-color-lighter);
+      border-top: 1px solid #e9ecef;
       
       .mini-chart {
         height: 120px;
         width: 100%;
       }
     }
+  }
   
   .system-status-card {
-    margin-bottom: 20px;
+    .card-header {
+      background: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
+      
+      .card-title {
+        font-weight: 600;
+        color: #495057;
+      }
+    }
     
     .status-list {
       .status-item {
@@ -1396,7 +1393,7 @@ onUnmounted(() => {
         align-items: center;
         justify-content: space-between;
         padding: 12px 0;
-        border-bottom: 1px solid var(--el-border-color-lighter);
+        border-bottom: 1px solid #e9ecef;
         
         &:last-child {
           border-bottom: none;
@@ -1404,7 +1401,7 @@ onUnmounted(() => {
         
         .status-label {
           font-size: 14px;
-          color: var(--el-text-color-primary);
+          color: #212529;
           font-weight: 500;
         }
         
@@ -1418,19 +1415,29 @@ onUnmounted(() => {
   }
   
   .recent-resources-card {
+    .card-header {
+      background: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
+      
+      .card-title {
+        font-weight: 600;
+        color: #495057;
+      }
+    }
+    
     .resource-list {
       .resource-item {
         display: flex;
         align-items: center;
         gap: 12px;
         padding: 12px 0;
-        border-bottom: 1px solid var(--el-border-color-lighter);
+        border-bottom: 1px solid #e9ecef;
         cursor: pointer;
         transition: all 0.3s ease;
         border-radius: 6px;
         
         &:hover {
-          background-color: var(--el-bg-color-page);
+          background-color: #f8f9fa;
           margin: 0 -8px;
           padding: 12px 8px;
         }
@@ -1440,7 +1447,7 @@ onUnmounted(() => {
         }
         
         .resource-icon {
-          .el-icon {
+          i {
             font-size: 18px;
           }
         }
@@ -1451,27 +1458,20 @@ onUnmounted(() => {
           .resource-name {
             font-size: 14px;
             font-weight: 500;
-            color: var(--el-text-color-primary);
+            color: #212529;
             margin-bottom: 2px;
           }
           
           .resource-type {
             font-size: 12px;
-            color: var(--el-text-color-regular);
             margin-bottom: 2px;
           }
           
           .resource-ip {
             font-size: 12px;
-            color: var(--el-text-color-placeholder);
             font-family: monospace;
           }
         }
-      }
-      
-      .empty-state {
-        text-align: center;
-        padding: 40px;
       }
     }
   }
@@ -1487,7 +1487,7 @@ onUnmounted(() => {
         width: 48px;
         height: 48px;
         
-        .el-icon {
+        i {
           font-size: 24px;
         }
       }
@@ -1508,21 +1508,6 @@ onUnmounted(() => {
     }
   }
   
-  .time-range-selector {
-    margin-bottom: 16px;
-    
-    :deep(.el-radio-group) {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 8px;
-      
-      .el-radio-button {
-        margin-right: 0;
-      }
-    }
-  }
-}
   .main-content {
     .chart-card {
       .chart-container {
@@ -1544,9 +1529,7 @@ onUnmounted(() => {
     
     .quick-actions-card {
       .quick-actions {
-        gap: 6px;
-        
-        .el-button {
+        .btn {
           font-size: 13px;
           padding: 8px 12px;
         }
@@ -1583,56 +1566,50 @@ onUnmounted(() => {
   }
 }
 
-// 暗黑模式
-.dark {
+// 深色模式支持
+@media (prefers-color-scheme: dark) {
   .stats-cards {
     .stat-card {
-      background: var(--el-bg-color);
-      box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+      background: #212529;
+      border-color: #495057;
+      color: #fff;
       
-      &:hover {
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      .stat-content {
+        .stat-number {
+          color: #fff;
+        }
+        
+        .stat-label {
+          color: #adb5bd;
+        }
       }
     }
   }
   
-  .main-content {
-    .chart-card,
-    .activity-card,
-    .quick-actions-card,
-    .monitoring-card,
-    .system-status-card,
-    .recent-resources-card {
-      :deep(.el-card__header) {
-        background: var(--el-bg-color-page);
-        border-bottom-color: var(--el-border-color-light);
+  .card {
+    background: #212529;
+    border-color: #495057;
+    color: #fff;
+    
+    .card-header {
+      background: #343a40;
+      border-color: #495057;
+      
+      .card-title {
+        color: #fff;
       }
     }
-    
-    .activity-card {
-      .activity-list {
-        .activity-item {
-          &:hover {
-            background: var(--el-bg-color-page);
-          }
-        }
-      }
+  }
+  
+  .activity-item {
+    &:hover {
+      background: #343a40;
     }
-    
-    .recent-resources-card {
-      .resource-list {
-        .resource-item {
-          &:hover {
-            background: var(--el-bg-color-page);
-          }
-        }
-      }
-    }
-    
-    .monitoring-card {
-      .monitoring-chart {
-        border-top-color: var(--el-border-color-lighter);
-      }
+  }
+  
+  .resource-item {
+    &:hover {
+      background: #343a40;
     }
   }
 }

@@ -24,8 +24,8 @@ body {
   font-family: map.get($font-families, primary);
   font-size: map.get($font-sizes, base);
   line-height: map.get($line-heights, normal);
-  color: var(--el-text-color-primary);
-  background-color: var(--el-bg-color);
+  color: var(--bs-body-color);
+  background-color: var(--bs-body-bg);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
@@ -243,55 +243,53 @@ body {
   justify-content: space-between;
   margin-bottom: var(--spacing-xl);
   padding-bottom: var(--spacing-lg);
-  border-bottom: 1px solid var(--el-border-color);
+  border-bottom: 1px solid var(--bs-border-color);
 }
 
 .page-title {
   font-size: var(--font-size-extra-large);
   font-weight: var(--font-weight-semibold);
-  color: var(--el-text-color-primary);
+  color: var(--bs-emphasis-color);
 }
 
 .page-description {
   margin-top: var(--spacing-xs);
   font-size: var(--font-size-small);
-  color: var(--el-text-color-secondary);
+  color: var(--bs-secondary-color);
 }
 
 // 表格樣式增強
-.el-table {
-  .el-table__header {
+.table {
+  .table-header {
     font-weight: var(--font-weight-semibold);
   }
   
-  .el-table__row {
+  tr {
     &:hover {
-      background-color: var(--el-bg-color-page);
+      background-color: var(--bs-tertiary-bg);
     }
   }
 }
 
 // 表單樣式增強
-.el-form {
-  .el-form-item__label {
-    font-weight: var(--font-weight-medium);
-  }
+.form-label {
+  font-weight: var(--font-weight-medium);
 }
 
 // 對話框樣式增強
-.el-dialog {
-  .el-dialog__header {
-    border-bottom: 1px solid var(--el-border-color);
+.modal {
+  .modal-header {
+    border-bottom: 1px solid var(--bs-border-color);
     padding-bottom: var(--spacing-md);
   }
   
-  .el-dialog__body {
+  .modal-body {
     padding-top: var(--spacing-lg);
   }
 }
 
 // 消息提示樣式增強
-.el-message {
+.alert {
   font-weight: var(--font-weight-medium);
   @include shadow(light);
 }
@@ -310,11 +308,11 @@ body {
 }
 
 // 暗黑模式樣式
-.dark {
-  .el-table {
-    .el-table__row {
+[data-bs-theme="dark"] {
+  .table {
+    tr {
       &:hover {
-        background-color: var(--el-bg-color-page);
+        background-color: var(--bs-tertiary-bg);
       }
     }
   }

@@ -1,113 +1,188 @@
 <template>
   <div class="system-settings">
-    <el-card>
-      <template #header>
-        <h3>系統設定</h3>
-      </template>
-
-      <el-form 
-        :model="systemSettings" 
-        label-width="180px"
-        class="settings-form"
-      >
-        <el-form-item label="系統維護模式">
-          <el-switch v-model="systemSettings.maintenanceMode" />
-          <span class="setting-desc">啟用後，只有管理員可以訪問系統</span>
-        </el-form-item>
-
-        <el-form-item label="新用戶註冊">
-          <el-switch v-model="systemSettings.allowRegistration" />
-          <span class="setting-desc">允許新用戶自行註冊</span>
-        </el-form-item>
-
-        <el-form-item label="啟用系統日誌">
-          <el-switch v-model="systemSettings.enableSystemLogs" />
-          <span class="setting-desc">記錄系統操作日誌</span>
-        </el-form-item>
-
-        <el-form-item label="啟用稽核日誌">
-          <el-switch v-model="systemSettings.enableAuditLogs" />
-          <span class="setting-desc">記錄用戶操作稽核日誌</span>
-        </el-form-item>
-
-        <el-form-item label="自動備份">
-          <el-switch v-model="systemSettings.autoBackup" />
-          <span class="setting-desc">啟用資料庫自動備份</span>
-        </el-form-item>
-
-        <el-form-item label="備份頻率" v-if="systemSettings.autoBackup">
-          <el-select v-model="systemSettings.backupFrequency">
-            <el-option label="每日" value="daily" />
-            <el-option label="每週" value="weekly" />
-            <el-option label="每月" value="monthly" />
-          </el-select>
-        </el-form-item>
-
-        <el-form-item label="保留備份數量" v-if="systemSettings.autoBackup">
-          <el-input-number 
-            v-model="systemSettings.backupRetention" 
-            :min="1" 
-            :max="30"
-          />
-        </el-form-item>
-
-        <el-form-item>
-          <el-button type="primary" @click="saveSystemSettings">
-            儲存設定
-          </el-button>
-          <el-button @click="resetSystemSettings">
-            重設
-          </el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
-
-    <el-card style="margin-top: 20px;">
-      <template #header>
-        <h3>系統操作</h3>
-      </template>
-
-      <div class="system-actions">
-        <el-row :gutter="20">
-          <el-col :span="8">
-            <el-button 
-              type="warning" 
-              @click="clearCache"
-              :loading="loading.clearCache"
-              block
-            >
-              清除快取
-            </el-button>
-          </el-col>
-          <el-col :span="8">
-            <el-button 
-              type="info" 
-              @click="exportData"
-              :loading="loading.exportData"
-              block
-            >
-              匯出資料
-            </el-button>
-          </el-col>
-          <el-col :span="8">
-            <el-button 
-              type="success" 
-              @click="createBackup"
-              :loading="loading.createBackup"
-              block
-            >
-              立即備份
-            </el-button>
-          </el-col>
-        </el-row>
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title mb-0">系統設定</h3>
       </div>
-    </el-card>
+      <div class="card-body">
+        <form class="settings-form">
+          <div class="row mb-3">
+            <label class="col-sm-3 col-form-label">系統維護模式</label>
+            <div class="col-sm-9">
+              <div class="form-check form-switch">
+                <input 
+                  class="form-check-input" 
+                  type="checkbox" 
+                  id="maintenanceMode"
+                  v-model="systemSettings.maintenanceMode"
+                >
+                <label class="form-check-label" for="maintenanceMode"></label>
+              </div>
+              <small class="form-text text-muted">啟用後，只有管理員可以訪問系統</small>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <label class="col-sm-3 col-form-label">新用戶註冊</label>
+            <div class="col-sm-9">
+              <div class="form-check form-switch">
+                <input 
+                  class="form-check-input" 
+                  type="checkbox" 
+                  id="allowRegistration"
+                  v-model="systemSettings.allowRegistration"
+                >
+                <label class="form-check-label" for="allowRegistration"></label>
+              </div>
+              <small class="form-text text-muted">允許新用戶自行註冊</small>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <label class="col-sm-3 col-form-label">啟用系統日誌</label>
+            <div class="col-sm-9">
+              <div class="form-check form-switch">
+                <input 
+                  class="form-check-input" 
+                  type="checkbox" 
+                  id="enableSystemLogs"
+                  v-model="systemSettings.enableSystemLogs"
+                >
+                <label class="form-check-label" for="enableSystemLogs"></label>
+              </div>
+              <small class="form-text text-muted">記錄系統操作日誌</small>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <label class="col-sm-3 col-form-label">啟用稽核日誌</label>
+            <div class="col-sm-9">
+              <div class="form-check form-switch">
+                <input 
+                  class="form-check-input" 
+                  type="checkbox" 
+                  id="enableAuditLogs"
+                  v-model="systemSettings.enableAuditLogs"
+                >
+                <label class="form-check-label" for="enableAuditLogs"></label>
+              </div>
+              <small class="form-text text-muted">記錄用戶操作稽核日誌</small>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <label class="col-sm-3 col-form-label">自動備份</label>
+            <div class="col-sm-9">
+              <div class="form-check form-switch">
+                <input 
+                  class="form-check-input" 
+                  type="checkbox" 
+                  id="autoBackup"
+                  v-model="systemSettings.autoBackup"
+                >
+                <label class="form-check-label" for="autoBackup"></label>
+              </div>
+              <small class="form-text text-muted">啟用資料庫自動備份</small>
+            </div>
+          </div>
+
+          <div class="row mb-3" v-if="systemSettings.autoBackup">
+            <label class="col-sm-3 col-form-label">備份頻率</label>
+            <div class="col-sm-9">
+              <select class="form-select" v-model="systemSettings.backupFrequency">
+                <option value="daily">每日</option>
+                <option value="weekly">每週</option>
+                <option value="monthly">每月</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row mb-3" v-if="systemSettings.autoBackup">
+            <label class="col-sm-3 col-form-label">保留備份數量</label>
+            <div class="col-sm-9">
+              <input 
+                type="number" 
+                class="form-control" 
+                v-model.number="systemSettings.backupRetention"
+                min="1" 
+                max="30"
+                style="max-width: 150px;"
+              >
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-sm-9 offset-sm-3">
+              <button 
+                type="button" 
+                class="btn btn-primary me-2" 
+                @click="saveSystemSettings"
+              >
+                儲存設定
+              </button>
+              <button 
+                type="button" 
+                class="btn btn-secondary" 
+                @click="resetSystemSettings"
+              >
+                重設
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card mt-4">
+      <div class="card-header">
+        <h3 class="card-title mb-0">系統操作</h3>
+      </div>
+      <div class="card-body">
+        <div class="system-actions">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <button 
+                type="button"
+                class="btn btn-warning w-100" 
+                @click="clearCache"
+                :disabled="loading.clearCache"
+              >
+                <span v-if="loading.clearCache" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                清除快取
+              </button>
+            </div>
+            <div class="col-md-4">
+              <button 
+                type="button"
+                class="btn btn-info w-100" 
+                @click="exportData"
+                :disabled="loading.exportData"
+              >
+                <span v-if="loading.exportData" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                匯出資料
+              </button>
+            </div>
+            <div class="col-md-4">
+              <button 
+                type="button"
+                class="btn btn-success w-100" 
+                @click="createBackup"
+                :disabled="loading.createBackup"
+              >
+                <span v-if="loading.createBackup" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                立即備份
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { showAlert, showConfirm } from '@/utils/bootstrap-alerts'
 
 const systemSettings = ref({
   maintenanceMode: false,
@@ -129,33 +204,35 @@ const originalSystemSettings = ref({ ...systemSettings.value })
 
 const saveSystemSettings = () => {
   // TODO: 調用API保存系統設定
-  ElMessage.success('系統設定已儲存')
+  showAlert('系統設定已儲存', 'success')
   originalSystemSettings.value = { ...systemSettings.value }
 }
 
 const resetSystemSettings = () => {
   systemSettings.value = { ...originalSystemSettings.value }
-  ElMessage.info('系統設定已重設')
+  showAlert('系統設定已重設', 'info')
 }
 
 const clearCache = async () => {
   try {
-    await ElMessageBox.confirm(
+    const confirmed = await showConfirm(
       '清除快取可能會暫時影響系統性能，是否繼續？',
       '確認清除快取',
       {
-        confirmButtonText: '確認',
-        cancelButtonText: '取消',
+        confirmText: '確認',
+        cancelText: '取消',
         type: 'warning'
       }
     )
 
+    if (!confirmed) return
+
     loading.value.clearCache = true
     // TODO: 調用API清除快取
     await new Promise(resolve => setTimeout(resolve, 2000))
-    ElMessage.success('快取已清除')
+    showAlert('快取已清除', 'success')
   } catch (error) {
-    // 用戶取消操作
+    showAlert('清除快取失敗', 'error')
   } finally {
     loading.value.clearCache = false
   }
@@ -166,9 +243,9 @@ const exportData = async () => {
   try {
     // TODO: 調用API匯出資料
     await new Promise(resolve => setTimeout(resolve, 3000))
-    ElMessage.success('資料匯出成功')
+    showAlert('資料匯出成功', 'success')
   } catch (error) {
-    ElMessage.error('資料匯出失敗')
+    showAlert('資料匯出失敗', 'error')
   } finally {
     loading.value.exportData = false
   }
@@ -179,9 +256,9 @@ const createBackup = async () => {
   try {
     // TODO: 調用API創建備份
     await new Promise(resolve => setTimeout(resolve, 5000))
-    ElMessage.success('備份創建成功')
+    showAlert('備份創建成功', 'success')
   } catch (error) {
-    ElMessage.error('備份創建失敗')
+    showAlert('備份創建失敗', 'error')
   } finally {
     loading.value.createBackup = false
   }
@@ -194,16 +271,30 @@ const createBackup = async () => {
 }
 
 .settings-form {
-  padding: 20px;
+  padding: 0;
 }
 
-.setting-desc {
-  margin-left: 10px;
-  color: #666;
-  font-size: 12px;
+.form-text {
+  display: block;
+  margin-top: 0.25rem;
 }
 
 .system-actions {
-  padding: 20px;
+  padding: 0;
+}
+
+.form-check-input:checked {
+  background-color: var(--bs-primary);
+  border-color: var(--bs-primary);
+}
+
+.card-title {
+  color: var(--bs-dark);
+  font-weight: 600;
+}
+
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
 }
 </style>

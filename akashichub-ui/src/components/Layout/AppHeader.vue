@@ -3,23 +3,35 @@
     <!-- 左側區域 -->
     <div class="header-left">
       <!-- 菜單切換按鈕 -->
-      <el-button
-        class="menu-toggle"
-        :icon="appStore.sidebarCollapsed ? 'Expand' : 'Fold'"
+      <button
+        type="button"
+        class="btn btn-link menu-toggle p-2"
         @click="toggleSidebar"
-      />
+      >
+        <i :class="appStore.sidebarCollapsed ? 'bi bi-arrow-bar-right' : 'bi bi-arrow-bar-left'"></i>
+      </button>
       
       <!-- 面包屑導航 -->
       <div v-if="appStore.settings.showBreadcrumb" class="breadcrumb-container">
-        <el-breadcrumb separator="/">
-          <el-breadcrumb-item
-            v-for="item in breadcrumbs"
-            :key="item.title"
-            :to="item.path"
-          >
-            {{ item.title }}
-          </el-breadcrumb-item>
-        </el-breadcrumb>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0">
+            <li
+              v-for="(item, index) in breadcrumbs"
+              :key="item.title"
+              class="breadcrumb-item"
+              :class="{ active: index === breadcrumbs.length - 1 }"
+            >
+              <router-link
+                v-if="index < breadcrumbs.length - 1"
+                :to="item.path"
+                class="text-decoration-none"
+              >
+                {{ item.title }}
+              </router-link>
+              <span v-else>{{ item.title }}</span>
+            </li>
+          </ol>
+        </nav>
       </div>
     </div>
 
@@ -34,125 +46,165 @@
       <!-- 快捷操作 -->
       <div class="quick-actions">
         <!-- 全屏切換 -->
-        <el-tooltip content="全屏/退出全屏" placement="bottom">
-          <el-button
-            class="action-btn"
-            :icon="isFullscreen ? 'Aim' : 'FullScreen'"
-            @click="toggleFullscreen"
-          />
-        </el-tooltip>
+        <button
+          type="button"
+          class="btn btn-link action-btn p-2"
+          data-bs-toggle="tooltip"
+          data-bs-placement="bottom"
+          title="全屏/退出全屏"
+          @click="toggleFullscreen"
+        >
+          <i :class="isFullscreen ? 'bi bi-arrows-angle-contract' : 'bi bi-arrows-fullscreen'"></i>
+        </button>
 
         <!-- 刷新頁面 -->
-        <el-tooltip content="刷新頁面" placement="bottom">
-          <el-button
-            class="action-btn"
-            icon="Refresh"
-            :loading="refreshing"
-            @click="refreshPage"
-          />
-        </el-tooltip>
+        <button
+          type="button"
+          class="btn btn-link action-btn p-2"
+          data-bs-toggle="tooltip"
+          data-bs-placement="bottom"
+          title="刷新頁面"
+          :disabled="refreshing"
+          @click="refreshPage"
+        >
+          <i class="bi bi-arrow-clockwise" :class="{ 'spinner-border spinner-border-sm': refreshing }"></i>
+        </button>
 
         <!-- 主題切換 -->
-        <el-tooltip content="切換主題" placement="bottom">
-          <el-button
-            class="action-btn"
-            :icon="appStore.isDarkMode ? 'Sunny' : 'Moon'"
-            @click="toggleTheme"
-          />
-        </el-tooltip>
+        <button
+          type="button"
+          class="btn btn-link action-btn p-2"
+          data-bs-toggle="tooltip"
+          data-bs-placement="bottom"
+          title="切換主題"
+          @click="toggleTheme"
+        >
+          <i :class="appStore.isDarkMode ? 'bi bi-sun' : 'bi bi-moon'"></i>
+        </button>
 
         <!-- 通知中心 -->
-        <el-dropdown trigger="click" @command="handleNotificationCommand">
-          <el-badge :value="unreadCount" :hidden="unreadCount === 0">
-            <el-button class="action-btn" icon="Bell" />
-          </el-badge>
-          <template #dropdown>
-            <el-dropdown-menu class="notification-dropdown">
-              <div class="notification-header">
-                <span>通知中心</span>
-                <el-button
-                  v-if="unreadCount > 0"
-                  link
-                  type="primary"
-                  size="small"
-                  @click="markAllAsRead"
-                >
-                  全部已讀
-                </el-button>
-              </div>
-              <el-divider style="margin: 8px 0" />
-              <div class="notification-list">
-                <div
-                  v-for="notification in notifications"
-                  :key="notification.id"
-                  class="notification-item"
-                  :class="{ 'is-unread': !notification.read }"
-                  @click="handleNotificationClick(notification)"
-                >
-                  <div class="notification-icon">
-                    <el-icon :color="getNotificationColor(notification.type)">
-                      <component :is="getNotificationIcon(notification.type)" />
-                    </el-icon>
-                  </div>
-                  <div class="notification-content">
-                    <div class="notification-title">{{ notification.title }}</div>
-                    <div class="notification-message">{{ notification.message }}</div>
-                    <div class="notification-time">{{ formatTime(notification.createdAt) }}</div>
-                  </div>
+        <div class="dropdown">
+          <button
+            type="button"
+            class="btn btn-link action-btn p-2 position-relative"
+            data-bs-toggle="dropdown"
+            data-bs-placement="bottom"
+            title="通知中心"
+          >
+            <i class="bi bi-bell"></i>
+            <span
+              v-if="unreadCount > 0"
+              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+            >
+              {{ unreadCount }}
+            </span>
+          </button>
+          <div class="dropdown-menu dropdown-menu-end notification-dropdown">
+            <div class="notification-header">
+              <span>通知中心</span>
+              <button
+                v-if="unreadCount > 0"
+                type="button"
+                class="btn btn-link btn-sm p-0"
+                @click="markAllAsRead"
+              >
+                全部已讀
+              </button>
+            </div>
+            <hr class="dropdown-divider" />
+            <div class="notification-list">
+              <div
+                v-for="notification in notifications"
+                :key="notification.id"
+                class="notification-item"
+                :class="{ 'is-unread': !notification.read }"
+                @click="handleNotificationClick(notification)"
+              >
+                <div class="notification-icon">
+                  <i :class="getNotificationIconClass(notification.type)" :style="{ color: getNotificationColor(notification.type) }"></i>
                 </div>
-                <div v-if="notifications.length === 0" class="notification-empty">
-                  <el-empty description="暫無通知" :image-size="60" />
+                <div class="notification-content">
+                  <div class="notification-title">{{ notification.title }}</div>
+                  <div class="notification-message">{{ notification.message }}</div>
+                  <div class="notification-time">{{ formatTime(notification.createdAt) }}</div>
                 </div>
               </div>
-              <el-divider style="margin: 8px 0" />
-              <div class="notification-footer">
-                <el-button link type="primary" @click="goToNotifications">
-                  查看全部
-                </el-button>
+              <div v-if="notifications.length === 0" class="notification-empty">
+                <div class="text-center py-4">
+                  <i class="bi bi-bell text-muted" style="font-size: 2rem;"></i>
+                  <p class="text-muted mt-2">暫無通知</p>
+                </div>
               </div>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
+            </div>
+            <hr class="dropdown-divider" />
+            <div class="notification-footer">
+              <button type="button" class="btn btn-link btn-sm" @click="goToNotifications">
+                查看全部
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- 用戶菜單 -->
-      <el-dropdown trigger="click" @command="handleUserCommand">
-        <div class="user-menu">
-          <el-avatar :size="32" :src="userInfo?.avatar">
-            <el-icon><UserFilled /></el-icon>
-          </el-avatar>
+      <div class="dropdown">
+        <div class="user-menu" data-bs-toggle="dropdown" data-bs-placement="bottom">
+          <div class="user-avatar">
+            <img
+              v-if="userInfo?.avatar"
+              :src="userInfo.avatar"
+              class="avatar-img"
+              alt="用戶頭像"
+            />
+            <div v-else class="avatar-placeholder">
+              <i class="bi bi-person-fill"></i>
+            </div>
+          </div>
           <div class="user-info">
             <div class="user-name">{{ userInfo?.displayName }}</div>
             <div class="user-role">{{ userInfo?.role }}</div>
           </div>
-          <el-icon class="dropdown-icon"><ArrowDown /></el-icon>
+          <i class="bi bi-chevron-down dropdown-icon"></i>
         </div>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item command="profile">
-              <el-icon><User /></el-icon>
+        <ul class="dropdown-menu dropdown-menu-end">
+          <li>
+            <button type="button" class="dropdown-item" @click="handleUserCommand('profile')">
+              <i class="bi bi-person me-2"></i>
               個人資料
-            </el-dropdown-item>
-            <el-dropdown-item command="settings" :disabled="!authStore.isAdmin">
-              <el-icon><Setting /></el-icon>
+            </button>
+          </li>
+          <li>
+            <button
+              type="button"
+              class="dropdown-item"
+              :disabled="!authStore.isAdmin"
+              @click="handleUserCommand('settings')"
+            >
+              <i class="bi bi-gear me-2"></i>
               系統設定
-            </el-dropdown-item>
-            <el-dropdown-item divided command="logout">
-              <el-icon><SwitchButton /></el-icon>
+            </button>
+          </li>
+          <li><hr class="dropdown-divider"></li>
+          <li>
+            <button type="button" class="dropdown-item" @click="handleUserCommand('logout')">
+              <i class="bi bi-box-arrow-right me-2"></i>
               登出
-            </el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
+            </button>
+          </li>
+        </ul>
+      </div>
 
       <!-- 設定面板觸發按鈕 -->
-      <el-tooltip content="個人化設定" placement="bottom">
-        <el-button
-          class="action-btn settings-trigger"
-          icon="Tools"
-          @click="showSettings"
-        />
-      </el-tooltip>
+      <button
+        type="button"
+        class="btn btn-link action-btn settings-trigger p-2"
+        data-bs-toggle="tooltip"
+        data-bs-placement="bottom"
+        title="個人化設定"
+        @click="showSettings"
+      >
+        <i class="bi bi-tools"></i>
+      </button>
     </div>
   </div>
 </template>
@@ -160,27 +212,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  Expand,
-  Fold,
-  FullScreen,
-  Aim,
-  Refresh,
-  Moon,
-  Sunny,
-  Bell,
-  User,
-  UserFilled,
-  Setting,
-  SwitchButton,
-  ArrowDown,
-  Tools,
-  InfoFilled,
-  WarningFilled,
-  CircleCheckFilled,
-  CircleCloseFilled
-} from '@element-plus/icons-vue'
+import { showAlert, showConfirm } from '@/utils/bootstrap-alerts'
 import { useAppStore } from '@/stores/app'
 import { useAuthStore } from '@/stores/auth'
 import { formatDistanceToNow } from 'date-fns'
@@ -290,17 +322,17 @@ const goToNotifications = () => {
   router.push('/notifications')
 }
 
-// 獲取通知圖標
-const getNotificationIcon = (type: string) => {
+// 獲取通知圖標類別
+const getNotificationIconClass = (type: string) => {
   switch (type) {
     case 'success':
-      return 'CircleCheckFilled'
+      return 'bi bi-check-circle-fill'
     case 'warning':
-      return 'WarningFilled'
+      return 'bi bi-exclamation-triangle-fill'
     case 'error':
-      return 'CircleCloseFilled'
+      return 'bi bi-x-circle-fill'
     default:
-      return 'InfoFilled'
+      return 'bi bi-info-circle-fill'
   }
 }
 
@@ -308,13 +340,13 @@ const getNotificationIcon = (type: string) => {
 const getNotificationColor = (type: string) => {
   switch (type) {
     case 'success':
-      return '#67c23a'
+      return '#198754'
     case 'warning':
-      return '#e6a23c'
+      return '#ffc107'
     case 'error':
-      return '#f56c6c'
+      return '#dc3545'
     default:
-      return '#409eff'
+      return '#0d6efd'
   }
 }
 
@@ -336,7 +368,7 @@ const handleUserCommand = (command: string) => {
       if (authStore.isAdmin) {
         router.push('/settings')
       } else {
-        ElMessage.warning('您沒有權限訪問系統設定')
+        showAlert('您沒有權限訪問系統設定', 'warning')
       }
       break
     case 'logout':
@@ -348,19 +380,17 @@ const handleUserCommand = (command: string) => {
 // 處理登出
 const handleLogout = async () => {
   try {
-    await ElMessageBox.confirm(
+    const confirmed = await showConfirm(
       '確定要登出嗎？',
       '確認登出',
-      {
-        confirmButtonText: '確定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
+      'warning'
     )
     
-    await authStore.logout()
-    ElMessage.success('登出成功')
-    router.push('/login')
+    if (confirmed) {
+      await authStore.logout()
+      showAlert('登出成功', 'success')
+      router.push('/login')
+    }
   } catch (error) {
     // 用戶取消登出
   }
@@ -389,8 +419,8 @@ onUnmounted(() => {
   justify-content: space-between;
   height: 100%;
   padding: 0 20px;
-  background: var(--el-bg-color);
-  border-bottom: 1px solid var(--el-border-color);
+  background: var(--bs-light);
+  border-bottom: 1px solid var(--bs-border-color);
 }
 
 .header-left {
@@ -400,35 +430,32 @@ onUnmounted(() => {
   flex: 1;
   
   .menu-toggle {
-    padding: 8px;
     border: none;
     background: transparent;
+    color: var(--bs-gray-600);
     
     &:hover {
-      background: var(--el-color-primary-light-9);
+      background: var(--bs-primary-bg-subtle);
+      color: var(--bs-primary);
     }
   }
   
   .breadcrumb-container {
-    :deep(.el-breadcrumb) {
+    .breadcrumb {
       font-size: 14px;
       
-      .el-breadcrumb__item {
-        &:not(:last-child) {
-          .el-breadcrumb__inner {
-            color: var(--el-text-color-regular);
-            
-            &:hover {
-              color: var(--el-color-primary);
-            }
+      .breadcrumb-item {
+        a {
+          color: var(--bs-gray-600);
+          
+          &:hover {
+            color: var(--bs-primary);
           }
         }
         
-        &:last-child {
-          .el-breadcrumb__inner {
-            color: var(--el-text-color-primary);
-            font-weight: 500;
-          }
+        &.active {
+          color: var(--bs-gray-900);
+          font-weight: 500;
         }
       }
     }
@@ -440,26 +467,6 @@ onUnmounted(() => {
   display: flex;
   justify-content: center;
   max-width: 400px;
-  
-  .search-container {
-    width: 100%;
-    
-    .search-input {
-      :deep(.el-input__wrapper) {
-        border-radius: 20px;
-        background: var(--el-bg-color-page);
-        border: 1px solid var(--el-border-color-lighter);
-        
-        &:hover {
-          border-color: var(--el-border-color);
-        }
-        
-        &.is-focus {
-          border-color: var(--el-color-primary);
-        }
-      }
-    }
-  }
 }
 
 .header-right {
@@ -473,17 +480,18 @@ onUnmounted(() => {
     gap: 8px;
     
     .action-btn {
-      padding: 8px;
       border: none;
       background: transparent;
+      color: var(--bs-gray-600);
       
       &:hover {
-        background: var(--el-color-primary-light-9);
+        background: var(--bs-primary-bg-subtle);
+        color: var(--bs-primary);
       }
       
       &.settings-trigger {
         margin-left: 8px;
-        border-left: 1px solid var(--el-border-color);
+        border-left: 1px solid var(--bs-border-color);
         padding-left: 16px;
       }
     }
@@ -499,7 +507,28 @@ onUnmounted(() => {
     transition: background-color 0.3s ease;
     
     &:hover {
-      background: var(--el-color-primary-light-9);
+      background: var(--bs-primary-bg-subtle);
+    }
+    
+    .user-avatar {
+      .avatar-img {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+      
+      .avatar-placeholder {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--bs-gray-300);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--bs-gray-600);
+        font-size: 16px;
+      }
     }
     
     .user-info {
@@ -510,20 +539,20 @@ onUnmounted(() => {
       .user-name {
         font-size: 14px;
         font-weight: 500;
-        color: var(--el-text-color-primary);
+        color: var(--bs-gray-900);
         line-height: 1.2;
       }
       
       .user-role {
         font-size: 12px;
-        color: var(--el-text-color-regular);
+        color: var(--bs-gray-600);
         line-height: 1.2;
       }
     }
     
     .dropdown-icon {
       font-size: 12px;
-      color: var(--el-text-color-regular);
+      color: var(--bs-gray-600);
       transition: transform 0.3s ease;
     }
   }
@@ -540,7 +569,7 @@ onUnmounted(() => {
     align-items: center;
     padding: 12px 16px;
     font-weight: 500;
-    color: var(--el-text-color-primary);
+    color: var(--bs-gray-900);
   }
   
   .notification-list {
@@ -552,16 +581,17 @@ onUnmounted(() => {
       align-items: flex-start;
       gap: 12px;
       padding: 12px 16px;
-      border-bottom: 1px solid var(--el-border-color-lighter);
+      border-bottom: 1px solid var(--bs-border-color);
       cursor: pointer;
       transition: background-color 0.3s ease;
+      position: relative;
       
       &:hover {
-        background: var(--el-bg-color-page);
+        background: var(--bs-gray-50);
       }
       
       &.is-unread {
-        background: var(--el-color-primary-light-9);
+        background: var(--bs-primary-bg-subtle);
         
         &::before {
           content: '';
@@ -571,13 +601,14 @@ onUnmounted(() => {
           transform: translateY(-50%);
           width: 3px;
           height: 60%;
-          background: var(--el-color-primary);
+          background: var(--bs-primary);
         }
       }
       
       .notification-icon {
         flex-shrink: 0;
         margin-top: 2px;
+        font-size: 16px;
       }
       
       .notification-content {
@@ -587,13 +618,13 @@ onUnmounted(() => {
         .notification-title {
           font-size: 14px;
           font-weight: 500;
-          color: var(--el-text-color-primary);
+          color: var(--bs-gray-900);
           margin-bottom: 4px;
         }
         
         .notification-message {
           font-size: 13px;
-          color: var(--el-text-color-regular);
+          color: var(--bs-gray-600);
           line-height: 1.4;
           margin-bottom: 4px;
           word-break: break-word;
@@ -601,7 +632,7 @@ onUnmounted(() => {
         
         .notification-time {
           font-size: 12px;
-          color: var(--el-text-color-placeholder);
+          color: var(--bs-gray-500);
         }
       }
     }
@@ -615,7 +646,7 @@ onUnmounted(() => {
   .notification-footer {
     padding: 12px 16px;
     text-align: center;
-    border-top: 1px solid var(--el-border-color-lighter);
+    border-top: 1px solid var(--bs-border-color);
   }
 }
 
@@ -672,26 +703,20 @@ onUnmounted(() => {
   }
 }
 
-// 暗黑模式
-.dark {
+// 暗黑模式支援
+@media (prefers-color-scheme: dark) {
   .app-header {
-    background: var(--el-bg-color);
-    border-bottom-color: var(--el-border-color);
+    background: var(--bs-dark);
+    border-bottom-color: var(--bs-gray-700);
   }
   
   .header-left {
     .menu-toggle {
+      color: var(--bs-gray-300);
+      
       &:hover {
-        background: var(--el-color-primary-light-9);
-      }
-    }
-  }
-  
-  .header-center {
-    .search-input {
-      :deep(.el-input__wrapper) {
-        background: var(--el-bg-color-page);
-        border-color: var(--el-border-color-lighter);
+        background: var(--bs-primary-bg-subtle);
+        color: var(--bs-primary);
       }
     }
   }
@@ -699,15 +724,24 @@ onUnmounted(() => {
   .header-right {
     .quick-actions {
       .action-btn {
+        color: var(--bs-gray-300);
+        
         &:hover {
-          background: var(--el-color-primary-light-9);
+          background: var(--bs-primary-bg-subtle);
+          color: var(--bs-primary);
         }
       }
     }
     
     .user-menu {
       &:hover {
-        background: var(--el-color-primary-light-9);
+        background: var(--bs-primary-bg-subtle);
+      }
+      
+      .user-info {
+        .user-name {
+          color: var(--bs-gray-100);
+        }
       }
     }
   }

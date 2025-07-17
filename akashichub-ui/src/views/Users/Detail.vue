@@ -1,365 +1,439 @@
 <template>
   <div class="user-detail">
     <div v-if="loading" class="loading-container">
-      <el-skeleton :rows="8" animated />
+      <div class="d-flex justify-content-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">加載中...</span>
+        </div>
+      </div>
     </div>
     
     <div v-else-if="user">
       <!-- 頁面標題 -->
-      <div class="page-header">
-        <div class="header-content">
-          <el-avatar :size="60" :src="user.avatar">
-            <el-icon><UserFilled /></el-icon>
-          </el-avatar>
-          <div class="user-info">
-            <h2>{{ user.displayName }}</h2>
-            <p>{{ user.loginAccount }}</p>
-            <div class="user-tags">
-              <el-tag :type="getRoleTagType(user.role)" size="small">
-                {{ getRoleLabel(user.role) }}
-              </el-tag>
-              <el-tag :type="getStatusTagType(user.status)" size="small">
-                {{ getStatusLabel(user.status) }}
-              </el-tag>
+      <div class="page-header card">
+        <div class="card-body">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <div class="d-flex align-items-center">
+                <div class="avatar-container me-3">
+                  <img
+                    v-if="user.avatar"
+                    :src="user.avatar"
+                    class="user-avatar"
+                    alt="用戶頭像"
+                  />
+                  <div v-else class="user-avatar-placeholder">
+                    <i class="bi bi-person-fill"></i>
+                  </div>
+                </div>
+                <div class="user-info">
+                  <h2 class="mb-2">{{ user.displayName }}</h2>
+                  <p class="text-muted mb-2">{{ user.loginAccount }}</p>
+                  <div class="user-tags">
+                    <span :class="getRoleTagClass(user.role)">
+                      {{ getRoleLabel(user.role) }}
+                    </span>
+                    <span :class="getStatusTagClass(user.status)">
+                      {{ getStatusLabel(user.status) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4 text-end">
+              <div class="header-actions">
+                <button type="button" class="btn btn-secondary me-2" @click="goBack">
+                  返回
+                </button>
+                <button
+                  v-if="authStore.isAdmin"
+                  type="button"
+                  class="btn btn-primary"
+                  @click="goToEdit"
+                >
+                  <i class="bi bi-pencil me-1"></i>
+                  編輯用戶
+                </button>
+              </div>
             </div>
           </div>
         </div>
-        <div class="header-actions">
-          <el-button @click="goBack">返回</el-button>
-          <el-button
-            v-if="authStore.isAdmin"
-            type="primary"
-            icon="Edit"
-            @click="goToEdit"
-          >
-            編輯用戶
-          </el-button>
-        </div>
       </div>
 
-      <el-row :gutter="20">
+      <div class="row">
         <!-- 左側：基本信息 -->
-        <el-col :xs="24" :md="16">
+        <div class="col-lg-8">
           <!-- 基本信息卡片 -->
-          <el-card class="info-section" header="基本信息">
-            <div class="info-grid">
-              <div class="info-item">
-                <label>登入帳號：</label>
-                <span class="account">{{ user.loginAccount }}</span>
-              </div>
-              <div class="info-item">
-                <label>用戶名稱：</label>
-                <span>{{ user.displayName }}</span>
-              </div>
-              <div class="info-item">
-                <label>電子郵件：</label>
-                <span>
-                  <el-link :href="`mailto:${user.email}`" type="primary">
-                    {{ user.email }}
-                  </el-link>
-                </span>
-              </div>
-              <div class="info-item">
-                <label>部門：</label>
-                <span>{{ user.department }}</span>
-              </div>
-              <div class="info-item">
-                <label>手機號碼：</label>
-                <span>{{ user.phone || '未設定' }}</span>
-              </div>
-              <div class="info-item">
-                <label>用戶角色：</label>
-                <el-tag :type="getRoleTagType(user.role)">
-                  {{ getRoleLabel(user.role) }}
-                </el-tag>
-              </div>
-              <div class="info-item">
-                <label>帳號狀態：</label>
-                <el-tag :type="getStatusTagType(user.status)">
-                  {{ getStatusLabel(user.status) }}
-                </el-tag>
-              </div>
-              <div class="info-item">
-                <label>創建時間：</label>
-                <span>{{ formatDateTime(user.createdAt) }}</span>
-              </div>
-              <div class="info-item">
-                <label>創建者：</label>
-                <span>{{ user.createdBy }}</span>
-              </div>
-              <div class="info-item">
-                <label>最後更新：</label>
-                <span>{{ formatDateTime(user.updatedAt) }}</span>
+          <div class="card info-section">
+            <div class="card-header">
+              <h5 class="card-title mb-0">基本信息</h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="info-item">
+                    <label class="form-label">登入帳號：</label>
+                    <span class="account">{{ user.loginAccount }}</span>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="info-item">
+                    <label class="form-label">用戶名稱：</label>
+                    <span>{{ user.displayName }}</span>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="info-item">
+                    <label class="form-label">電子郵件：</label>
+                    <span>
+                      <a :href="`mailto:${user.email}`" class="text-primary">
+                        {{ user.email }}
+                      </a>
+                    </span>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="info-item">
+                    <label class="form-label">部門：</label>
+                    <span>{{ user.department }}</span>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="info-item">
+                    <label class="form-label">手機號碼：</label>
+                    <span>{{ user.phone || '未設定' }}</span>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="info-item">
+                    <label class="form-label">用戶角色：</label>
+                    <span :class="getRoleTagClass(user.role)">
+                      {{ getRoleLabel(user.role) }}
+                    </span>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="info-item">
+                    <label class="form-label">帳號狀態：</label>
+                    <span :class="getStatusTagClass(user.status)">
+                      {{ getStatusLabel(user.status) }}
+                    </span>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="info-item">
+                    <label class="form-label">創建時間：</label>
+                    <span>{{ formatDateTime(user.createdAt) }}</span>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="info-item">
+                    <label class="form-label">創建者：</label>
+                    <span>{{ user.createdBy }}</span>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="info-item">
+                    <label class="form-label">最後更新：</label>
+                    <span>{{ formatDateTime(user.updatedAt) }}</span>
+                  </div>
+                </div>
               </div>
             </div>
-          </el-card>
+          </div>
 
           <!-- 權限信息 -->
-          <el-card class="info-section" header="權限信息">
-            <div class="permissions-info">
-              <div class="permission-section">
-                <h4>資源管理權限</h4>
-                <div class="permission-list">
-                  <div class="permission-item">
-                    <el-icon :color="user.role === 'Admin' ? '#67c23a' : '#e6a23c'">
-                      <component :is="user.role === 'Admin' ? 'Check' : 'View'" />
-                    </el-icon>
-                    <span>{{ user.role === 'Admin' ? '完整管理權限' : '僅查看權限' }}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="permission-section">
-                <h4>用戶群權限</h4>
-                <div class="permission-list">
-                  <div class="permission-item">
-                    <el-icon :color="user.role === 'Admin' ? '#67c23a' : '#f56c6c'">
-                      <component :is="user.role === 'Admin' ? 'Check' : 'Close'" />
-                    </el-icon>
-                    <span>{{ user.role === 'Admin' ? '可以管理其他用戶' : '無權限' }}</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="permission-section">
-                <h4>系統設定權限</h4>
-                <div class="permission-list">
-                  <div class="permission-item">
-                    <el-icon :color="user.role === 'Admin' ? '#67c23a' : '#f56c6c'">
-                      <component :is="user.role === 'Admin' ? 'Check' : 'Close'" />
-                    </el-icon>
-                    <span>{{ user.role === 'Admin' ? '可以修改系統設定' : '無權限' }}</span>
-                  </div>
-                </div>
-              </div>
+          <div class="card info-section">
+            <div class="card-header">
+              <h5 class="card-title mb-0">權限信息</h5>
             </div>
-          </el-card>
-
-          <!-- 登入記錄 -->
-          <el-card class="info-section" header="最近登入記錄">
-            <div v-if="loginHistory.length > 0">
-              <div
-                v-for="record in loginHistory"
-                :key="record.id"
-                class="login-record"
-              >
-                <div class="record-content">
-                  <div class="record-info">
-                    <div class="record-time">{{ formatDateTime(record.loginAt) }}</div>
-                    <div class="record-details">
-                      <span class="record-ip">{{ record.ipAddress }}</span>
-                      <span class="record-location">{{ record.location }}</span>
-                      <span class="record-device">{{ record.userAgent }}</span>
+            <div class="card-body">
+              <div class="permissions-info">
+                <div class="permission-section">
+                  <h6 class="mb-3">資源管理權限</h6>
+                  <div class="permission-list">
+                    <div class="permission-item">
+                      <i :class="user.role === 'Admin' ? 'bi bi-check-circle text-success' : 'bi bi-eye text-warning'" class="me-2"></i>
+                      <span>{{ user.role === 'Admin' ? '完整管理權限' : '僅查看權限' }}</span>
                     </div>
                   </div>
-                  <div class="record-status">
-                    <el-tag :type="record.success ? 'success' : 'danger'" size="small">
-                      {{ record.success ? '成功' : '失敗' }}
-                    </el-tag>
+                </div>
+                
+                <div class="permission-section">
+                  <h6 class="mb-3">用戶群權限</h6>
+                  <div class="permission-list">
+                    <div class="permission-item">
+                      <i :class="user.role === 'Admin' ? 'bi bi-check-circle text-success' : 'bi bi-x-circle text-danger'" class="me-2"></i>
+                      <span>{{ user.role === 'Admin' ? '可以管理其他用戶' : '無權限' }}</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="permission-section">
+                  <h6 class="mb-3">系統設定權限</h6>
+                  <div class="permission-list">
+                    <div class="permission-item">
+                      <i :class="user.role === 'Admin' ? 'bi bi-check-circle text-success' : 'bi bi-x-circle text-danger'" class="me-2"></i>
+                      <span>{{ user.role === 'Admin' ? '可以修改系統設定' : '無權限' }}</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-            <div v-else class="empty-records">
-              <el-empty description="暫無登入記錄" :image-size="80" />
+          </div>
+
+          <!-- 登入記錄 -->
+          <div class="card info-section">
+            <div class="card-header">
+              <h5 class="card-title mb-0">最近登入記錄</h5>
             </div>
-          </el-card>
-        </el-col>
+            <div class="card-body">
+              <div v-if="loginHistory.length > 0">
+                <div
+                  v-for="record in loginHistory"
+                  :key="record.id"
+                  class="login-record"
+                >
+                  <div class="row align-items-center">
+                    <div class="col-md-10">
+                      <div class="record-info">
+                        <div class="record-time fw-bold">{{ formatDateTime(record.loginAt) }}</div>
+                        <div class="record-details text-muted small">
+                          <span class="record-ip me-3">{{ record.ipAddress }}</span>
+                          <span class="record-location me-3">{{ record.location }}</span>
+                          <span class="record-device">{{ record.userAgent }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-2 text-end">
+                      <span :class="record.success ? 'badge bg-success' : 'badge bg-danger'">
+                        {{ record.success ? '成功' : '失敗' }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="empty-records text-center py-5">
+                <i class="bi bi-exclamation-circle text-muted" style="font-size: 3rem;"></i>
+                <p class="text-muted mt-3">暫無登入記錄</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- 右側：統計和快速操作 -->
-        <el-col :xs="24" :md="8">
+        <div class="col-lg-4">
           <!-- 統計信息 -->
-          <el-card class="stats-section" header="使用統計">
-            <div class="stats-grid">
-              <div class="stat-item">
-                <div class="stat-icon login">
-                  <el-icon><Connection /></el-icon>
+          <div class="card stats-section">
+            <div class="card-header">
+              <h5 class="card-title mb-0">使用統計</h5>
+            </div>
+            <div class="card-body">
+              <div class="stats-grid">
+                <div class="stat-item">
+                  <div class="stat-icon login">
+                    <i class="bi bi-link-45deg"></i>
+                  </div>
+                  <div class="stat-content">
+                    <div class="stat-number">{{ userStats.totalLogins }}</div>
+                    <div class="stat-label">總登入次數</div>
+                  </div>
                 </div>
-                <div class="stat-content">
-                  <div class="stat-number">{{ userStats.totalLogins }}</div>
-                  <div class="stat-label">總登入次數</div>
+                
+                <div class="stat-item">
+                  <div class="stat-icon resources">
+                    <i class="bi bi-folder-check"></i>
+                  </div>
+                  <div class="stat-content">
+                    <div class="stat-number">{{ userStats.resourcesAccessed }}</div>
+                    <div class="stat-label">訪問資源數</div>
+                  </div>
                 </div>
-              </div>
-              
-              <div class="stat-item">
-                <div class="stat-icon resources">
-                  <el-icon><FolderOpened /></el-icon>
+                
+                <div class="stat-item">
+                  <div class="stat-icon time">
+                    <i class="bi bi-clock"></i>
+                  </div>
+                  <div class="stat-content">
+                    <div class="stat-number">{{ userStats.avgSessionTime }}</div>
+                    <div class="stat-label">平均會話時長</div>
+                  </div>
                 </div>
-                <div class="stat-content">
-                  <div class="stat-number">{{ userStats.resourcesAccessed }}</div>
-                  <div class="stat-label">訪問資源數</div>
-                </div>
-              </div>
-              
-              <div class="stat-item">
-                <div class="stat-icon time">
-                  <el-icon><Clock /></el-icon>
-                </div>
-                <div class="stat-content">
-                  <div class="stat-number">{{ userStats.avgSessionTime }}</div>
-                  <div class="stat-label">平均會話時長</div>
-                </div>
-              </div>
-              
-              <div class="stat-item">
-                <div class="stat-icon last">
-                  <el-icon><Calendar /></el-icon>
-                </div>
-                <div class="stat-content">
-                  <div class="stat-number">{{ formatTimeAgo(user.lastLoginAt) }}</div>
-                  <div class="stat-label">最後登入</div>
+                
+                <div class="stat-item">
+                  <div class="stat-icon last">
+                    <i class="bi bi-calendar-event"></i>
+                  </div>
+                  <div class="stat-content">
+                    <div class="stat-number">{{ formatTimeAgo(user.lastLoginAt) }}</div>
+                    <div class="stat-label">最後登入</div>
+                  </div>
                 </div>
               </div>
             </div>
-          </el-card>
+          </div>
 
           <!-- 快速操作 -->
-          <el-card v-if="authStore.isAdmin" class="actions-section" header="快速操作">
-            <div class="action-buttons">
-              <el-button
-                type="primary"
-                icon="Edit"
-                @click="goToEdit"
-                :disabled="user.id === authStore.userInfo?.id && user.role === 'Admin'"
-              >
-                編輯用戶
-              </el-button>
-              
-              <el-button
-                :type="user.status === 'active' ? 'warning' : 'success'"
-                :icon="user.status === 'active' ? 'Lock' : 'Unlock'"
-                @click="handleStatusToggle"
-                :disabled="user.id === authStore.userInfo?.id"
-              >
-                {{ user.status === 'active' ? '停用帳號' : '啟用帳號' }}
-              </el-button>
-              
-              <el-button
-                type="info"
-                icon="Key"
-                @click="handleResetPassword"
-              >
-                重置密碼
-              </el-button>
-              
-              <el-button
-                type="danger"
-                icon="Delete"
-                @click="handleDelete"
-                :disabled="user.role === 'Admin' || user.id === authStore.userInfo?.id"
-              >
-                刪除用戶
-              </el-button>
+          <div v-if="authStore.isAdmin" class="card actions-section">
+            <div class="card-header">
+              <h5 class="card-title mb-0">快速操作</h5>
             </div>
-          </el-card>
+            <div class="card-body">
+              <div class="action-buttons">
+                <button
+                  type="button"
+                  class="btn btn-primary w-100 mb-2"
+                  @click="goToEdit"
+                  :disabled="user.id === authStore.userInfo?.id && user.role === 'Admin'"
+                >
+                  <i class="bi bi-pencil me-1"></i>
+                  編輯用戶
+                </button>
+                
+                <button
+                  type="button"
+                  :class="user.status === 'active' ? 'btn btn-warning w-100 mb-2' : 'btn btn-success w-100 mb-2'"
+                  @click="handleStatusToggle"
+                  :disabled="user.id === authStore.userInfo?.id"
+                >
+                  <i :class="user.status === 'active' ? 'bi bi-lock me-1' : 'bi bi-unlock me-1'"></i>
+                  {{ user.status === 'active' ? '停用帳號' : '啟用帳號' }}
+                </button>
+                
+                <button
+                  type="button"
+                  class="btn btn-info w-100 mb-2"
+                  @click="handleResetPassword"
+                >
+                  <i class="bi bi-key me-1"></i>
+                  重置密碼
+                </button>
+                
+                <button
+                  type="button"
+                  class="btn btn-danger w-100"
+                  @click="handleDelete"
+                  :disabled="user.role === 'Admin' || user.id === authStore.userInfo?.id"
+                >
+                  <i class="bi bi-trash me-1"></i>
+                  刪除用戶
+                </button>
+              </div>
+            </div>
+          </div>
 
           <!-- 安全信息 -->
-          <el-card class="security-section" header="安全信息">
-            <div class="security-items">
-              <div class="security-item">
-                <div class="security-label">密碼最後更新</div>
-                <div class="security-value">{{ formatDate(user.passwordUpdatedAt) }}</div>
-              </div>
-              
-              <div class="security-item">
-                <div class="security-label">雙重驗證</div>
-                <div class="security-value">
-                  <el-tag :type="user.twoFactorEnabled ? 'success' : 'info'" size="small">
-                    {{ user.twoFactorEnabled ? '已啟用' : '未啟用' }}
-                  </el-tag>
+          <div class="card security-section">
+            <div class="card-header">
+              <h5 class="card-title mb-0">安全信息</h5>
+            </div>
+            <div class="card-body">
+              <div class="security-items">
+                <div class="security-item">
+                  <div class="security-label">密碼最後更新</div>
+                  <div class="security-value">{{ formatDate(user.passwordUpdatedAt) }}</div>
                 </div>
-              </div>
-              
-              <div class="security-item">
-                <div class="security-label">登入失敗次數</div>
-                <div class="security-value">
-                  <span :class="{ 'warning-text': user.failedLoginAttempts > 5 }">
-                    {{ user.failedLoginAttempts }}
-                  </span>
+                
+                <div class="security-item">
+                  <div class="security-label">雙重驗證</div>
+                  <div class="security-value">
+                    <span :class="user.twoFactorEnabled ? 'badge bg-success' : 'badge bg-secondary'">
+                      {{ user.twoFactorEnabled ? '已啟用' : '未啟用' }}
+                    </span>
+                  </div>
                 </div>
-              </div>
-              
-              <div class="security-item">
-                <div class="security-label">帳號鎖定</div>
-                <div class="security-value">
-                  <el-tag :type="user.lockedUntil ? 'danger' : 'success'" size="small">
-                    {{ user.lockedUntil ? '已鎖定' : '正常' }}
-                  </el-tag>
+                
+                <div class="security-item">
+                  <div class="security-label">登入失敗次數</div>
+                  <div class="security-value">
+                    <span :class="{ 'text-warning fw-bold': user.failedLoginAttempts > 5 }">
+                      {{ user.failedLoginAttempts }}
+                    </span>
+                  </div>
+                </div>
+                
+                <div class="security-item">
+                  <div class="security-label">帳號鎖定</div>
+                  <div class="security-value">
+                    <span :class="user.lockedUntil ? 'badge bg-danger' : 'badge bg-success'">
+                      {{ user.lockedUntil ? '已鎖定' : '正常' }}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
-          </el-card>
-        </el-col>
-      </el-row>
+          </div>
+        </div>
+      </div>
     </div>
     
-    <div v-else class="error-state">
-      <el-empty description="用戶不存在或已被刪除" />
+    <div v-else class="error-state text-center py-5">
+      <i class="bi bi-exclamation-triangle text-muted" style="font-size: 4rem;"></i>
+      <h4 class="text-muted mt-3">用戶不存在或已被刪除</h4>
     </div>
 
     <!-- 重置密碼對話框 -->
-    <el-dialog
-      v-model="resetPasswordVisible"
-      title="重置密碼"
-      width="400px"
-    >
-      <div class="reset-password-content">
-        <el-alert
-          title="重置密碼"
-          :description="`確定要重置用戶 '${user?.displayName}' 的密碼嗎？`"
-          type="warning"
-          show-icon
-          style="margin-bottom: 20px"
-        />
-        
-        <el-form label-width="100px">
-          <el-form-item label="新密碼：">
-            <el-input
-              v-model="newPassword"
-              type="password"
-              placeholder="留空則自動生成"
-              show-password
-            />
-          </el-form-item>
-          <el-form-item>
-            <el-button @click="generatePassword">生成隨機密碼</el-button>
-          </el-form-item>
-        </el-form>
+    <div class="modal fade" id="resetPasswordModal" tabindex="-1" :class="{ show: resetPasswordVisible }" :style="{ display: resetPasswordVisible ? 'block' : 'none' }">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">重置密碼</h5>
+            <button type="button" class="btn-close" @click="resetPasswordVisible = false"></button>
+          </div>
+          <div class="modal-body">
+            <div class="alert alert-warning d-flex align-items-center mb-3">
+              <i class="bi bi-exclamation-triangle me-2"></i>
+              <div>
+                <strong>重置密碼</strong><br>
+                確定要重置用戶 '{{ user?.displayName }}' 的密碼嗎？
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">新密碼：</label>
+              <div class="input-group">
+                <input
+                  v-model="newPassword"
+                  type="password"
+                  class="form-control"
+                  placeholder="留空則自動生成"
+                />
+                <button class="btn btn-outline-secondary" type="button" @click="generatePassword">
+                  <i class="bi bi-arrow-clockwise"></i>
+                </button>
+              </div>
+            </div>
+            
+            <button type="button" class="btn btn-secondary" @click="generatePassword">
+              <i class="bi bi-key me-1"></i>
+              生成隨機密碼
+            </button>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="resetPasswordVisible = false">
+              取消
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              :disabled="resetPasswordLoading"
+              @click="confirmResetPassword"
+            >
+              <span v-if="resetPasswordLoading" class="spinner-border spinner-border-sm me-2"></span>
+              確認重置
+            </button>
+          </div>
+        </div>
       </div>
-      
-      <template #footer>
-        <el-button @click="resetPasswordVisible = false">取消</el-button>
-        <el-button
-          type="primary"
-          :loading="resetPasswordLoading"
-          @click="confirmResetPassword"
-        >
-          確認重置
-        </el-button>
-      </template>
-    </el-dialog>
+    </div>
+    <div v-if="resetPasswordVisible" class="modal-backdrop fade show"></div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  UserFilled,
-  Edit,
-  Check,
-  Close,
-  View,
-  Connection,
-  FolderOpened,
-  Clock,
-  Calendar,
-  Lock,
-  Unlock,
-  Key,
-  Delete
-} from '@element-plus/icons-vue'
+import { showAlert, showConfirm } from '@/utils/bootstrap-alerts'
 import { useAuthStore } from '@/stores/auth'
 import { format, formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
@@ -385,9 +459,9 @@ const resetPasswordVisible = ref(false)
 const newPassword = ref('')
 const resetPasswordLoading = ref(false)
 
-// 獲取角色標籤類型
-const getRoleTagType = (role: string) => {
-  return role === 'Admin' ? 'danger' : 'primary'
+// 獲取角色標籤類別
+const getRoleTagClass = (role: string) => {
+  return role === 'Admin' ? 'badge bg-danger' : 'badge bg-primary'
 }
 
 // 獲取角色標籤
@@ -395,14 +469,14 @@ const getRoleLabel = (role: string) => {
   return role === 'Admin' ? '管理員' : '用戶'
 }
 
-// 獲取狀態標籤類型
-const getStatusTagType = (status: string) => {
+// 獲取狀態標籤類別
+const getStatusTagClass = (status: string) => {
   const typeMap: Record<string, string> = {
-    active: 'success',
-    inactive: 'info',
-    locked: 'warning'
+    active: 'badge bg-success',
+    inactive: 'badge bg-secondary',
+    locked: 'badge bg-warning'
   }
-  return typeMap[status] || 'info'
+  return typeMap[status] || 'badge bg-secondary'
 }
 
 // 獲取狀態標籤
@@ -450,25 +524,21 @@ const handleStatusToggle = async () => {
   const action = newStatus === 'active' ? '啟用' : '停用'
   
   try {
-    await ElMessageBox.confirm(
+    const confirmed = await showConfirm(
       `確定要${action}用戶 "${user.value.displayName}" 嗎？`,
       `確認${action}`,
-      {
-        confirmButtonText: '確定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
+      'warning'
     )
     
-    // 這裡調用API更新狀態
-    // await usersApi.updateUserStatus(user.value.id, newStatus)
-    
-    user.value.status = newStatus
-    ElMessage.success(`${action}成功`)
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error(`${action}失敗`)
+    if (confirmed) {
+      // 這裡調用API更新狀態
+      // await usersApi.updateUserStatus(user.value.id, newStatus)
+      
+      user.value.status = newStatus
+      showAlert(`${action}成功`, 'success')
     }
+  } catch (error) {
+    showAlert(`${action}失敗`, 'error')
   }
 }
 
@@ -499,14 +569,14 @@ const confirmResetPassword = async () => {
     // 模擬API請求
     await new Promise(resolve => setTimeout(resolve, 1000))
     
-    ElMessage.success('密碼重置成功')
+    showAlert('密碼重置成功', 'success')
     resetPasswordVisible.value = false
     
     if (!newPassword.value) {
-      ElMessage.info('新密碼已發送到用戶郵箱')
+      showAlert('新密碼已發送到用戶郵箱', 'info')
     }
   } catch (error) {
-    ElMessage.error('密碼重置失敗')
+    showAlert('密碼重置失敗', 'error')
   } finally {
     resetPasswordLoading.value = false
   }
@@ -515,25 +585,21 @@ const confirmResetPassword = async () => {
 // 處理刪除用戶
 const handleDelete = async () => {
   try {
-    await ElMessageBox.confirm(
+    const confirmed = await showConfirm(
       `確定要刪除用戶 "${user.value.displayName}" 嗎？此操作不可恢復。`,
       '確認刪除',
-      {
-        confirmButtonText: '確定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
+      'danger'
     )
     
-    // 這裡調用API刪除用戶
-    // await usersApi.deleteUser(user.value.id)
-    
-    ElMessage.success('刪除成功')
-    router.push('/users')
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('刪除失敗')
+    if (confirmed) {
+      // 這裡調用API刪除用戶
+      // await usersApi.deleteUser(user.value.id)
+      
+      showAlert('刪除成功', 'success')
+      router.push('/users')
     }
+  } catch (error) {
+    showAlert('刪除失敗', 'error')
   }
 }
 
@@ -610,7 +676,7 @@ const loadData = async () => {
     
   } catch (error) {
     console.error('Failed to load user:', error)
-    ElMessage.error('載入用戶失敗')
+    showAlert('載入用戶失敗', 'error')
   } finally {
     loading.value = false
   }
@@ -625,49 +691,51 @@ onMounted(() => {
 <style lang="scss" scoped>
 .user-detail {
   .loading-container {
-    padding: 20px;
+    padding: 40px;
   }
   
   .page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
     margin-bottom: 24px;
-    padding: 24px;
-    background: var(--el-bg-color);
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     
-    .header-content {
-      display: flex;
-      align-items: center;
-      gap: 20px;
+    .avatar-container {
+      .user-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        object-fit: cover;
+      }
       
-      .user-info {
-        h2 {
-          margin: 0 0 8px 0;
-          font-size: 24px;
-          font-weight: 600;
-          color: var(--el-text-color-primary);
-        }
-        
-        p {
-          margin: 0 0 12px 0;
-          color: var(--el-text-color-regular);
-          font-family: monospace;
-          font-size: 14px;
-        }
-        
-        .user-tags {
-          display: flex;
-          gap: 8px;
-        }
+      .user-avatar-placeholder {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: var(--bs-gray-200);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: var(--bs-gray-600);
       }
     }
     
-    .header-actions {
-      display: flex;
-      gap: 12px;
+    .user-info {
+      h2 {
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 8px;
+      }
+      
+      p {
+        font-family: monospace;
+        font-size: 14px;
+        margin-bottom: 12px;
+      }
+      
+      .user-tags {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
     }
   }
   
@@ -676,103 +744,75 @@ onMounted(() => {
   .actions-section,
   .security-section {
     margin-bottom: 20px;
-    
-    :deep(.el-card__header) {
-      background: var(--el-bg-color-page);
-      font-weight: 600;
-    }
   }
   
-  .info-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 16px;
+  .info-item {
+    margin-bottom: 16px;
     
-    .info-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      
-      label {
-        min-width: 80px;
-        font-weight: 500;
-        color: var(--el-text-color-regular);
-      }
-      
-      .account {
-        font-family: monospace;
-        background: var(--el-bg-color-page);
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-size: 13px;
-      }
+    .form-label {
+      min-width: 120px;
+      margin-bottom: 4px;
+      font-weight: 500;
+    }
+    
+    .account {
+      font-family: monospace;
+      background: var(--bs-gray-100);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 13px;
     }
   }
   
   .permissions-info {
     .permission-section {
-      margin-bottom: 20px;
+      margin-bottom: 24px;
       
       &:last-child {
         margin-bottom: 0;
       }
       
-      h4 {
-        margin: 0 0 12px 0;
-        font-size: 14px;
-        color: var(--el-text-color-primary);
+      h6 {
+        font-weight: 600;
+        color: var(--bs-gray-700);
       }
       
       .permission-list {
         .permission-item {
           display: flex;
           align-items: center;
-          gap: 8px;
-          font-size: 13px;
-          color: var(--el-text-color-regular);
+          font-size: 14px;
+          color: var(--bs-gray-600);
         }
       }
     }
   }
   
   .login-record {
-    border-bottom: 1px solid var(--el-border-color-light);
+    border-bottom: 1px solid var(--bs-gray-200);
     padding: 16px 0;
     
     &:last-child {
       border-bottom: none;
     }
     
-    .record-content {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .record-info {
+      .record-time {
+        font-weight: 500;
+        margin-bottom: 4px;
+      }
       
-      .record-info {
-        flex: 1;
+      .record-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        font-size: 12px;
         
-        .record-time {
-          font-weight: 500;
-          margin-bottom: 4px;
-        }
-        
-        .record-details {
-          display: flex;
-          gap: 12px;
-          font-size: 12px;
-          color: var(--el-text-color-placeholder);
-          
-          .record-ip {
-            font-family: monospace;
-          }
+        .record-ip {
+          font-family: monospace;
         }
       }
     }
-  }
-  
-  .empty-records {
-    text-align: center;
-    padding: 40px;
   }
   
   .stats-grid {
@@ -785,7 +825,7 @@ onMounted(() => {
       align-items: center;
       gap: 12px;
       padding: 16px;
-      background: var(--el-bg-color-page);
+      background: var(--bs-gray-50);
       border-radius: 8px;
       
       .stat-icon {
@@ -795,26 +835,23 @@ onMounted(() => {
         display: flex;
         align-items: center;
         justify-content: center;
-        
-        .el-icon {
-          font-size: 20px;
-          color: white;
-        }
+        color: white;
+        font-size: 18px;
         
         &.login {
-          background: linear-gradient(135deg, #409eff, #66b3ff);
+          background: linear-gradient(135deg, #0d6efd, #6c9bd1);
         }
         
         &.resources {
-          background: linear-gradient(135deg, #67c23a, #85d85a);
+          background: linear-gradient(135deg, #198754, #25a06b);
         }
         
         &.time {
-          background: linear-gradient(135deg, #e6a23c, #f2b85c);
+          background: linear-gradient(135deg, #fd7e14, #ff9a44);
         }
         
         &.last {
-          background: linear-gradient(135deg, #722ed1, #9254de);
+          background: linear-gradient(135deg, #6610f2, #8540f5);
         }
       }
       
@@ -824,25 +861,14 @@ onMounted(() => {
         .stat-number {
           font-size: 18px;
           font-weight: 600;
-          color: var(--el-text-color-primary);
           margin-bottom: 2px;
         }
         
         .stat-label {
           font-size: 12px;
-          color: var(--el-text-color-regular);
+          color: var(--bs-gray-600);
         }
       }
-    }
-  }
-  
-  .action-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    
-    .el-button {
-      justify-content: flex-start;
     }
   }
   
@@ -852,7 +878,7 @@ onMounted(() => {
       justify-content: space-between;
       align-items: center;
       padding: 12px 0;
-      border-bottom: 1px solid var(--el-border-color-lighter);
+      border-bottom: 1px solid var(--bs-gray-100);
       
       &:last-child {
         border-bottom: none;
@@ -860,28 +886,9 @@ onMounted(() => {
       
       .security-label {
         font-size: 14px;
-        color: var(--el-text-color-regular);
-      }
-      
-      .security-value {
-        .warning-text {
-          color: var(--el-color-warning);
-          font-weight: 500;
-        }
+        color: var(--bs-gray-600);
       }
     }
-  }
-  
-  .error-state {
-    padding: 40px;
-    text-align: center;
-  }
-}
-
-// 對話框樣式
-.reset-password-content {
-  .el-form-item {
-    margin-bottom: 16px;
   }
 }
 
@@ -889,33 +896,15 @@ onMounted(() => {
 @media (max-width: 768px) {
   .user-detail {
     .page-header {
-      flex-direction: column;
-      gap: 16px;
-      
-      .header-content {
-        flex-direction: column;
-        text-align: center;
-        
-        .user-info {
-          h2 {
-            font-size: 20px;
-          }
-        }
-      }
-      
       .header-actions {
-        width: 100%;
-        justify-content: center;
-      }
-    }
-    
-    .info-grid {
-      grid-template-columns: 1fr;
-      
-      .info-item {
+        margin-top: 16px;
+        display: flex;
         flex-direction: column;
-        align-items: flex-start;
-        gap: 4px;
+        gap: 8px;
+        
+        .btn {
+          width: 100%;
+        }
       }
     }
     
@@ -924,40 +913,9 @@ onMounted(() => {
     }
     
     .login-record {
-      .record-content {
+      .record-details {
         flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-        
-        .record-details {
-          flex-direction: column;
-          gap: 4px;
-        }
-      }
-    }
-  }
-}
-
-// 暗黑模式
-.dark {
-  .user-detail {
-    .page-header {
-      background: var(--el-bg-color);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-    }
-    
-    .info-section,
-    .stats-section,
-    .actions-section,
-    .security-section {
-      :deep(.el-card__header) {
-        background: var(--el-bg-color-page);
-      }
-    }
-    
-    .stats-grid {
-      .stat-item {
-        background: var(--el-bg-color-page);
+        gap: 4px;
       }
     }
   }

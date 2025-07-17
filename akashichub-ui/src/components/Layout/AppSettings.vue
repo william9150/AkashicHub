@@ -1,53 +1,61 @@
 <template>
-  <el-drawer
-    v-model="visible"
-    title="個人化設定"
-    direction="rtl"
-    size="350px"
-    :with-header="true"
-    :close-on-click-modal="false"
+  <!-- Bootstrap Offcanvas -->
+  <div 
+    class="offcanvas offcanvas-end" 
+    tabindex="-1" 
+    id="settingsOffcanvas"
+    :class="{ show: visible }"
+    :style="{ visibility: visible ? 'visible' : 'hidden' }"
+    @click.self="closeSettings"
   >
-    <div class="settings-content">
-      <!-- 主題設定 -->
-      <div class="settings-section">
-        <h4 class="section-title">主題設定</h4>
-        
-        <div class="setting-item">
-          <label class="setting-label">主題模式</label>
-          <div class="theme-options">
-            <div
-              class="theme-option"
-              :class="{ active: !appStore.isDarkMode }"
-              @click="setTheme('light')"
-            >
-              <el-icon><Sunny /></el-icon>
-              <span>淺色</span>
-            </div>
-            <div
-              class="theme-option"
-              :class="{ active: appStore.isDarkMode }"
-              @click="setTheme('dark')"
-            >
-              <el-icon><Moon /></el-icon>
-              <span>深色</span>
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title">個人化設定</h5>
+      <button 
+        type="button" 
+        class="btn-close" 
+        @click="closeSettings"
+      ></button>
+    </div>
+    <div class="offcanvas-body">
+      <div class="settings-content">
+        <!-- 主題設定 -->
+        <div class="settings-section">
+          <h4 class="section-title">主題設定</h4>
+          
+          <div class="setting-item">
+            <label class="setting-label">主題模式</label>
+            <div class="theme-options">
+              <div
+                class="theme-option"
+                :class="{ active: !appStore.isDarkMode }"
+                @click="setTheme('light')"
+              >
+                <i class="bi bi-sun-fill"></i>
+                <span>淺色</span>
+              </div>
+              <div
+                class="theme-option"
+                :class="{ active: appStore.isDarkMode }"
+                @click="setTheme('dark')"
+              >
+                <i class="bi bi-moon-fill"></i>
+                <span>深色</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="setting-item">
-          <label class="setting-label">主題色彩</label>
-          <div class="color-options">
-            <div
-              v-for="color in themeColors"
-              :key="color.name"
-              class="color-option"
-              :class="{ active: appStore.settings.themeColor === color.value }"
-              :style="{ backgroundColor: color.value }"
-              @click="setThemeColor(color.value)"
-            >
-              <el-icon v-if="appStore.settings.themeColor === color.value">
-                <Check />
-              </el-icon>
+          <div class="setting-item">
+            <label class="setting-label">主題色彩</label>
+            <div class="color-options">
+              <div
+                v-for="color in themeColors"
+                :key="color.name"
+                class="color-option"
+                :class="{ active: appStore.settings.themeColor === color.value }"
+                :style="{ backgroundColor: color.value }"
+                @click="setThemeColor(color.value)"
+              >
+                <i v-if="appStore.settings.themeColor === color.value" class="bi bi-check"></i>
             </div>
           </div>
         </div>
@@ -59,52 +67,88 @@
         
         <div class="setting-item">
           <label class="setting-label">側邊欄狀態</label>
-          <el-switch
-            v-model="sidebarCollapsed"
-            active-text="收起"
-            inactive-text="展開"
-            @change="toggleSidebar"
-          />
+          <div class="form-check form-switch">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="sidebarToggle"
+              v-model="sidebarCollapsed"
+              @change="toggleSidebar"
+            />
+            <label class="form-check-label" for="sidebarToggle">
+              {{ sidebarCollapsed ? '收起' : '展開' }}
+            </label>
+          </div>
         </div>
 
         <div class="setting-item">
           <label class="setting-label">固定頭部</label>
-          <el-switch
-            v-model="settings.fixedHeader"
-            @change="updateSettings"
-          />
+          <div class="form-check form-switch">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="fixedHeader"
+              v-model="settings.fixedHeader"
+              @change="updateSettings"
+            />
+            <label class="form-check-label" for="fixedHeader"></label>
+          </div>
         </div>
 
         <div class="setting-item">
           <label class="setting-label">顯示標籤頁</label>
-          <el-switch
-            v-model="settings.showTabs"
-            @change="updateSettings"
-          />
+          <div class="form-check form-switch">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="showTabs"
+              v-model="settings.showTabs"
+              @change="updateSettings"
+            />
+            <label class="form-check-label" for="showTabs"></label>
+          </div>
         </div>
 
         <div class="setting-item">
           <label class="setting-label">顯示面包屑</label>
-          <el-switch
-            v-model="settings.showBreadcrumb"
-            @change="updateSettings"
-          />
+          <div class="form-check form-switch">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="showBreadcrumb"
+              v-model="settings.showBreadcrumb"
+              @change="updateSettings"
+            />
+            <label class="form-check-label" for="showBreadcrumb"></label>
+          </div>
         </div>
 
         <div class="setting-item">
           <label class="setting-label">顯示底部</label>
-          <el-switch
-            v-model="settings.showFooter"
-            @change="updateSettings"
-          />
+          <div class="form-check form-switch">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="showFooter"
+              v-model="settings.showFooter"
+              @change="updateSettings"
+            />
+            <label class="form-check-label" for="showFooter"></label>
+          </div>
         </div>
 
         <div class="setting-item">
           <label class="setting-label">側邊欄獨佔</label>
-          <el-switch
-            v-model="settings.uniqueOpened"
-            @change="updateSettings"
-          />
+          <div class="form-check form-switch">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="uniqueOpened"
+              v-model="settings.uniqueOpened"
+              @change="updateSettings"
+            />
+            <label class="form-check-label" for="uniqueOpened"></label>
+          </div>
         </div>
       </div>
 
@@ -114,24 +158,31 @@
         
         <div class="setting-item">
           <label class="setting-label">頁面切換動畫</label>
-          <el-select
+          <select
+            class="form-select"
             v-model="settings.animation"
-            placeholder="請選擇動畫效果"
             @change="updateSettings"
           >
-            <el-option label="淡入淡出" value="fade" />
-            <el-option label="滑動" value="slide" />
-            <el-option label="縮放" value="zoom" />
-            <el-option label="無動畫" value="none" />
-          </el-select>
+            <option value="" disabled>請選擇動畫效果</option>
+            <option value="fade">淡入淡出</option>
+            <option value="slide">滑動</option>
+            <option value="zoom">縮放</option>
+            <option value="none">無動畫</option>
+          </select>
         </div>
 
         <div class="setting-item">
           <label class="setting-label">開啟載入動畫</label>
-          <el-switch
-            v-model="settings.enableLoadingAnimation"
-            @change="updateSettings"
-          />
+          <div class="form-check form-switch">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="enableLoadingAnimation"
+              v-model="settings.enableLoadingAnimation"
+              @change="updateSettings"
+            />
+            <label class="form-check-label" for="enableLoadingAnimation"></label>
+          </div>
         </div>
       </div>
 
@@ -141,15 +192,23 @@
         
         <div class="setting-item">
           <label class="setting-label">開啟水印</label>
-          <el-switch
-            v-model="settings.enableWatermark"
-            @change="updateSettings"
-          />
+          <div class="form-check form-switch">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="enableWatermark"
+              v-model="settings.enableWatermark"
+              @change="updateSettings"
+            />
+            <label class="form-check-label" for="enableWatermark"></label>
+          </div>
         </div>
 
         <div v-if="settings.enableWatermark" class="setting-item">
           <label class="setting-label">水印文字</label>
-          <el-input
+          <input
+            type="text"
+            class="form-control"
             v-model="settings.watermarkText"
             placeholder="請輸入水印文字"
             @change="updateSettings"
@@ -158,35 +217,49 @@
 
         <div class="setting-item">
           <label class="setting-label">自動保存設定</label>
-          <el-switch
-            v-model="settings.autoSave"
-            @change="updateSettings"
-          />
+          <div class="form-check form-switch">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="autoSave"
+              v-model="settings.autoSave"
+              @change="updateSettings"
+            />
+            <label class="form-check-label" for="autoSave"></label>
+          </div>
         </div>
 
         <div class="setting-item">
           <label class="setting-label">頁面緩存</label>
-          <el-switch
-            v-model="settings.keepAlive"
-            @change="updateSettings"
-          />
+          <div class="form-check form-switch">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="keepAlive"
+              v-model="settings.keepAlive"
+              @change="updateSettings"
+            />
+            <label class="form-check-label" for="keepAlive"></label>
+          </div>
         </div>
       </div>
 
       <!-- 操作按鈕 -->
       <div class="settings-actions">
-        <el-button type="primary" @click="saveSettings">
-          保存設定
-        </el-button>
-        <el-button @click="resetSettings">
-          重置設定
-        </el-button>
-        <el-button @click="exportSettings">
-          導出設定
-        </el-button>
-        <el-button @click="importSettings">
-          導入設定
-        </el-button>
+        <div class="d-grid gap-2">
+          <button type="button" class="btn btn-primary" @click="saveSettings">
+            保存設定
+          </button>
+          <button type="button" class="btn btn-outline-secondary" @click="resetSettings">
+            重置設定
+          </button>
+          <button type="button" class="btn btn-outline-info" @click="exportSettings">
+            導出設定
+          </button>
+          <button type="button" class="btn btn-outline-warning" @click="importSettings">
+            導入設定
+          </button>
+        </div>
       </div>
     </div>
 
@@ -198,17 +271,19 @@
       style="display: none"
       @change="handleFileImport"
     />
-  </el-drawer>
+  </div>
+  
+  <!-- Bootstrap backdrop -->
+  <div
+    v-if="visible"
+    class="offcanvas-backdrop fade show"
+    @click="closeSettings"
+  ></div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  Sunny,
-  Moon,
-  Check
-} from '@element-plus/icons-vue'
+import { showAlert, showConfirm } from '@/utils/bootstrap-alerts'
 import { useAppStore } from '@/stores/app'
 
 // 狀態管理
@@ -245,10 +320,15 @@ const settings = computed({
   set: (value: any) => appStore.updateSettings(value)
 })
 
+// 關閉設置
+const closeSettings = () => {
+  appStore.setSettingsVisible(false)
+}
+
 // 設置主題
 const setTheme = (theme: 'light' | 'dark') => {
   appStore.setTheme(theme)
-  ElMessage.success(`已切換到${theme === 'light' ? '淺色' : '深色'}主題`)
+  showAlert(`已切換到${theme === 'light' ? '淺色' : '深色'}主題`, 'success')
 }
 
 // 設置主題色彩
@@ -259,9 +339,9 @@ const setThemeColor = (color: string) => {
   })
   
   // 動態更新CSS變量
-  document.documentElement.style.setProperty('--el-color-primary', color)
+  document.documentElement.style.setProperty('--bs-primary', color)
   
-  ElMessage.success('主題色彩已更新')
+  showAlert('主題色彩已更新', 'success')
 }
 
 // 切換側邊欄
@@ -280,30 +360,27 @@ const updateSettings = () => {
 const saveSettings = () => {
   try {
     localStorage.setItem('app-settings', JSON.stringify(appStore.settings))
-    ElMessage.success('設定已保存')
+    showAlert('設定已保存', 'success')
   } catch (error) {
-    ElMessage.error('保存設定失敗')
+    showAlert('保存設定失敗', 'danger')
   }
 }
 
 // 重置設定
 const resetSettings = async () => {
   try {
-    await ElMessageBox.confirm(
+    const confirmed = await showConfirm(
       '確定要重置所有設定嗎？這將清除所有個人化設定。',
-      '確認重置',
-      {
-        confirmButtonText: '確定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
+      '確認重置'
     )
+    
+    if (!confirmed) return
     
     appStore.resetSettings()
     localStorage.removeItem('app-settings')
-    ElMessage.success('設定已重置')
+    showAlert('設定已重置', 'success')
   } catch (error) {
-    // 用戶取消操作
+    showAlert('重置設定失敗', 'danger')
   }
 }
 
@@ -326,7 +403,7 @@ const exportSettings = () => {
   link.click()
   
   URL.revokeObjectURL(url)
-  ElMessage.success('設定已導出')
+  showAlert('設定已導出', 'success')
 }
 
 // 導入設定
@@ -350,12 +427,12 @@ const handleFileImport = (event: Event) => {
       if (data.settings) {
         appStore.updateSettings(data.settings)
         saveSettings()
-        ElMessage.success('設定已導入')
+        showAlert('設定已導入', 'success')
       } else {
-        ElMessage.error('無效的設定文件格式')
+        showAlert('無效的設定文件格式', 'danger')
       }
     } catch (error) {
-      ElMessage.error('導入設定失敗，請檢查文件格式')
+      showAlert('導入設定失敗，請檢查文件格式', 'danger')
     }
   }
   
@@ -370,7 +447,7 @@ watch(
   () => appStore.settings.themeColor,
   (newColor) => {
     if (newColor) {
-      document.documentElement.style.setProperty('--el-color-primary', newColor)
+      document.documentElement.style.setProperty('--bs-primary', newColor)
     }
   },
   { immediate: true }
@@ -399,8 +476,8 @@ watch(
       margin: 0 0 16px 0;
       font-size: 16px;
       font-weight: 600;
-      color: var(--el-text-color-primary);
-      border-bottom: 1px solid var(--el-border-color-lighter);
+      color: var(--bs-body-color);
+      border-bottom: 1px solid var(--bs-border-color);
       padding-bottom: 8px;
     }
     
@@ -412,7 +489,7 @@ watch(
       
       .setting-label {
         font-size: 14px;
-        color: var(--el-text-color-primary);
+        color: var(--bs-body-color);
         font-weight: 500;
       }
       
@@ -434,18 +511,18 @@ watch(
       align-items: center;
       gap: 4px;
       padding: 8px 12px;
-      border: 1px solid var(--el-border-color);
+      border: 1px solid var(--bs-border-color);
       border-radius: 6px;
       cursor: pointer;
       transition: all 0.3s ease;
       
       &:hover {
-        border-color: var(--el-color-primary);
+        border-color: var(--bs-primary);
       }
       
       &.active {
-        border-color: var(--el-color-primary);
-        background: var(--el-color-primary-light-9);
+        border-color: var(--bs-primary);
+        background: var(--bs-primary-bg);
       }
       
       .el-icon {
@@ -454,7 +531,7 @@ watch(
       
       span {
         font-size: 12px;
-        color: var(--el-text-color-regular);
+        color: var(--bs-secondary-color);
       }
     }
   }
@@ -485,11 +562,11 @@ watch(
       }
       
       &:hover::after {
-        border-color: var(--el-color-primary);
+        border-color: var(--bs-primary);
       }
       
       &.active::after {
-        border-color: var(--el-color-primary);
+        border-color: var(--bs-primary);
       }
       
       .el-icon {
@@ -506,7 +583,7 @@ watch(
     gap: 8px;
     margin-top: 24px;
     padding-top: 16px;
-    border-top: 1px solid var(--el-border-color-lighter);
+    border-top: 1px solid var(--bs-border-color);
     
     .el-button {
       width: 100%;
@@ -521,15 +598,15 @@ watch(
   }
   
   &::-webkit-scrollbar-track {
-    background: var(--el-bg-color-page);
+    background: var(--bs-light);
   }
   
   &::-webkit-scrollbar-thumb {
-    background: var(--el-border-color-darker);
+    background: var(--bs-border-color-dark);
     border-radius: 3px;
     
     &:hover {
-      background: var(--el-border-color-dark);
+      background: var(--bs-border-color-dark);
     }
   }
 }
@@ -570,38 +647,38 @@ watch(
   .settings-content {
     .settings-section {
       .section-title {
-        color: var(--el-text-color-primary);
-        border-bottom-color: var(--el-border-color-lighter);
+        color: var(--bs-body-color);
+        border-bottom-color: var(--bs-border-color);
       }
       
       .setting-item {
         .setting-label {
-          color: var(--el-text-color-primary);
+          color: var(--bs-body-color);
         }
       }
     }
     
     .theme-options {
       .theme-option {
-        border-color: var(--el-border-color);
+        border-color: var(--bs-border-color);
         
         &:hover {
-          border-color: var(--el-color-primary);
+          border-color: var(--bs-primary);
         }
         
         &.active {
-          border-color: var(--el-color-primary);
-          background: var(--el-color-primary-light-9);
+          border-color: var(--bs-primary);
+          background: var(--bs-primary-bg);
         }
         
         span {
-          color: var(--el-text-color-regular);
+          color: var(--bs-secondary-color);
         }
       }
     }
     
     .settings-actions {
-      border-top-color: var(--el-border-color-lighter);
+      border-top-color: var(--bs-border-color);
     }
   }
 }

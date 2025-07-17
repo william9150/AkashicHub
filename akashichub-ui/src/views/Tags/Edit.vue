@@ -1,7 +1,19 @@
 <template>
   <div class="tag-edit">
     <div v-if="loading" class="loading-container">
-      <el-skeleton :rows="6" animated />
+      <div class="d-flex justify-content-center">
+        <div class="spinner-border" role="status">
+          <span class="visually-hidden">載入中...</span>
+        </div>
+      </div>
+      <div class="placeholder-glow mt-3">
+        <div class="placeholder col-12 mb-2"></div>
+        <div class="placeholder col-8 mb-2"></div>
+        <div class="placeholder col-10 mb-2"></div>
+        <div class="placeholder col-6 mb-2"></div>
+        <div class="placeholder col-9 mb-2"></div>
+        <div class="placeholder col-7"></div>
+      </div>
     </div>
     
     <div v-else-if="tag">
@@ -10,325 +22,351 @@
         <p>修改標籤 "{{ tag.name }}" 的配置信息</p>
       </div>
 
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-width="120px"
-        class="tag-form"
-      >
+      <form ref="formRef" class="tag-form" @submit.prevent="handleSubmit">
         <!-- 基本資訊 -->
-        <el-card class="form-section" header="基本資訊">
-          <el-form-item label="標籤名稱" prop="name">
-            <el-input
-              v-model="form.name"
-              placeholder="請輸入標籤名稱"
-              maxlength="50"
-              show-word-limit
-              @input="updatePreview"
-            />
-          </el-form-item>
+        <div class="card form-section">
+          <div class="card-header">
+            <h5 class="card-title mb-0">基本資訊</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label for="tagName" class="form-label">標籤名稱 <span class="text-danger">*</span></label>
+              <input
+                id="tagName"
+                v-model="form.name"
+                type="text"
+                class="form-control"
+                :class="{ 'is-invalid': errors.name }"
+                placeholder="請輸入標籤名稱"
+                maxlength="50"
+                @input="updatePreview"
+              />
+              <div class="form-text">{{ form.name.length }}/50</div>
+              <div v-if="errors.name" class="invalid-feedback">{{ errors.name }}</div>
+            </div>
 
-          <el-form-item label="標籤分類" prop="category">
-            <el-select
-              v-model="form.category"
-              placeholder="請選擇標籤分類"
-              style="width: 100%"
-              @change="updatePreview"
-            >
-              <el-option
-                v-for="category in tagCategories"
-                :key="category.value"
-                :label="category.label"
-                :value="category.value"
+            <div class="mb-3">
+              <label for="tagCategory" class="form-label">標籤分類 <span class="text-danger">*</span></label>
+              <select
+                id="tagCategory"
+                v-model="form.category"
+                class="form-select"
+                :class="{ 'is-invalid': errors.category }"
+                @change="updatePreview"
               >
-                <div class="category-option">
-                  <el-icon :color="category.color">
-                    <component :is="category.icon" />
-                  </el-icon>
-                  <span>{{ category.label }}</span>
-                  <span class="category-desc">{{ category.description }}</span>
-                </div>
-              </el-option>
-            </el-select>
-          </el-form-item>
+                <option value="">請選擇標籤分類</option>
+                <option
+                  v-for="category in tagCategories"
+                  :key="category.value"
+                  :value="category.value"
+                >
+                  {{ category.label }} - {{ category.description }}
+                </option>
+              </select>
+              <div v-if="errors.category" class="invalid-feedback">{{ errors.category }}</div>
+            </div>
 
-          <el-form-item label="標籤描述" prop="description">
-            <el-input
-              v-model="form.description"
-              type="textarea"
-              placeholder="請輸入標籤描述（可選）"
-              :rows="3"
-              maxlength="200"
-              show-word-limit
-            />
-          </el-form-item>
-        </el-card>
+            <div class="mb-3">
+              <label for="tagDescription" class="form-label">標籤描述</label>
+              <textarea
+                id="tagDescription"
+                v-model="form.description"
+                class="form-control"
+                placeholder="請輸入標籤描述（可選）"
+                rows="3"
+                maxlength="200"
+              ></textarea>
+              <div class="form-text">{{ form.description.length }}/200</div>
+            </div>
+          </div>
+        </div>
 
         <!-- 外觀設定 -->
-        <el-card class="form-section" header="外觀設定">
-          <el-form-item label="標籤顏色" prop="color">
-            <div class="color-section">
-              <el-color-picker
-                v-model="form.color"
-                show-alpha
-                :predefine="predefineColors"
-                @change="updatePreview"
-              />
-              <div class="color-presets">
-                <div
-                  v-for="color in predefineColors"
-                  :key="color"
-                  class="color-preset"
-                  :class="{ active: form.color === color }"
-                  :style="{ backgroundColor: color }"
-                  @click="selectColor(color)"
-                >
+        <div class="card form-section">
+          <div class="card-header">
+            <h5 class="card-title mb-0">外觀設定</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label for="tagColor" class="form-label">標籤顏色 <span class="text-danger">*</span></label>
+              <div class="color-section">
+                <input
+                  id="tagColor"
+                  v-model="form.color"
+                  type="color"
+                  class="form-control form-control-color"
+                  :class="{ 'is-invalid': errors.color }"
+                  @change="updatePreview"
+                />
+                <div class="color-presets">
+                  <div
+                    v-for="color in predefineColors"
+                    :key="color"
+                    class="color-preset"
+                    :class="{ active: form.color === color }"
+                    :style="{ backgroundColor: color }"
+                    @click="selectColor(color)"
+                  >
+                  </div>
+                </div>
+              </div>
+              <div v-if="errors.color" class="invalid-feedback">{{ errors.color }}</div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">標籤預覽</label>
+              <div class="tag-preview">
+                <div class="preview-group">
+                  <span class="preview-label">常規樣式：</span>
+                  <span
+                    class="badge"
+                    :class="getBadgeClass('light')"
+                    :style="{ backgroundColor: form.color, borderColor: form.color }"
+                  >
+                    {{ form.name || '標籤預覽' }}
+                  </span>
+                </div>
+                
+                <div class="preview-group">
+                  <span class="preview-label">深色樣式：</span>
+                  <span
+                    class="badge"
+                    :class="getBadgeClass('dark')"
+                    :style="{ backgroundColor: form.color, borderColor: form.color }"
+                  >
+                    {{ form.name || '標籤預覽' }}
+                  </span>
+                </div>
+                
+                <div class="preview-group">
+                  <span class="preview-label">邊框樣式：</span>
+                  <span
+                    class="badge border"
+                    :class="getBadgeClass('outline')"
+                    :style="{ color: form.color, borderColor: form.color }"
+                  >
+                    {{ form.name || '標籤預覽' }}
+                  </span>
                 </div>
               </div>
             </div>
-          </el-form-item>
-
-          <el-form-item label="標籤預覽">
-            <div class="tag-preview">
-              <div class="preview-group">
-                <span class="preview-label">常規樣式：</span>
-                <el-tag
-                  :color="form.color"
-                  :type="getCategoryTagType(form.category)"
-                  effect="light"
-                >
-                  {{ form.name || '標籤預覽' }}
-                </el-tag>
-              </div>
-              
-              <div class="preview-group">
-                <span class="preview-label">深色樣式：</span>
-                <el-tag
-                  :color="form.color"
-                  :type="getCategoryTagType(form.category)"
-                  effect="dark"
-                >
-                  {{ form.name || '標籤預覽' }}
-                </el-tag>
-              </div>
-              
-              <div class="preview-group">
-                <span class="preview-label">邊框樣式：</span>
-                <el-tag
-                  :color="form.color"
-                  :type="getCategoryTagType(form.category)"
-                  effect="plain"
-                >
-                  {{ form.name || '標籤預覽' }}
-                </el-tag>
-              </div>
-            </div>
-          </el-form-item>
-        </el-card>
+          </div>
+        </div>
 
         <!-- 使用統計 -->
-        <el-card class="form-section" header="使用統計">
-          <div class="usage-stats">
-            <el-row :gutter="20">
-              <el-col :span="8">
-                <el-statistic
-                  title="使用次數"
-                  :value="tag.usageCount"
-                  suffix="次"
-                />
-              </el-col>
-              <el-col :span="8">
-                <el-statistic
-                  title="關聯資源"
-                  :value="relatedResources.length"
-                  suffix="個"
-                />
-              </el-col>
-              <el-col :span="8">
-                <el-statistic
-                  title="創建時間"
-                  :value="formatDate(tag.createdAt)"
-                />
-              </el-col>
-            </el-row>
+        <div class="card form-section">
+          <div class="card-header">
+            <h5 class="card-title mb-0">使用統計</h5>
           </div>
-          
-          <el-divider />
-          
-          <div class="related-resources">
-            <h4>使用此標籤的資源</h4>
-            <div v-if="relatedResources.length > 0" class="resource-list">
-              <div
-                v-for="resource in relatedResources"
-                :key="resource.id"
-                class="resource-item"
-                @click="goToResource(resource.id)"
-              >
-                <div class="resource-icon">
-                  <el-icon :color="getResourceTypeColor(resource.resourceType)">
-                    <component :is="getResourceTypeIcon(resource.resourceType)" />
-                  </el-icon>
+          <div class="card-body">
+            <div class="usage-stats">
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <div class="statistic-card">
+                    <div class="statistic-title">使用次數</div>
+                    <div class="statistic-value">{{ tag.usageCount }} <small class="text-muted">次</small></div>
+                  </div>
                 </div>
-                <div class="resource-content">
-                  <div class="resource-name">{{ resource.name }}</div>
-                  <div class="resource-type">{{ resource.resourceType }}</div>
-                  <div class="resource-ip">{{ resource.ipAddress }}</div>
+                <div class="col-md-4">
+                  <div class="statistic-card">
+                    <div class="statistic-title">關聯資源</div>
+                    <div class="statistic-value">{{ relatedResources.length }} <small class="text-muted">個</small></div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="statistic-card">
+                    <div class="statistic-title">創建時間</div>
+                    <div class="statistic-value">{{ formatDate(tag.createdAt) }}</div>
+                  </div>
                 </div>
               </div>
             </div>
-            <div v-else class="empty-resources">
-              <el-empty description="暫無資源使用此標籤" :image-size="80" />
+            
+            <hr class="my-4" />
+            
+            <div class="related-resources">
+              <h6>使用此標籤的資源</h6>
+              <div v-if="relatedResources.length > 0" class="resource-list">
+                <div
+                  v-for="resource in relatedResources"
+                  :key="resource.id"
+                  class="resource-item"
+                  @click="goToResource(resource.id)"
+                >
+                  <div class="resource-icon">
+                    <i 
+                      class="bi"
+                      :class="getResourceTypeIcon(resource.resourceType)"
+                      :style="{ color: getResourceTypeColor(resource.resourceType) }"
+                    ></i>
+                  </div>
+                  <div class="resource-content">
+                    <div class="resource-name">{{ resource.name }}</div>
+                    <div class="resource-type">{{ resource.resourceType }}</div>
+                    <div class="resource-ip">{{ resource.ipAddress }}</div>
+                  </div>
+                </div>
+              </div>
+              <div v-else class="empty-resources">
+                <div class="text-center py-4">
+                  <i class="bi bi-inbox display-4 text-muted"></i>
+                  <p class="text-muted mt-2">暫無資源使用此標籤</p>
+                </div>
+              </div>
             </div>
           </div>
-        </el-card>
+        </div>
 
         <!-- 危險操作 -->
-        <el-card class="form-section danger-section" header="危險操作">
-          <el-alert
-            title="注意"
-            description="以下操作可能會影響到使用此標籤的所有資源，請謹慎操作。"
-            type="warning"
-            show-icon
-            style="margin-bottom: 20px"
-          />
-          
-          <div class="danger-actions">
-            <el-button
-              type="warning"
-              icon="Promotion"
-              @click="showMergeDialog"
-              :disabled="tag.usageCount === 0"
-            >
-              合併到其他標籤
-            </el-button>
-            
-            <el-button
-              type="danger"
-              icon="Delete"
-              @click="handleDelete"
-              :disabled="tag.usageCount > 0"
-            >
-              刪除標籤
-            </el-button>
+        <div class="card form-section danger-section">
+          <div class="card-header bg-danger-subtle">
+            <h5 class="card-title mb-0 text-danger">危險操作</h5>
           </div>
-        </el-card>
+          <div class="card-body">
+            <div class="alert alert-warning d-flex align-items-center" role="alert">
+              <i class="bi bi-exclamation-triangle-fill me-2"></i>
+              <div>
+                <strong>注意</strong><br>
+                以下操作可能會影響到使用此標籤的所有資源，請謹慎操作。
+              </div>
+            </div>
+            
+            <div class="danger-actions">
+              <button
+                type="button"
+                class="btn btn-warning"
+                @click="showMergeDialog"
+                :disabled="tag.usageCount === 0"
+              >
+                <i class="bi bi-arrow-down-up me-1"></i>
+                合併到其他標籤
+              </button>
+              
+              <button
+                type="button"
+                class="btn btn-danger"
+                @click="handleDelete"
+                :disabled="tag.usageCount > 0"
+              >
+                <i class="bi bi-trash me-1"></i>
+                刪除標籤
+              </button>
+            </div>
+          </div>
+        </div>
 
         <!-- 操作按鈕 -->
         <div class="form-actions">
-          <el-button @click="goBack">取消</el-button>
-          <el-button @click="resetForm">重置</el-button>
-          <el-button
-            type="primary"
-            :loading="submitting"
-            @click="handleSubmit"
+          <button type="button" class="btn btn-secondary" @click="goBack">取消</button>
+          <button type="button" class="btn btn-outline-secondary" @click="resetForm">重置</button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            :disabled="submitting"
           >
+            <span v-if="submitting" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
             保存更改
-          </el-button>
+          </button>
         </div>
-      </el-form>
+      </form>
     </div>
     
     <div v-else class="error-state">
-      <el-empty description="標籤不存在或已被刪除" />
+      <div class="text-center py-5">
+        <i class="bi bi-exclamation-circle display-1 text-muted"></i>
+        <h4 class="mt-3">標籤不存在或已被刪除</h4>
+      </div>
     </div>
 
     <!-- 合併標籤對話框 -->
-    <el-dialog
-      v-model="mergeDialogVisible"
-      title="合併標籤"
-      width="500px"
+    <div 
+      class="modal fade" 
+      :class="{ show: mergeDialogVisible }" 
+      :style="{ display: mergeDialogVisible ? 'block' : 'none' }"
+      tabindex="-1"
     >
-      <div class="merge-content">
-        <el-alert
-          title="合併說明"
-          description="合併標籤將會把當前標籤的所有使用記錄轉移到目標標籤，當前標籤將被刪除。此操作不可恢復！"
-          type="warning"
-          show-icon
-          style="margin-bottom: 20px"
-        />
-        
-        <el-form label-width="100px">
-          <el-form-item label="目標標籤：">
-            <el-select
-              v-model="mergeTargetTag"
-              placeholder="選擇要合併到的標籤"
-              style="width: 100%"
-              filterable
-            >
-              <el-option
-                v-for="option in availableTags"
-                :key="option.id"
-                :label="option.name"
-                :value="option.id"
-              >
-                <div class="merge-option">
-                  <el-tag :type="getCategoryTagType(option.category)" size="small">
-                    {{ option.name }}
-                  </el-tag>
-                  <span class="option-category">{{ getCategoryLabel(option.category) }}</span>
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">合併標籤</h5>
+            <button type="button" class="btn-close" @click="mergeDialogVisible = false"></button>
+          </div>
+          <div class="modal-body">
+            <div class="merge-content">
+              <div class="alert alert-warning d-flex align-items-center" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <div>
+                  <strong>合併說明</strong><br>
+                  合併標籤將會把當前標籤的所有使用記錄轉移到目標標籤，當前標籤將被刪除。此操作不可恢復！
                 </div>
-              </el-option>
-            </el-select>
-          </el-form-item>
-          
-          <el-form-item label="合併預覽：">
-            <div class="merge-preview">
-              <div class="merge-source">
-                <el-tag :type="getCategoryTagType(tag.category)">
-                  {{ tag.name }} ({{ tag.usageCount }} 次使用)
-                </el-tag>
               </div>
-              <el-icon class="merge-arrow"><ArrowRight /></el-icon>
-              <div class="merge-target">
-                <el-tag
-                  v-if="mergeTargetTag && selectedTargetTag"
-                  :type="getCategoryTagType(selectedTargetTag.category)"
-                  effect="dark"
+              
+              <div class="mb-3">
+                <label for="mergeTarget" class="form-label">目標標籤：</label>
+                <select
+                  id="mergeTarget"
+                  v-model="mergeTargetTag"
+                  class="form-select"
                 >
-                  {{ selectedTargetTag.name }} ({{ selectedTargetTag.usageCount + tag.usageCount }} 次使用)
-                </el-tag>
-                <span v-else class="placeholder">請選擇目標標籤</span>
+                  <option value="">選擇要合併到的標籤</option>
+                  <option
+                    v-for="option in availableTags"
+                    :key="option.id"
+                    :value="option.id"
+                  >
+                    {{ option.name }} ({{ getCategoryLabel(option.category) }})
+                  </option>
+                </select>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label">合併預覽：</label>
+                <div class="merge-preview">
+                  <div class="merge-source">
+                    <span 
+                      class="badge"
+                      :class="getBadgeClass('light')"
+                      :style="{ backgroundColor: form.color, borderColor: form.color }"
+                    >
+                      {{ tag.name }} ({{ tag.usageCount }} 次使用)
+                    </span>
+                  </div>
+                  <i class="bi bi-arrow-right merge-arrow"></i>
+                  <div class="merge-target">
+                    <span
+                      v-if="mergeTargetTag && selectedTargetTag"
+                      class="badge bg-dark"
+                    >
+                      {{ selectedTargetTag.name }} ({{ selectedTargetTag.usageCount + tag.usageCount }} 次使用)
+                    </span>
+                    <span v-else class="placeholder-text">請選擇目標標籤</span>
+                  </div>
+                </div>
               </div>
             </div>
-          </el-form-item>
-        </el-form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="mergeDialogVisible = false">取消</button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              :disabled="!mergeTargetTag"
+              @click="confirmMerge"
+            >
+              確認合併
+            </button>
+          </div>
+        </div>
       </div>
-      
-      <template #footer>
-        <el-button @click="mergeDialogVisible = false">取消</el-button>
-        <el-button
-          type="primary"
-          :disabled="!mergeTargetTag"
-          @click="confirmMerge"
-        >
-          確認合併
-        </el-button>
-      </template>
-    </el-dialog>
+    </div>
+    <div v-if="mergeDialogVisible" class="modal-backdrop fade show"></div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  Folder,
-  Warning,
-  User,
-  Briefcase,
-  Cpu,
-  More,
-  Promotion,
-  Delete,
-  ArrowRight,
-  Monitor,
-  Coin,
-  Basketball,
-  FolderOpened
-} from '@element-plus/icons-vue'
-import type { FormInstance, FormRules } from 'element-plus'
+import { showAlert } from '@/utils/bootstrap-alerts'
 import { format } from 'date-fns'
 
 // 路由
@@ -336,7 +374,7 @@ const route = useRoute()
 const router = useRouter()
 
 // 響應式數據
-const formRef = ref<FormInstance>()
+const formRef = ref<HTMLFormElement>()
 const loading = ref(true)
 const submitting = ref(false)
 const tag = ref<any>(null)
@@ -353,48 +391,49 @@ const form = reactive({
   color: '#409eff'
 })
 
+// 表單錯誤狀態
+const errors = reactive({
+  name: '',
+  category: '',
+  color: ''
+})
+
 // 標籤分類
 const tagCategories = ref([
   {
     label: '環境',
     value: 'Environment',
     description: '開發、測試、生產等環境分類',
-    icon: 'Folder',
     color: '#409eff'
   },
   {
     label: '優先級',
     value: 'Priority',
     description: '高、中、低等優先級分類',
-    icon: 'Warning',
     color: '#e6a23c'
   },
   {
     label: '部門',
     value: 'Department',
     description: '前端、後端、運維等部門分類',
-    icon: 'User',
     color: '#67c23a'
   },
   {
     label: '項目',
     value: 'Project',
     description: '專案相關的分類標籤',
-    icon: 'Briefcase',
     color: '#722ed1'
   },
   {
     label: '技術',
     value: 'Technology',
     description: '技術棧、框架等技術分類',
-    icon: 'Cpu',
     color: '#f56c6c'
   },
   {
     label: '其他',
     value: 'Other',
     description: '其他自定義分類',
-    icon: 'More',
     color: '#909399'
   }
 ])
@@ -415,46 +454,33 @@ const predefineColors = ref([
   '#722ed1'
 ])
 
-// 表單驗證規則
-const rules: FormRules = {
-  name: [
-    { required: true, message: '請輸入標籤名稱', trigger: 'blur' },
-    { min: 1, max: 50, message: '標籤名稱長度在 1 到 50 個字符', trigger: 'blur' },
-    {
-      validator: (rule, value, callback) => {
-        if (value && /[<>"/\\&]/.test(value)) {
-          callback(new Error('標籤名稱不能包含特殊字符'))
-        } else {
-          callback()
-        }
-      },
-      trigger: 'blur'
-    }
-  ],
-  category: [
-    { required: true, message: '請選擇標籤分類', trigger: 'change' }
-  ],
-  color: [
-    { required: true, message: '請選擇標籤顏色', trigger: 'change' }
-  ]
-}
-
 // 計算屬性
 const selectedTargetTag = computed(() => {
   return availableTags.value.find(tag => tag.id === mergeTargetTag.value)
 })
 
-// 獲取分類標籤類型
-const getCategoryTagType = (category: string) => {
-  const typeMap: Record<string, string> = {
+// 獲取Bootstrap Badge樣式類
+const getBadgeClass = (effect: 'light' | 'dark' | 'outline') => {
+  const categoryTypeMap: Record<string, string> = {
     Environment: 'primary',
     Priority: 'warning',
     Department: 'success',
     Project: 'info',
     Technology: 'danger',
-    Other: ''
+    Other: 'secondary'
   }
-  return typeMap[category] || ''
+  
+  const baseType = categoryTypeMap[form.category] || 'secondary'
+  
+  switch (effect) {
+    case 'dark':
+      return `bg-${baseType} text-white`
+    case 'outline':
+      return `bg-transparent text-${baseType}`
+    case 'light':
+    default:
+      return `bg-${baseType}-subtle text-${baseType}-emphasis`
+  }
 }
 
 // 獲取分類標籤
@@ -470,16 +496,16 @@ const getCategoryLabel = (category: string) => {
   return labelMap[category] || category
 }
 
-// 獲取資源類型圖標
+// 獲取資源類型圖標 (Bootstrap Icons)
 const getResourceTypeIcon = (type: string) => {
   const iconMap: Record<string, string> = {
-    Server: 'Monitor',
-    Database: 'Coin',
-    Website: 'Basketball',
-    Storage: 'FolderOpened',
-    Cache: 'Basketball'
+    Server: 'bi-server',
+    Database: 'bi-database',
+    Website: 'bi-globe',
+    Storage: 'bi-folder',
+    Cache: 'bi-speedometer'
   }
-  return iconMap[type] || 'Monitor'
+  return iconMap[type] || 'bi-server'
 }
 
 // 獲取資源類型顏色
@@ -510,6 +536,42 @@ const updatePreview = () => {
   // 預覽更新邏輯
 }
 
+// 表單驗證
+const validateForm = () => {
+  // 清空錯誤
+  errors.name = ''
+  errors.category = ''
+  errors.color = ''
+
+  let isValid = true
+
+  // 驗證標籤名稱
+  if (!form.name.trim()) {
+    errors.name = '請輸入標籤名稱'
+    isValid = false
+  } else if (form.name.length > 50) {
+    errors.name = '標籤名稱長度不能超過 50 個字符'
+    isValid = false
+  } else if (/[<>"/\\&]/.test(form.name)) {
+    errors.name = '標籤名稱不能包含特殊字符'
+    isValid = false
+  }
+
+  // 驗證分類
+  if (!form.category) {
+    errors.category = '請選擇標籤分類'
+    isValid = false
+  }
+
+  // 驗證顏色
+  if (!form.color) {
+    errors.color = '請選擇標籤顏色'
+    isValid = false
+  }
+
+  return isValid
+}
+
 // 填充表單
 const fillForm = (data: any) => {
   form.name = data.name
@@ -523,6 +585,11 @@ const resetForm = () => {
   if (tag.value) {
     fillForm(tag.value)
   }
+  
+  // 清空錯誤
+  errors.name = ''
+  errors.category = ''
+  errors.color = ''
 }
 
 // 返回上一頁
@@ -544,30 +611,28 @@ const showMergeDialog = () => {
 // 確認合併
 const confirmMerge = async () => {
   if (!mergeTargetTag.value) {
-    ElMessage.warning('請選擇目標標籤')
+    showAlert('請選擇目標標籤', 'warning')
     return
   }
   
-  try {
-    await ElMessageBox.confirm(
-      `確定要將標籤 "${tag.value.name}" 合併到 "${selectedTargetTag.value?.name}" 嗎？此操作不可恢復。`,
-      '確認合併',
-      {
-        confirmButtonText: '確定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-    
-    // 這裡調用合併API
-    // await tagsApi.mergeTag(tag.value.id, mergeTargetTag.value)
-    
-    ElMessage.success('標籤合併成功')
-    mergeDialogVisible.value = false
-    router.push('/tags')
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('標籤合併失敗')
+  const confirmed = confirm(
+    `確定要將標籤 "${tag.value.name}" 合併到 "${selectedTargetTag.value?.name}" 嗎？此操作不可恢復。`
+  )
+  
+  if (confirmed) {
+    try {
+      // 這裡調用合併API
+      // await tagsApi.mergeTag(tag.value.id, mergeTargetTag.value)
+      
+      // 模擬API請求
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      showAlert('標籤合併成功', 'success')
+      mergeDialogVisible.value = false
+      router.push('/tags')
+    } catch (error) {
+      console.error('Failed to merge tag:', error)
+      showAlert('標籤合併失敗', 'error')
     }
   }
 }
@@ -575,39 +640,38 @@ const confirmMerge = async () => {
 // 處理刪除
 const handleDelete = async () => {
   if (tag.value.usageCount > 0) {
-    ElMessage.warning('此標籤正在使用中，無法刪除')
+    showAlert('此標籤正在使用中，無法刪除', 'warning')
     return
   }
   
-  try {
-    await ElMessageBox.confirm(
-      `確定要刪除標籤 "${tag.value.name}" 嗎？此操作不可恢復。`,
-      '確認刪除',
-      {
-        confirmButtonText: '確定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-    
-    // 這裡調用刪除API
-    // await tagsApi.deleteTag(tag.value.id)
-    
-    ElMessage.success('刪除成功')
-    router.push('/tags')
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('刪除失敗')
+  const confirmed = confirm(
+    `確定要刪除標籤 "${tag.value.name}" 嗎？此操作不可恢復。`
+  )
+  
+  if (confirmed) {
+    try {
+      // 這裡調用刪除API
+      // await tagsApi.deleteTag(tag.value.id)
+      
+      // 模擬API請求
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      showAlert('刪除成功', 'success')
+      router.push('/tags')
+    } catch (error) {
+      console.error('Failed to delete tag:', error)
+      showAlert('刪除失敗', 'error')
     }
   }
 }
 
 // 提交表單
 const handleSubmit = async () => {
-  if (!formRef.value) return
+  if (!validateForm()) {
+    return
+  }
   
   try {
-    await formRef.value.validate()
     submitting.value = true
     
     const submitData = { ...form }
@@ -618,12 +682,12 @@ const handleSubmit = async () => {
     // 模擬API請求
     await new Promise(resolve => setTimeout(resolve, 1000))
     
-    ElMessage.success('標籤更新成功！')
+    showAlert('標籤更新成功！', 'success')
     router.push('/tags')
     
   } catch (error) {
     console.error('Failed to update tag:', error)
-    ElMessage.error('標籤更新失敗')
+    showAlert('標籤更新失敗', 'error')
   } finally {
     submitting.value = false
   }
@@ -692,7 +756,7 @@ const loadData = async () => {
     
   } catch (error) {
     console.error('Failed to load tag:', error)
-    ElMessage.error('載入標籤失敗')
+    showAlert('載入標籤失敗', 'error')
   } finally {
     loading.value = false
   }
@@ -710,73 +774,56 @@ onMounted(() => {
   margin: 0 auto;
   
   .loading-container {
-    padding: 20px;
+    padding: 1.25rem;
   }
   
   .page-header {
-    margin-bottom: 24px;
+    margin-bottom: 1.5rem;
     
     h2 {
-      margin: 0 0 8px 0;
-      font-size: 24px;
+      margin: 0 0 0.5rem 0;
+      font-size: 1.5rem;
       font-weight: 600;
-      color: var(--el-text-color-primary);
+      color: var(--bs-body-color);
     }
     
     p {
       margin: 0;
-      color: var(--el-text-color-regular);
+      color: var(--bs-secondary-color);
     }
   }
   
   .tag-form {
     .form-section {
-      margin-bottom: 24px;
+      margin-bottom: 1.5rem;
       
-      :deep(.el-card__header) {
-        background: var(--el-bg-color-page);
+      .card-header {
+        background: var(--bs-light);
         font-weight: 600;
       }
       
       &.danger-section {
-        :deep(.el-card__header) {
-          background: #fef0f0;
-          color: var(--el-color-danger);
+        .card-header {
+          background: var(--bs-danger-bg-subtle);
+          color: var(--bs-danger-text-emphasis);
         }
-      }
-    }
-    
-    .category-option {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      width: 100%;
-      
-      .el-icon {
-        font-size: 16px;
-      }
-      
-      .category-desc {
-        margin-left: auto;
-        font-size: 12px;
-        color: var(--el-text-color-placeholder);
       }
     }
     
     .color-section {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 1rem;
       
       .color-presets {
         display: flex;
-        gap: 8px;
+        gap: 0.5rem;
         flex-wrap: wrap;
         
         .color-preset {
           width: 24px;
           height: 24px;
-          border-radius: 4px;
+          border-radius: 0.25rem;
           cursor: pointer;
           border: 2px solid transparent;
           transition: all 0.3s ease;
@@ -786,7 +833,7 @@ onMounted(() => {
           }
           
           &.active {
-            border-color: var(--el-color-primary);
+            border-color: var(--bs-primary);
             transform: scale(1.2);
           }
         }
@@ -797,50 +844,70 @@ onMounted(() => {
       .preview-group {
         display: flex;
         align-items: center;
-        gap: 12px;
-        margin-bottom: 12px;
+        gap: 0.75rem;
+        margin-bottom: 0.75rem;
         
         .preview-label {
-          font-size: 14px;
-          color: var(--el-text-color-regular);
+          font-size: 0.875rem;
+          color: var(--bs-secondary-color);
           min-width: 80px;
         }
       }
     }
     
     .usage-stats {
-      margin-bottom: 20px;
+      margin-bottom: 1.25rem;
+      
+      .statistic-card {
+        text-align: center;
+        padding: 1rem;
+        background: var(--bs-light);
+        border-radius: 0.5rem;
+        
+        .statistic-title {
+          font-size: 0.875rem;
+          color: var(--bs-secondary-color);
+          margin-bottom: 0.5rem;
+        }
+        
+        .statistic-value {
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: var(--bs-body-color);
+        }
+      }
     }
     
     .related-resources {
-      h4 {
-        margin: 0 0 16px 0;
-        color: var(--el-text-color-primary);
+      h6 {
+        margin: 0 0 1rem 0;
+        color: var(--bs-body-color);
       }
       
       .resource-list {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 12px;
+        gap: 0.75rem;
         
         .resource-item {
           display: flex;
           align-items: center;
-          gap: 12px;
-          padding: 12px;
-          border: 1px solid var(--el-border-color);
-          border-radius: 8px;
+          gap: 0.75rem;
+          padding: 0.75rem;
+          border: 1px solid var(--bs-border-color);
+          border-radius: 0.5rem;
           cursor: pointer;
           transition: all 0.3s ease;
+          background: var(--bs-body-bg);
           
           &:hover {
-            border-color: var(--el-color-primary);
-            background-color: var(--el-bg-color-page);
+            border-color: var(--bs-primary);
+            background-color: var(--bs-light);
           }
           
           .resource-icon {
-            .el-icon {
-              font-size: 18px;
+            i {
+              font-size: 1.125rem;
             }
           }
           
@@ -848,22 +915,22 @@ onMounted(() => {
             flex: 1;
             
             .resource-name {
-              font-size: 14px;
+              font-size: 0.875rem;
               font-weight: 500;
-              color: var(--el-text-color-primary);
-              margin-bottom: 2px;
+              color: var(--bs-body-color);
+              margin-bottom: 0.125rem;
             }
             
             .resource-type {
-              font-size: 12px;
-              color: var(--el-text-color-regular);
-              margin-bottom: 2px;
+              font-size: 0.75rem;
+              color: var(--bs-secondary-color);
+              margin-bottom: 0.125rem;
             }
             
             .resource-ip {
-              font-size: 12px;
-              color: var(--el-text-color-placeholder);
-              font-family: monospace;
+              font-size: 0.75rem;
+              color: var(--bs-secondary-color);
+              font-family: var(--bs-font-monospace);
             }
           }
         }
@@ -871,62 +938,52 @@ onMounted(() => {
       
       .empty-resources {
         text-align: center;
-        padding: 40px;
+        padding: 2.5rem;
       }
     }
     
     .danger-actions {
       display: flex;
-      gap: 12px;
+      gap: 0.75rem;
     }
     
     .form-actions {
       display: flex;
       justify-content: center;
-      gap: 16px;
-      margin-top: 32px;
-      padding: 24px;
-      background: var(--el-bg-color-page);
-      border-radius: 8px;
+      gap: 1rem;
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: var(--bs-light);
+      border-radius: 0.5rem;
     }
   }
   
   .error-state {
-    padding: 40px;
+    padding: 2.5rem;
     text-align: center;
   }
 }
 
-// 對話框樣式
-.merge-content {
-  .merge-option {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-    
-    .option-category {
-      font-size: 12px;
-      color: var(--el-text-color-placeholder);
-    }
-  }
-  
-  .merge-preview {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
-    background: var(--el-bg-color-page);
-    border-radius: 8px;
-    
-    .merge-arrow {
-      font-size: 20px;
-      color: var(--el-color-primary);
-    }
-    
-    .placeholder {
-      color: var(--el-text-color-placeholder);
-      font-style: italic;
+// Modal styles
+.modal {
+  .merge-content {
+    .merge-preview {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      background: var(--bs-light);
+      border-radius: 0.5rem;
+      
+      .merge-arrow {
+        font-size: 1.25rem;
+        color: var(--bs-primary);
+      }
+      
+      .placeholder-text {
+        color: var(--bs-secondary-color);
+        font-style: italic;
+      }
     }
   }
 }
@@ -935,7 +992,7 @@ onMounted(() => {
 @media (max-width: 768px) {
   .tag-edit {
     max-width: 100%;
-    padding: 0 16px;
+    padding: 0 1rem;
     
     .tag-form {
       .color-section {
@@ -960,7 +1017,7 @@ onMounted(() => {
       .form-actions {
         flex-direction: column;
         
-        .el-button {
+        .btn {
           width: 100%;
         }
       }
@@ -968,37 +1025,55 @@ onMounted(() => {
   }
 }
 
-// 暗黑模式
-.dark {
+// 暗黑模式支持
+@media (prefers-color-scheme: dark) {
   .tag-edit {
     .page-header {
       h2 {
-        color: var(--el-text-color-primary);
+        color: var(--bs-body-color);
       }
     }
     
     .tag-form {
       .form-section {
-        :deep(.el-card__header) {
-          background: var(--el-bg-color-page);
+        .card-header {
+          background: var(--bs-dark);
         }
         
         &.danger-section {
-          :deep(.el-card__header) {
-            background: #2d1b1b;
-            color: var(--el-color-danger);
+          .card-header {
+            background: var(--bs-danger-bg-subtle);
+            color: var(--bs-danger-text-emphasis);
+          }
+        }
+      }
+      
+      .usage-stats {
+        .statistic-card {
+          background: var(--bs-dark);
+        }
+      }
+      
+      .related-resources {
+        .resource-item {
+          background: var(--bs-dark);
+          
+          &:hover {
+            background-color: var(--bs-secondary);
           }
         }
       }
       
       .form-actions {
-        background: var(--el-bg-color-page);
+        background: var(--bs-dark);
       }
     }
     
-    .merge-content {
-      .merge-preview {
-        background: var(--el-bg-color-page);
+    .modal {
+      .merge-content {
+        .merge-preview {
+          background: var(--bs-dark);
+        }
       }
     }
   }

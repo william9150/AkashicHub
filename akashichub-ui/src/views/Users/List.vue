@@ -1,427 +1,471 @@
 <template>
   <div class="users-list">
     <!-- 頂部操作欄 -->
-    <div class="header-actions">
+    <div class="header-actions mb-3">
       <div class="actions-left">
-        <el-button
+        <button
           v-if="authStore.isAdmin"
-          type="primary"
-          icon="Plus"
+          class="btn btn-primary me-2"
           @click="goToCreate"
         >
+          <i class="bi bi-plus-circle me-2"></i>
           新增用戶
-        </el-button>
-        <el-button
+        </button>
+        <button
           v-if="authStore.isAdmin && selectedRows.length > 0"
-          type="warning"
-          icon="Lock"
+          class="btn btn-warning me-2"
           @click="handleBatchStatus('inactive')"
         >
+          <i class="bi bi-lock me-2"></i>
           批量停用 ({{ selectedRows.length }})
-        </el-button>
-        <el-button
+        </button>
+        <button
           v-if="authStore.isAdmin && selectedRows.length > 0"
-          type="success"
-          icon="Unlock"
+          class="btn btn-success me-2"
           @click="handleBatchStatus('active')"
         >
+          <i class="bi bi-unlock me-2"></i>
           批量啟用 ({{ selectedRows.length }})
-        </el-button>
-        <el-button
-          icon="Refresh"
+        </button>
+        <button
+          class="btn btn-outline-primary me-2"
           @click="refreshData"
-          :loading="loading"
+          :disabled="loading"
         >
+          <span v-if="loading" class="spinner-border spinner-border-sm me-2"></span>
+          <i v-else class="bi bi-arrow-clockwise me-2"></i>
           刷新
-        </el-button>
+        </button>
       </div>
       
       <div class="actions-right">
-        <el-input
-          v-model="searchQuery"
-          placeholder="搜索用戶名稱、帳號、部門..."
-          style="width: 300px;"
-          clearable
-          @keyup.enter="handleSearch"
-          @clear="handleSearchClear"
-        >
-          <template #prefix>
-            <el-icon><Search /></el-icon>
-          </template>
-          <template #suffix>
-            <el-tooltip content="高級搜索" placement="top">
-              <el-button
-                link
-                type="primary"
-                @click="goToAdvancedSearch"
-              >
-                <el-icon><Setting /></el-icon>
-              </el-button>
-            </el-tooltip>
-          </template>
-        </el-input>
-        <el-button
-          type="primary"
-          icon="Search"
+        <div class="input-group" style="width: 300px;">
+          <span class="input-group-text">
+            <i class="bi bi-search"></i>
+          </span>
+          <input
+            type="text"
+            class="form-control"
+            v-model="searchQuery"
+            placeholder="搜索用戶名稱、帳號、部門..."
+            @keyup.enter="handleSearch"
+          />
+          <button class="btn btn-outline-secondary" @click="searchQuery = ''; handleSearchClear()">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
+        <button
+          class="btn btn-primary ms-2"
           @click="handleSearch"
         >
+          <i class="bi bi-search me-2"></i>
           搜索
-        </el-button>
+        </button>
       </div>
     </div>
 
     <!-- 篩選條件 -->
-    <div class="filter-bar">
-      <div class="filter-item">
-        <label>角色：</label>
-        <el-select
-          v-model="filters.role"
-          placeholder="全部角色"
-          clearable
-          style="width: 120px;"
-          @change="handleFilter"
-        >
-          <el-option label="管理員" value="Admin" />
-          <el-option label="用戶" value="User" />
-        </el-select>
+    <div class="filter-bar mb-3">
+      <div class="row g-3 align-items-center">
+        <div class="col-auto">
+          <label class="form-label mb-0">角色：</label>
+        </div>
+        <div class="col-auto">
+          <select
+            class="form-select form-select-sm"
+            v-model="filters.role"
+            @change="handleFilter"
+          >
+            <option value="">全部角色</option>
+            <option value="Admin">管理員</option>
+            <option value="User">用戶</option>
+          </select>
+        </div>
+        
+        <div class="col-auto">
+          <label class="form-label mb-0">狀態：</label>
+        </div>
+        <div class="col-auto">
+          <select
+            class="form-select form-select-sm"
+            v-model="filters.status"
+            @change="handleFilter"
+          >
+            <option value="">全部狀態</option>
+            <option value="active">啟用</option>
+            <option value="inactive">停用</option>
+            <option value="locked">鎖定</option>
+          </select>
+        </div>
+        
+        <div class="col-auto">
+          <label class="form-label mb-0">最後登入：</label>
+        </div>
+        <div class="col-auto">
+          <select
+            class="form-select form-select-sm"
+            v-model="filters.lastLogin"
+            @change="handleFilter"
+          >
+            <option value="">全部時間</option>
+            <option value="7days">最近7天</option>
+            <option value="30days">最近30天</option>
+            <option value="over30days">超過30天</option>
+            <option value="never">從未登入</option>
+          </select>
+        </div>
+        
+        <div class="col-auto">
+          <button
+            class="btn btn-outline-secondary btn-sm"
+            @click="resetFilters"
+          >
+            <i class="bi bi-arrow-clockwise me-2"></i>
+            重置篩選
+          </button>
+        </div>
       </div>
-      
-      <div class="filter-item">
-        <label>狀態：</label>
-        <el-select
-          v-model="filters.status"
-          placeholder="全部狀態"
-          clearable
-          style="width: 120px;"
-          @change="handleFilter"
-        >
-          <el-option label="啟用" value="active" />
-          <el-option label="停用" value="inactive" />
-          <el-option label="鎖定" value="locked" />
-        </el-select>
-      </div>
-      
-      <div class="filter-item">
-        <label>最後登入：</label>
-        <el-select
-          v-model="filters.lastLogin"
-          placeholder="全部時間"
-          clearable
-          style="width: 150px;"
-          @change="handleFilter"
-        >
-          <el-option label="最近7天" value="7days" />
-          <el-option label="最近30天" value="30days" />
-          <el-option label="超過30天" value="over30days" />
-          <el-option label="從未登入" value="never" />
-        </el-select>
-      </div>
-      
-      <el-button
-        type="default"
-        icon="RefreshRight"
-        @click="resetFilters"
-      >
-        重置篩選
-      </el-button>
     </div>
 
     <!-- 統計卡片 -->
-    <div class="stats-cards">
-      <el-row :gutter="16">
-        <el-col :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
+    <div class="stats-cards mb-4">
+      <div class="row g-3">
+        <div class="col-12 col-sm-6 col-md-3">
           <div class="stat-card">
             <div class="stat-icon total">
-              <el-icon><User /></el-icon>
+              <i class="bi bi-person"></i>
             </div>
             <div class="stat-content">
               <div class="stat-number">{{ userStats.total }}</div>
               <div class="stat-label">總用戶數</div>
             </div>
           </div>
-        </el-col>
+        </div>
         
-        <el-col :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
+        <div class="col-12 col-sm-6 col-md-3">
           <div class="stat-card">
             <div class="stat-icon admins">
-              <el-icon><UserFilled /></el-icon>
+              <i class="bi bi-person-fill"></i>
             </div>
             <div class="stat-content">
               <div class="stat-number">{{ userStats.admins }}</div>
               <div class="stat-label">管理員</div>
             </div>
           </div>
-        </el-col>
+        </div>
         
-        <el-col :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
+        <div class="col-12 col-sm-6 col-md-3">
           <div class="stat-card">
             <div class="stat-icon active">
-              <el-icon><CircleCheckFilled /></el-icon>
+              <i class="bi bi-check-circle-fill"></i>
             </div>
             <div class="stat-content">
               <div class="stat-number">{{ userStats.active }}</div>
               <div class="stat-label">啟用用戶</div>
             </div>
           </div>
-        </el-col>
+        </div>
         
-        <el-col :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
+        <div class="col-12 col-sm-6 col-md-3">
           <div class="stat-card">
             <div class="stat-icon online">
-              <el-icon><Connection /></el-icon>
+              <i class="bi bi-wifi"></i>
             </div>
             <div class="stat-content">
               <div class="stat-number">{{ userStats.online }}</div>
               <div class="stat-label">在線用戶</div>
             </div>
           </div>
-        </el-col>
-      </el-row>
+        </div>
+      </div>
     </div>
 
     <!-- 用戶表格 -->
     <div class="table-container">
-      <el-table
-        v-loading="loading"
-        :data="tableData"
-        style="width: 100%"
-        @selection-change="handleSelectionChange"
-        @sort-change="handleSortChange"
-      >
-        <el-table-column
-          v-if="authStore.isAdmin"
-          type="selection"
-          width="55"
-        />
-        
-        <el-table-column
-          prop="avatar"
-          label="頭像"
-          width="80"
-        >
-          <template #default="{ row }">
-            <el-avatar :size="40" :src="row.avatar">
-              <el-icon><UserFilled /></el-icon>
-            </el-avatar>
-          </template>
-        </el-table-column>
-        
-        <el-table-column
-          prop="displayName"
-          label="用戶名稱"
-          sortable="custom"
-          min-width="150"
-        >
-          <template #default="{ row }">
-            <div class="user-info">
-              <div class="user-name">{{ row.displayName }}</div>
-              <div class="user-account">{{ row.loginAccount }}</div>
-            </div>
-          </template>
-        </el-table-column>
-        
-        <el-table-column
-          prop="role"
-          label="角色"
-          width="100"
-        >
-          <template #default="{ row }">
-            <el-tag :type="getRoleTagType(row.role)">
-              {{ getRoleLabel(row.role) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        
-        <el-table-column
-          prop="status"
-          label="狀態"
-          width="100"
-        >
-          <template #default="{ row }">
-            <el-tag :type="getStatusTagType(row.status)">
-              {{ getStatusLabel(row.status) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        
-        <el-table-column
-          prop="email"
-          label="電子郵件"
-          min-width="200"
-          show-overflow-tooltip
-        />
-        
-        <el-table-column
-          prop="department"
-          label="部門"
-          width="120"
-          show-overflow-tooltip
-        />
-        
-        <el-table-column
-          prop="lastLoginAt"
-          label="最後登入"
-          width="160"
-          sortable="custom"
-        >
-          <template #default="{ row }">
-            <div v-if="row.lastLoginAt">
-              <div class="login-time">{{ formatDateTime(row.lastLoginAt) }}</div>
-              <div class="login-ago">{{ formatTimeAgo(row.lastLoginAt) }}</div>
-            </div>
-            <span v-else class="never-login">從未登入</span>
-          </template>
-        </el-table-column>
-        
-        <el-table-column
-          prop="createdAt"
-          label="創建時間"
-          width="120"
-          sortable="custom"
-        >
-          <template #default="{ row }">
-            {{ formatDate(row.createdAt) }}
-          </template>
-        </el-table-column>
-        
-        <el-table-column
-          label="操作"
-          width="200"
-          fixed="right"
-        >
-          <template #default="{ row }">
-            <el-button
-              size="small"
-              @click="goToDetail(row.id)"
-            >
-              查看
-            </el-button>
-            <el-button
-              v-if="authStore.isAdmin"
-              size="small"
-              type="primary"
-              @click="goToEdit(row.id)"
-            >
-              編輯
-            </el-button>
-            <el-dropdown
-              v-if="authStore.isAdmin"
-              @command="(command) => handleUserAction(command, row)"
-            >
-              <el-button size="small" type="info">
-                更多
-                <el-icon><ArrowDown /></el-icon>
-              </el-button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item
-                    :command="`${row.status === 'active' ? 'disable' : 'enable'}_${row.id}`"
-                  >
-                    <el-icon>
-                      <component :is="row.status === 'active' ? 'Lock' : 'Unlock'" />
-                    </el-icon>
-                    {{ row.status === 'active' ? '停用用戶' : '啟用用戶' }}
-                  </el-dropdown-item>
-                  <el-dropdown-item :command="`reset_password_${row.id}`">
-                    <el-icon><Key /></el-icon>
-                    重置密碼
-                  </el-dropdown-item>
-                  <el-dropdown-item :command="`view_logs_${row.id}`">
-                    <el-icon><Document /></el-icon>
-                    查看日誌
-                  </el-dropdown-item>
-                  <el-dropdown-item
-                    :command="`delete_${row.id}`"
-                    :disabled="row.role === 'Admin' || row.id === authStore.userInfo?.id"
-                  >
-                    <el-icon><Delete /></el-icon>
-                    刪除用戶
-                  </el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </template>
-        </el-table-column>
-      </el-table>
+      <div class="card">
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th v-if="authStore.isAdmin" scope="col" style="width: 50px;">
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        @change="handleSelectAll"
+                        :checked="isAllSelected"
+                      />
+                    </div>
+                  </th>
+                  <th scope="col" style="width: 80px;">頭像</th>
+                  <th scope="col" style="cursor: pointer;" @click="handleSort('displayName')">
+                    用戶名稱
+                    <i v-if="sortConfig.prop === 'displayName'" :class="sortConfig.order === 'ascending' ? 'bi bi-caret-up' : 'bi bi-caret-down'"></i>
+                  </th>
+                  <th scope="col" style="width: 100px;">角色</th>
+                  <th scope="col" style="width: 100px;">狀態</th>
+                  <th scope="col">電子郵件</th>
+                  <th scope="col" style="width: 120px;">部門</th>
+                  <th scope="col" style="width: 160px; cursor: pointer;" @click="handleSort('lastLoginAt')">
+                    最後登入
+                    <i v-if="sortConfig.prop === 'lastLoginAt'" :class="sortConfig.order === 'ascending' ? 'bi bi-caret-up' : 'bi bi-caret-down'"></i>
+                  </th>
+                  <th scope="col" style="width: 120px; cursor: pointer;" @click="handleSort('createdAt')">
+                    創建時間
+                    <i v-if="sortConfig.prop === 'createdAt'" :class="sortConfig.order === 'ascending' ? 'bi bi-caret-up' : 'bi bi-caret-down'"></i>
+                  </th>
+                  <th scope="col" style="width: 200px;">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-if="loading">
+                  <td :colspan="authStore.isAdmin ? 10 : 9" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr v-else-if="tableData.length === 0">
+                  <td :colspan="authStore.isAdmin ? 10 : 9" class="text-center py-4 text-muted">
+                    <i class="bi bi-inbox fs-1"></i>
+                    <p class="mt-2">暫無用戶數據</p>
+                  </td>
+                </tr>
+                <tr v-else v-for="row in tableData" :key="row.id">
+                  <td v-if="authStore.isAdmin">
+                    <div class="form-check">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        :value="row"
+                        @change="handleRowSelect(row, $event)"
+                        :checked="selectedRows.includes(row)"
+                      />
+                    </div>
+                  </td>
+                  <td>
+                    <div class="avatar-container">
+                      <img v-if="row.avatar" :src="row.avatar" class="rounded-circle" width="40" height="40" />
+                      <div v-else class="avatar-placeholder">
+                        <i class="bi bi-person-fill"></i>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="user-info">
+                      <div class="user-name">{{ row.displayName }}</div>
+                      <div class="user-account">{{ row.loginAccount }}</div>
+                    </div>
+                  </td>
+                  <td>
+                    <span :class="'badge ' + getRoleClass(row.role)">
+                      {{ getRoleLabel(row.role) }}
+                    </span>
+                  </td>
+                  <td>
+                    <span :class="'badge ' + getStatusClass(row.status)">
+                      {{ getStatusLabel(row.status) }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="text-truncate" style="max-width: 200px; display: inline-block;" :title="row.email">
+                      {{ row.email }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="text-truncate" style="max-width: 120px; display: inline-block;" :title="row.department">
+                      {{ row.department }}
+                    </span>
+                  </td>
+                  <td>
+                    <div v-if="row.lastLoginAt">
+                      <div class="login-time">{{ formatDateTime(row.lastLoginAt) }}</div>
+                      <div class="login-ago">{{ formatTimeAgo(row.lastLoginAt) }}</div>
+                    </div>
+                    <span v-else class="never-login">從未登入</span>
+                  </td>
+                  <td>
+                    <span class="text-muted">{{ formatDate(row.createdAt) }}</span>
+                  </td>
+                  <td>
+                    <div class="btn-group" role="group">
+                      <button
+                        class="btn btn-sm btn-outline-primary"
+                        @click="goToDetail(row.id)"
+                      >
+                        查看
+                      </button>
+                      <button
+                        v-if="authStore.isAdmin"
+                        class="btn btn-sm btn-primary"
+                        @click="goToEdit(row.id)"
+                      >
+                        編輯
+                      </button>
+                      <div v-if="authStore.isAdmin" class="dropdown">
+                        <button
+                          class="btn btn-sm btn-outline-secondary dropdown-toggle"
+                          type="button"
+                          :id="'dropdown-' + row.id"
+                          data-bs-toggle="dropdown"
+                        >
+                          更多
+                        </button>
+                        <ul class="dropdown-menu">
+                          <li>
+                            <a class="dropdown-item" href="#" @click.prevent="handleUserAction(`${row.status === 'active' ? 'disable' : 'enable'}_${row.id}`, row)">
+                              <i :class="row.status === 'active' ? 'bi bi-lock' : 'bi bi-unlock'"></i>
+                              {{ row.status === 'active' ? '停用用戶' : '啟用用戶' }}
+                            </a>
+                          </li>
+                          <li>
+                            <a class="dropdown-item" href="#" @click.prevent="handleUserAction(`reset_password_${row.id}`, row)">
+                              <i class="bi bi-key"></i>
+                              重置密碼
+                            </a>
+                          </li>
+                          <li>
+                            <a class="dropdown-item" href="#" @click.prevent="handleUserAction(`view_logs_${row.id}`, row)">
+                              <i class="bi bi-file-text"></i>
+                              查看日誌
+                            </a>
+                          </li>
+                          <li><hr class="dropdown-divider"></li>
+                          <li>
+                            <a 
+                              class="dropdown-item text-danger" 
+                              href="#" 
+                              @click.prevent="handleUserAction(`delete_${row.id}`, row)"
+                              :class="{ 'disabled': row.role === 'Admin' || row.id === authStore.userInfo?.id }"
+                            >
+                              <i class="bi bi-trash"></i>
+                              刪除用戶
+                            </a>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
       
       <!-- 分頁 -->
-      <div class="pagination-container">
-        <el-pagination
-          v-model:current-page="pagination.currentPage"
-          v-model:page-size="pagination.pageSize"
-          :page-sizes="[10, 20, 50, 100]"
-          :total="pagination.total"
-          layout="total, sizes, prev, pager, next, jumper"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        />
+      <div class="pagination-container mt-3">
+        <div class="row align-items-center">
+          <div class="col-md-6">
+            <p class="mb-0 text-muted">
+              顯示 {{ (pagination.currentPage - 1) * pagination.pageSize + 1 }} 到 
+              {{ Math.min(pagination.currentPage * pagination.pageSize, pagination.total) }} 項，
+              共 {{ pagination.total }} 項
+            </p>
+          </div>
+          <div class="col-md-6">
+            <nav>
+              <ul class="pagination justify-content-end mb-0">
+                <li class="page-item" :class="{ disabled: pagination.currentPage === 1 }">
+                  <a class="page-link" href="#" @click.prevent="handleCurrentChange(pagination.currentPage - 1)">
+                    <i class="bi bi-chevron-left"></i>
+                  </a>
+                </li>
+                
+                <li 
+                  v-for="page in getVisiblePages()" 
+                  :key="page"
+                  class="page-item"
+                  :class="{ active: page === pagination.currentPage }"
+                >
+                  <a class="page-link" href="#" @click.prevent="handleCurrentChange(page)">
+                    {{ page }}
+                  </a>
+                </li>
+                
+                <li class="page-item" :class="{ disabled: pagination.currentPage === totalPages }">
+                  <a class="page-link" href="#" @click.prevent="handleCurrentChange(pagination.currentPage + 1)">
+                    <i class="bi bi-chevron-right"></i>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+        
+        <div class="row mt-2">
+          <div class="col-md-6">
+            <div class="d-flex align-items-center">
+              <label class="me-2">每頁顯示：</label>
+              <select class="form-select form-select-sm" style="width: auto;" v-model="pagination.pageSize" @change="handleSizeChange">
+                <option :value="10">10</option>
+                <option :value="20">20</option>
+                <option :value="50">50</option>
+                <option :value="100">100</option>
+              </select>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- 重置密碼對話框 -->
-    <el-dialog
-      v-model="resetPasswordVisible"
-      title="重置密碼"
-      width="400px"
-    >
-      <div class="reset-password-content">
-        <el-alert
-          title="重置密碼"
-          :description="`確定要重置用戶 '${selectedUser?.displayName}' 的密碼嗎？`"
-          type="warning"
-          show-icon
-          style="margin-bottom: 20px"
-        />
-        
-        <el-form label-width="100px">
-          <el-form-item label="新密碼：">
-            <el-input
-              v-model="newPassword"
-              type="password"
-              placeholder="留空則自動生成"
-              show-password
-            />
-          </el-form-item>
-          <el-form-item>
-            <el-button @click="generatePassword">生成隨機密碼</el-button>
-          </el-form-item>
-        </el-form>
+    <!-- 重置密碼模態框 -->
+    <div class="modal fade" id="resetPasswordModal" tabindex="-1" ref="resetPasswordModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">重置密碼</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <div class="alert alert-warning d-flex align-items-center">
+              <i class="bi bi-exclamation-triangle me-2"></i>
+              <div>
+                確定要重置用戶 <strong>{{ selectedUser?.displayName }}</strong> 的密碼嗎？
+              </div>
+            </div>
+            
+            <div class="mb-3">
+              <label class="form-label">新密碼：</label>
+              <div class="input-group">
+                <input
+                  type="password"
+                  class="form-control"
+                  v-model="newPassword"
+                  placeholder="留空則自動生成"
+                />
+                <button class="btn btn-outline-secondary" type="button" @click="togglePasswordVisibility">
+                  <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                </button>
+              </div>
+            </div>
+            <button class="btn btn-outline-primary" @click="generatePassword">
+              <i class="bi bi-shuffle me-2"></i>
+              生成隨機密碼
+            </button>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              :disabled="resetPasswordLoading"
+              @click="confirmResetPassword"
+            >
+              <span v-if="resetPasswordLoading" class="spinner-border spinner-border-sm me-2"></span>
+              確認重置
+            </button>
+          </div>
+        </div>
       </div>
-      
-      <template #footer>
-        <el-button @click="resetPasswordVisible = false">取消</el-button>
-        <el-button
-          type="primary"
-          :loading="resetPasswordLoading"
-          @click="confirmResetPassword"
-        >
-          確認重置
-        </el-button>
-      </template>
-    </el-dialog>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  Plus,
-  Lock,
-  Unlock,
-  Refresh,
-  Search,
-  RefreshRight,
-  User,
-  UserFilled,
-  CircleCheckFilled,
-  Connection,
-  ArrowDown,
-  Key,
-  Document,
-  Delete
-} from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import { format, formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
@@ -437,10 +481,11 @@ const loading = ref(false)
 const searchQuery = ref('')
 const selectedRows = ref<any[]>([])
 const tableData = ref<any[]>([])
-const resetPasswordVisible = ref(false)
 const selectedUser = ref<any>(null)
 const newPassword = ref('')
 const resetPasswordLoading = ref(false)
+const showPassword = ref(false)
+const resetPasswordModal = ref<HTMLElement>()
 
 // 篩選條件
 const filters = ref({
@@ -544,7 +589,8 @@ const filteredData = computed(() => {
     data = data.filter(item => 
       item.displayName.toLowerCase().includes(query) ||
       item.loginAccount.toLowerCase().includes(query) ||
-      item.email?.toLowerCase().includes(query)
+      item.email?.toLowerCase().includes(query) ||
+      item.department?.toLowerCase().includes(query)
     )
   }
   
@@ -586,9 +632,33 @@ const filteredData = computed(() => {
   return data
 })
 
-// 獲取角色標籤類型
-const getRoleTagType = (role: string) => {
-  return role === 'Admin' ? 'danger' : 'primary'
+// 計算總頁數
+const totalPages = computed(() => {
+  return Math.ceil(pagination.value.total / pagination.value.pageSize)
+})
+
+// 是否全選
+const isAllSelected = computed(() => {
+  return tableData.value.length > 0 && selectedRows.value.length === tableData.value.length
+})
+
+// 獲取可見頁碼
+const getVisiblePages = () => {
+  const current = pagination.value.currentPage
+  const total = totalPages.value
+  const visible = []
+  
+  // 簡單的分頁邏輯，顯示當前頁前後各2頁
+  for (let i = Math.max(1, current - 2); i <= Math.min(total, current + 2); i++) {
+    visible.push(i)
+  }
+  
+  return visible
+}
+
+// 獲取角色樣式
+const getRoleClass = (role: string) => {
+  return role === 'Admin' ? 'bg-danger' : 'bg-primary'
 }
 
 // 獲取角色標籤
@@ -596,14 +666,14 @@ const getRoleLabel = (role: string) => {
   return role === 'Admin' ? '管理員' : '用戶'
 }
 
-// 獲取狀態標籤類型
-const getStatusTagType = (status: string) => {
-  const typeMap: Record<string, string> = {
-    active: 'success',
-    inactive: 'info',
-    locked: 'warning'
+// 獲取狀態樣式
+const getStatusClass = (status: string) => {
+  const classMap: Record<string, string> = {
+    active: 'bg-success',
+    inactive: 'bg-secondary',
+    locked: 'bg-warning'
   }
-  return typeMap[status] || 'info'
+  return classMap[status] || 'bg-secondary'
 }
 
 // 獲取狀態標籤
@@ -668,7 +738,7 @@ const loadData = async () => {
     
   } catch (error) {
     console.error('Failed to load users:', error)
-    ElMessage.error('載入用戶失敗')
+    showAlert('載入用戶失敗', 'danger')
   } finally {
     loading.value = false
   }
@@ -676,6 +746,12 @@ const loadData = async () => {
 
 // 處理搜索
 const handleSearch = () => {
+  pagination.value.currentPage = 1
+  loadData()
+}
+
+// 處理搜索清空
+const handleSearchClear = () => {
   pagination.value.currentPage = 1
   loadData()
 }
@@ -698,26 +774,49 @@ const resetFilters = () => {
   loadData()
 }
 
-// 處理選擇變化
-const handleSelectionChange = (selection: any[]) => {
-  selectedRows.value = selection
-}
-
-// 處理排序變化
-const handleSortChange = ({ prop, order }: any) => {
-  sortConfig.value = { prop, order }
+// 處理排序
+const handleSort = (prop: string) => {
+  if (sortConfig.value.prop === prop) {
+    sortConfig.value.order = sortConfig.value.order === 'ascending' ? 'descending' : 'ascending'
+  } else {
+    sortConfig.value.prop = prop
+    sortConfig.value.order = 'ascending'
+  }
   loadData()
 }
 
+// 處理全選
+const handleSelectAll = (event: Event) => {
+  const checked = (event.target as HTMLInputElement).checked
+  if (checked) {
+    selectedRows.value = [...tableData.value]
+  } else {
+    selectedRows.value = []
+  }
+}
+
+// 處理行選擇
+const handleRowSelect = (row: any, event: Event) => {
+  const checked = (event.target as HTMLInputElement).checked
+  if (checked) {
+    selectedRows.value.push(row)
+  } else {
+    const index = selectedRows.value.indexOf(row)
+    if (index > -1) {
+      selectedRows.value.splice(index, 1)
+    }
+  }
+}
+
 // 處理分頁大小變化
-const handleSizeChange = (size: number) => {
-  pagination.value.pageSize = size
+const handleSizeChange = () => {
   pagination.value.currentPage = 1
   loadData()
 }
 
 // 處理當前頁變化
 const handleCurrentChange = (page: number) => {
+  if (page < 1 || page > totalPages.value) return
   pagination.value.currentPage = page
   loadData()
 }
@@ -745,33 +844,23 @@ const goToEdit = (id: number) => {
 // 處理批量狀態變更
 const handleBatchStatus = async (status: string) => {
   if (selectedRows.value.length === 0) {
-    ElMessage.warning('請選擇要操作的用戶')
+    showAlert('請選擇要操作的用戶', 'warning')
     return
   }
   
   const action = status === 'active' ? '啟用' : '停用'
   
-  try {
-    await ElMessageBox.confirm(
-      `確定要${action}選中的 ${selectedRows.value.length} 個用戶嗎？`,
-      `確認批量${action}`,
-      {
-        confirmButtonText: '確定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-    
-    // 這裡調用批量狀態變更API
-    // const ids = selectedRows.value.map(row => row.id)
-    // await usersApi.batchUpdateStatus(ids, status)
-    
-    ElMessage.success(`批量${action}成功`)
-    selectedRows.value = []
-    loadData()
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error(`批量${action}失敗`)
+  if (confirm(`確定要${action}選中的 ${selectedRows.value.length} 個用戶嗎？`)) {
+    try {
+      // 這裡調用批量狀態變更API
+      // const ids = selectedRows.value.map(row => row.id)
+      // await usersApi.batchUpdateStatus(ids, status)
+      
+      showAlert(`批量${action}成功`, 'success')
+      selectedRows.value = []
+      loadData()
+    } catch (error) {
+      showAlert(`批量${action}失敗`, 'danger')
     }
   }
 }
@@ -805,25 +894,15 @@ const handleUserAction = async (command: string, user: any) => {
 const handleStatusChange = async (user: any, status: string) => {
   const action = status === 'active' ? '啟用' : '停用'
   
-  try {
-    await ElMessageBox.confirm(
-      `確定要${action}用戶 "${user.displayName}" 嗎？`,
-      `確認${action}`,
-      {
-        confirmButtonText: '確定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-    
-    // 這裡調用狀態變更API
-    // await usersApi.updateUserStatus(user.id, status)
-    
-    ElMessage.success(`${action}成功`)
-    loadData()
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error(`${action}失敗`)
+  if (confirm(`確定要${action}用戶 "${user.displayName}" 嗎？`)) {
+    try {
+      // 這裡調用狀態變更API
+      // await usersApi.updateUserStatus(user.id, status)
+      
+      showAlert(`${action}成功`, 'success')
+      loadData()
+    } catch (error) {
+      showAlert(`${action}失敗`, 'danger')
     }
   }
 }
@@ -832,7 +911,20 @@ const handleStatusChange = async (user: any, status: string) => {
 const handleResetPassword = (user: any) => {
   selectedUser.value = user
   newPassword.value = ''
-  resetPasswordVisible.value = true
+  showPassword.value = false
+  
+  // 顯示Bootstrap模態框
+  const modal = new (window as any).bootstrap.Modal(resetPasswordModal.value)
+  modal.show()
+}
+
+// 切換密碼顯示
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value
+  const input = document.querySelector('#resetPasswordModal input[type="password"], #resetPasswordModal input[type="text"]') as HTMLInputElement
+  if (input) {
+    input.type = showPassword.value ? 'text' : 'password'
+  }
 }
 
 // 生成隨機密碼
@@ -856,15 +948,18 @@ const confirmResetPassword = async () => {
     // 模擬API請求
     await new Promise(resolve => setTimeout(resolve, 1000))
     
-    ElMessage.success('密碼重置成功')
-    resetPasswordVisible.value = false
+    showAlert('密碼重置成功', 'success')
+    
+    // 隱藏模態框
+    const modal = (window as any).bootstrap.Modal.getInstance(resetPasswordModal.value)
+    modal.hide()
     
     // 如果沒有設置新密碼，顯示生成的密碼
     if (!newPassword.value) {
-      ElMessage.info('新密碼已發送到用戶郵箱')
+      showAlert('新密碼已發送到用戶郵箱', 'info')
     }
   } catch (error) {
-    ElMessage.error('密碼重置失敗')
+    showAlert('密碼重置失敗', 'danger')
   } finally {
     resetPasswordLoading.value = false
   }
@@ -873,36 +968,46 @@ const confirmResetPassword = async () => {
 // 處理刪除用戶
 const handleDeleteUser = async (user: any) => {
   if (user.role === 'Admin') {
-    ElMessage.warning('無法刪除管理員用戶')
+    showAlert('無法刪除管理員用戶', 'warning')
     return
   }
   
   if (user.id === authStore.userInfo?.id) {
-    ElMessage.warning('無法刪除自己的帳號')
+    showAlert('無法刪除自己的帳號', 'warning')
     return
   }
   
-  try {
-    await ElMessageBox.confirm(
-      `確定要刪除用戶 "${user.displayName}" 嗎？此操作不可恢復。`,
-      '確認刪除',
-      {
-        confirmButtonText: '確定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
-    )
-    
-    // 這裡調用刪除API
-    // await usersApi.deleteUser(user.id)
-    
-    ElMessage.success('刪除成功')
-    loadData()
-  } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('刪除失敗')
+  if (confirm(`確定要刪除用戶 "${user.displayName}" 嗎？此操作不可恢復。`)) {
+    try {
+      // 這裡調用刪除API
+      // await usersApi.deleteUser(user.id)
+      
+      showAlert('刪除成功', 'success')
+      loadData()
+    } catch (error) {
+      showAlert('刪除失敗', 'danger')
     }
   }
+}
+
+// 顯示Bootstrap警告框
+const showAlert = (message: string, type: string) => {
+  const alertDiv = document.createElement('div')
+  alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`
+  alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 1055; max-width: 350px;'
+  alertDiv.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `
+  
+  document.body.appendChild(alertDiv)
+  
+  // 3秒後自動消失
+  setTimeout(() => {
+    if (alertDiv.parentNode) {
+      alertDiv.parentNode.removeChild(alertDiv)
+    }
+  }, 3000)
 }
 
 // 組件掛載
@@ -917,53 +1022,40 @@ onMounted(() => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 1rem;
     
     .actions-left {
       display: flex;
-      gap: 8px;
+      gap: 0.5rem;
+      flex-wrap: wrap;
     }
     
     .actions-right {
       display: flex;
-      gap: 8px;
+      gap: 0.5rem;
+      align-items: center;
     }
   }
   
   .filter-bar {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
-    background: var(--el-bg-color-page);
-    border-radius: 8px;
-    margin-bottom: 16px;
-    
-    .filter-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      
-      label {
-        font-size: 14px;
-        color: var(--el-text-color-primary);
-        white-space: nowrap;
-      }
-    }
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid #dee2e6;
   }
   
   .stats-cards {
-    margin-bottom: 20px;
-    
     .stat-card {
-      background: var(--el-bg-color);
-      border-radius: 8px;
-      padding: 20px;
+      background: white;
+      border-radius: 0.5rem;
+      padding: 1.5rem;
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 1rem;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       transition: all 0.3s ease;
+      border: 1px solid #dee2e6;
       
       &:hover {
         transform: translateY(-2px);
@@ -973,30 +1065,30 @@ onMounted(() => {
       .stat-icon {
         width: 48px;
         height: 48px;
-        border-radius: 8px;
+        border-radius: 0.5rem;
         display: flex;
         align-items: center;
         justify-content: center;
         
-        .el-icon {
+        i {
           font-size: 24px;
           color: white;
         }
         
         &.total {
-          background: linear-gradient(135deg, #409eff, #66b3ff);
+          background: linear-gradient(135deg, #0d6efd, #6ea8fe);
         }
         
         &.admins {
-          background: linear-gradient(135deg, #f56c6c, #f78a8a);
+          background: linear-gradient(135deg, #dc3545, #f87171);
         }
         
         &.active {
-          background: linear-gradient(135deg, #67c23a, #85d85a);
+          background: linear-gradient(135deg, #198754, #75b798);
         }
         
         &.online {
-          background: linear-gradient(135deg, #e6a23c, #f2b85c);
+          background: linear-gradient(135deg, #fd7e14, #ffc107);
         }
       }
       
@@ -1006,60 +1098,86 @@ onMounted(() => {
         .stat-number {
           font-size: 28px;
           font-weight: 600;
-          color: var(--el-text-color-primary);
-          margin-bottom: 4px;
+          color: #212529;
+          margin-bottom: 0.25rem;
         }
         
         .stat-label {
           font-size: 14px;
-          color: var(--el-text-color-regular);
+          color: #6c757d;
         }
       }
     }
   }
   
   .table-container {
+    .avatar-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      .avatar-placeholder {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #e9ecef;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #6c757d;
+        
+        i {
+          font-size: 20px;
+        }
+      }
+    }
+    
     .user-info {
       .user-name {
         font-weight: 500;
-        color: var(--el-text-color-primary);
-        margin-bottom: 2px;
+        color: #212529;
+        margin-bottom: 0.125rem;
       }
       
       .user-account {
         font-size: 12px;
-        color: var(--el-text-color-placeholder);
-        font-family: monospace;
+        color: #6c757d;
+        font-family: 'Consolas', 'Monaco', monospace;
       }
     }
     
     .login-time {
       font-size: 13px;
-      color: var(--el-text-color-primary);
+      color: #212529;
     }
     
     .login-ago {
       font-size: 12px;
-      color: var(--el-text-color-placeholder);
+      color: #6c757d;
     }
     
     .never-login {
-      color: var(--el-text-color-placeholder);
+      color: #6c757d;
       font-style: italic;
     }
     
-    .pagination-container {
-      display: flex;
-      justify-content: center;
-      margin-top: 20px;
+    .table th {
+      background: #f8f9fa;
+      border-bottom: 2px solid #dee2e6;
+      font-weight: 600;
+      color: #495057;
     }
-  }
-}
-
-// 對話框樣式
-.reset-password-content {
-  .el-form-item {
-    margin-bottom: 16px;
+    
+    .table td {
+      vertical-align: middle;
+    }
+    
+    .pagination-container {
+      background: #f8f9fa;
+      padding: 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid #dee2e6;
+    }
   }
 }
 
@@ -1068,35 +1186,29 @@ onMounted(() => {
   .users-list {
     .header-actions {
       flex-direction: column;
-      gap: 12px;
+      align-items: stretch;
       
       .actions-left,
       .actions-right {
-        width: 100%;
         justify-content: center;
       }
-    }
-    
-    .filter-bar {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 12px;
       
-      .filter-item {
-        flex-direction: column;
-        align-items: stretch;
+      .actions-right {
+        .input-group {
+          width: 100% !important;
+        }
       }
     }
     
     .stats-cards {
       .stat-card {
-        padding: 16px;
+        padding: 1rem;
         
         .stat-icon {
           width: 40px;
           height: 40px;
           
-          .el-icon {
+          i {
             font-size: 20px;
           }
         }
@@ -1108,22 +1220,55 @@ onMounted(() => {
         }
       }
     }
+    
+    .table-responsive {
+      font-size: 14px;
+    }
   }
 }
 
-// 暗黑模式
-.dark {
-  .filter-bar {
-    background: var(--el-bg-color-page);
-  }
-  
-  .stats-cards {
-    .stat-card {
-      background: var(--el-bg-color);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+// 深色模式支持
+@media (prefers-color-scheme: dark) {
+  .users-list {
+    .filter-bar {
+      background: #343a40;
+      border-color: #495057;
+    }
+    
+    .stats-cards {
+      .stat-card {
+        background: #212529;
+        border-color: #495057;
+        color: #fff;
+        
+        .stat-content {
+          .stat-number {
+            color: #fff;
+          }
+          
+          .stat-label {
+            color: #adb5bd;
+          }
+        }
+      }
+    }
+    
+    .table-container {
+      .card {
+        background: #212529;
+        border-color: #495057;
+        color: #fff;
+      }
       
-      &:hover {
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+      .table th {
+        background: #343a40;
+        border-color: #495057;
+        color: #fff;
+      }
+      
+      .pagination-container {
+        background: #343a40;
+        border-color: #495057;
       }
     }
   }

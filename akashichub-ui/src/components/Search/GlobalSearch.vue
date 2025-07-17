@@ -1,233 +1,240 @@
 <template>
   <div class="global-search">
-    <el-popover
-      v-model:visible="searchVisible"
-      placement="bottom-start"
-      :width="480"
-      trigger="click"
-      popper-class="search-popover"
-    >
-      <template #reference>
-        <div class="search-trigger" @click="handleTriggerClick">
-          <el-input
+    <div class="dropdown">
+      <div class="search-trigger" @click="handleTriggerClick">
+        <div class="input-group">
+          <span class="input-group-text">
+            <i class="bi bi-search"></i>
+          </span>
+          <input
             v-model="searchQuery"
+            type="text"
+            class="form-control search-input"
             placeholder="搜索資源、用戶、標籤..."
-            :prefix-icon="Search"
-            class="search-input"
             @keyup.enter="handleSearch"
             @input="handleInput"
             @focus="searchVisible = true"
           />
           <div class="search-shortcut">
-            <span>Ctrl + K</span>
+            <span class="badge bg-secondary">Ctrl + K</span>
           </div>
-        </div>
-      </template>
-
-      <div class="search-content">
-        <!-- 搜索結果 -->
-        <div v-if="searchQuery && !searching" class="search-results">
-          <!-- 快速操作 -->
-          <div v-if="searchQuery" class="quick-actions">
-            <div class="section-title">快速操作</div>
-            <div
-              class="action-item"
-              @click="goToAdvancedSearch"
-            >
-              <el-icon><Search /></el-icon>
-              <span>在 "{{ searchQuery }}" 中進行高級搜索</span>
-            </div>
-            <div
-              v-if="authStore.isAdmin"
-              class="action-item"
-              @click="createResourceWithName"
-            >
-              <el-icon><Plus /></el-icon>
-              <span>創建名為 "{{ searchQuery }}" 的資源</span>
-            </div>
-          </div>
-
-          <!-- 資源結果 -->
-          <div v-if="results.resources.length > 0" class="result-section">
-            <div class="section-title">
-              <el-icon><Server /></el-icon>
-              資源 ({{ results.resources.length }})
-            </div>
-            <div
-              v-for="item in results.resources.slice(0, 5)"
-              :key="`resource-${item.id}`"
-              class="result-item"
-              @click="goToResource(item.id)"
-            >
-              <div class="item-icon">
-                <el-icon :color="getResourceTypeColor(item.resourceType)">
-                  <component :is="getResourceTypeIcon(item.resourceType)" />
-                </el-icon>
-              </div>
-              <div class="item-content">
-                <div class="item-name" v-html="highlightText(item.name, searchQuery)"></div>
-                <div class="item-description">{{ item.resourceType }} · {{ item.ipAddress }}</div>
-              </div>
-              <div class="item-tags">
-                <el-tag
-                  v-for="tag in item.tags?.slice(0, 2)"
-                  :key="tag.id"
-                  size="small"
-                  type="info"
-                >
-                  {{ tag.name }}
-                </el-tag>
-              </div>
-            </div>
-            <div v-if="results.resources.length > 5" class="show-more" @click="showAllResources">
-              查看全部 {{ results.resources.length }} 個資源結果
-            </div>
-          </div>
-
-          <!-- 用戶結果 -->
-          <div v-if="results.users.length > 0" class="result-section">
-            <div class="section-title">
-              <el-icon><User /></el-icon>
-              用戶 ({{ results.users.length }})
-            </div>
-            <div
-              v-for="item in results.users.slice(0, 3)"
-              :key="`user-${item.id}`"
-              class="result-item"
-              @click="goToUser(item.id)"
-            >
-              <div class="item-icon">
-                <el-avatar :size="32" :src="item.avatar">
-                  <el-icon><UserFilled /></el-icon>
-                </el-avatar>
-              </div>
-              <div class="item-content">
-                <div class="item-name" v-html="highlightText(item.displayName, searchQuery)"></div>
-                <div class="item-description">{{ item.department }} · {{ item.loginAccount }}</div>
-              </div>
-              <div class="item-status">
-                <el-tag :type="item.role === 'Admin' ? 'danger' : 'primary'" size="small">
-                  {{ item.role === 'Admin' ? '管理員' : '用戶' }}
-                </el-tag>
-              </div>
-            </div>
-            <div v-if="results.users.length > 3" class="show-more" @click="showAllUsers">
-              查看全部 {{ results.users.length }} 個用戶結果
-            </div>
-          </div>
-
-          <!-- 標籤結果 -->
-          <div v-if="results.tags.length > 0" class="result-section">
-            <div class="section-title">
-              <el-icon><CollectionTag /></el-icon>
-              標籤 ({{ results.tags.length }})
-            </div>
-            <div
-              v-for="item in results.tags.slice(0, 6)"
-              :key="`tag-${item.id}`"
-              class="result-item tag-item"
-              @click="filterByTag(item)"
-            >
-              <div class="item-content">
-                <el-tag
-                  :type="getCategoryTagType(item.category)"
-                  :color="item.color"
-                  effect="light"
-                >
-                  <span v-html="highlightText(item.name, searchQuery)"></span>
-                </el-tag>
-                <div class="item-description">{{ getCategoryLabel(item.category) }} · {{ item.usageCount }} 次使用</div>
-              </div>
-            </div>
-            <div v-if="results.tags.length > 6" class="show-more" @click="showAllTags">
-              查看全部 {{ results.tags.length }} 個標籤結果
-            </div>
-          </div>
-
-          <!-- 無結果 -->
-          <div v-if="!hasResults" class="no-results">
-            <el-empty
-              description="沒有找到相關結果"
-              :image-size="60"
-            >
-              <el-button type="primary" @click="goToAdvancedSearch">
-                嘗試高級搜索
-              </el-button>
-            </el-empty>
-          </div>
-        </div>
-
-        <!-- 搜索建議 -->
-        <div v-else-if="!searchQuery" class="search-suggestions">
-          <div class="section-title">搜索建議</div>
-          
-          <div class="suggestion-group">
-            <div class="group-title">最近搜索</div>
-            <div
-              v-for="item in recentSearches"
-              :key="item"
-              class="suggestion-item"
-              @click="setSearchQuery(item)"
-            >
-              <el-icon><Clock /></el-icon>
-              <span>{{ item }}</span>
-            </div>
-          </div>
-
-          <div class="suggestion-group">
-            <div class="group-title">熱門搜索</div>
-            <div
-              v-for="item in popularSearches"
-              :key="item"
-              class="suggestion-item"
-              @click="setSearchQuery(item)"
-            >
-              <el-icon><TrendCharts /></el-icon>
-              <span>{{ item }}</span>
-            </div>
-          </div>
-
-          <div class="suggestion-group">
-            <div class="group-title">快捷入口</div>
-            <div class="suggestion-item" @click="goToPage('/resources')">
-              <el-icon><Server /></el-icon>
-              <span>所有資源</span>
-            </div>
-            <div class="suggestion-item" @click="goToPage('/users')">
-              <el-icon><User /></el-icon>
-              <span>用戶管理</span>
-            </div>
-            <div class="suggestion-item" @click="goToPage('/tags')">
-              <el-icon><CollectionTag /></el-icon>
-              <span>標籤管理</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 載入中 -->
-        <div v-else class="search-loading">
-          <el-skeleton :rows="3" animated />
         </div>
       </div>
-    </el-popover>
+
+      <div 
+        v-if="searchVisible" 
+        class="dropdown-menu search-dropdown show" 
+        @click.stop
+      >
+        <div class="search-content">
+          <!-- 搜索結果 -->
+          <div v-if="searchQuery && !searching" class="search-results">
+            <!-- 快速操作 -->
+            <div v-if="searchQuery" class="quick-actions">
+              <div class="section-title">
+                <i class="bi bi-lightning"></i>
+                快速操作
+              </div>
+              <div
+                class="action-item dropdown-item"
+                @click="goToAdvancedSearch"
+              >
+                <i class="bi bi-search text-primary"></i>
+                <span>在 "{{ searchQuery }}" 中進行高級搜索</span>
+              </div>
+              <div
+                v-if="authStore.isAdmin"
+                class="action-item dropdown-item"
+                @click="createResourceWithName"
+              >
+                <i class="bi bi-plus-circle text-success"></i>
+                <span>創建名為 "{{ searchQuery }}" 的資源</span>
+              </div>
+            </div>
+
+            <!-- 資源結果 -->
+            <div v-if="results.resources.length > 0" class="result-section">
+              <div class="section-title">
+                <i class="bi bi-server"></i>
+                資源 ({{ results.resources.length }})
+              </div>
+              <div
+                v-for="item in results.resources.slice(0, 5)"
+                :key="`resource-${item.id}`"
+                class="result-item dropdown-item"
+                @click="goToResource(item.id)"
+              >
+                <div class="item-icon">
+                  <i 
+                    :class="getResourceTypeIcon(item.resourceType)" 
+                    :style="{ color: getResourceTypeColor(item.resourceType) }"
+                  ></i>
+                </div>
+                <div class="item-content">
+                  <div class="item-name" v-html="highlightText(item.name, searchQuery)"></div>
+                  <div class="item-description">{{ item.resourceType }} · {{ item.ipAddress }}</div>
+                </div>
+                <div class="item-tags">
+                  <span
+                    v-for="tag in item.tags?.slice(0, 2)"
+                    :key="tag.id"
+                    class="badge bg-info text-dark me-1"
+                  >
+                    {{ tag.name }}
+                  </span>
+                </div>
+              </div>
+              <div v-if="results.resources.length > 5" class="show-more dropdown-item" @click="showAllResources">
+                查看全部 {{ results.resources.length }} 個資源結果
+              </div>
+            </div>
+
+            <!-- 用戶結果 -->
+            <div v-if="results.users.length > 0" class="result-section">
+              <div class="section-title">
+                <i class="bi bi-person"></i>
+                用戶 ({{ results.users.length }})
+              </div>
+              <div
+                v-for="item in results.users.slice(0, 3)"
+                :key="`user-${item.id}`"
+                class="result-item dropdown-item"
+                @click="goToUser(item.id)"
+              >
+                <div class="item-icon">
+                  <div class="avatar-circle">
+                    <i class="bi bi-person-fill"></i>
+                  </div>
+                </div>
+                <div class="item-content">
+                  <div class="item-name" v-html="highlightText(item.displayName, searchQuery)"></div>
+                  <div class="item-description">{{ item.department }} · {{ item.loginAccount }}</div>
+                </div>
+                <div class="item-status">
+                  <span 
+                    :class="item.role === 'Admin' ? 'badge bg-danger' : 'badge bg-primary'"
+                  >
+                    {{ item.role === 'Admin' ? '管理員' : '用戶' }}
+                  </span>
+                </div>
+              </div>
+              <div v-if="results.users.length > 3" class="show-more dropdown-item" @click="showAllUsers">
+                查看全部 {{ results.users.length }} 個用戶結果
+              </div>
+            </div>
+
+            <!-- 標籤結果 -->
+            <div v-if="results.tags.length > 0" class="result-section">
+              <div class="section-title">
+                <i class="bi bi-tags"></i>
+                標籤 ({{ results.tags.length }})
+              </div>
+              <div
+                v-for="item in results.tags.slice(0, 6)"
+                :key="`tag-${item.id}`"
+                class="result-item dropdown-item tag-item"
+                @click="filterByTag(item)"
+              >
+                <div class="item-content">
+                  <span
+                    :class="getCategoryTagClass(item.category)"
+                    :style="{ backgroundColor: item.color }"
+                  >
+                    <span v-html="highlightText(item.name, searchQuery)"></span>
+                  </span>
+                  <div class="item-description">{{ getCategoryLabel(item.category) }} · {{ item.usageCount }} 次使用</div>
+                </div>
+              </div>
+              <div v-if="results.tags.length > 6" class="show-more dropdown-item" @click="showAllTags">
+                查看全部 {{ results.tags.length }} 個標籤結果
+              </div>
+            </div>
+
+            <!-- 無結果 -->
+            <div v-if="!hasResults" class="no-results">
+              <div class="text-center py-4">
+                <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
+                <p class="mt-2 text-muted">沒有找到相關結果</p>
+                <button 
+                  class="btn btn-primary btn-sm" 
+                  @click="goToAdvancedSearch"
+                >
+                  嘗試高級搜索
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 搜索建議 -->
+          <div v-else-if="!searchQuery" class="search-suggestions">
+            <div class="section-title">
+              <i class="bi bi-lightbulb"></i>
+              搜索建議
+            </div>
+            
+            <div class="suggestion-group">
+              <div class="group-title">最近搜索</div>
+              <div
+                v-for="item in recentSearches"
+                :key="item"
+                class="suggestion-item dropdown-item"
+                @click="setSearchQuery(item)"
+              >
+                <i class="bi bi-clock-history text-muted"></i>
+                <span>{{ item }}</span>
+              </div>
+            </div>
+
+            <div class="suggestion-group">
+              <div class="group-title">熱門搜索</div>
+              <div
+                v-for="item in popularSearches"
+                :key="item"
+                class="suggestion-item dropdown-item"
+                @click="setSearchQuery(item)"
+              >
+                <i class="bi bi-graph-up text-muted"></i>
+                <span>{{ item }}</span>
+              </div>
+            </div>
+
+            <div class="suggestion-group">
+              <div class="group-title">快捷入口</div>
+              <div class="suggestion-item dropdown-item" @click="goToPage('/resources')">
+                <i class="bi bi-server text-muted"></i>
+                <span>所有資源</span>
+              </div>
+              <div class="suggestion-item dropdown-item" @click="goToPage('/users')">
+                <i class="bi bi-person text-muted"></i>
+                <span>用戶管理</span>
+              </div>
+              <div class="suggestion-item dropdown-item" @click="goToPage('/tags')">
+                <i class="bi bi-tags text-muted"></i>
+                <span>標籤管理</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 載入中 -->
+          <div v-else class="search-loading">
+            <div class="text-center py-4">
+              <div class="spinner-border spinner-border-sm text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+              </div>
+              <p class="mt-2 text-muted">搜索中...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import {
-  Search,
-  Plus,
-  Server,
-  User,
-  UserFilled,
-  CollectionTag,
-  Clock,
-  TrendCharts
-} from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
+import { showAlert, showConfirm } from '@/utils/bootstrap-alerts'
 
 // 狀態管理
 const authStore = useAuthStore()
@@ -376,7 +383,7 @@ const performSearch = async (query: string) => {
     
   } catch (error) {
     console.error('Search failed:', error)
-    ElMessage.error('搜索失敗')
+    showAlert('搜索失敗', 'danger')
   } finally {
     searching.value = false
   }
@@ -402,13 +409,13 @@ const highlightText = (text: string, query: string) => {
 // 獲取資源類型圖標
 const getResourceTypeIcon = (type: string) => {
   const iconMap: Record<string, string> = {
-    Server: 'Monitor',
-    Database: 'Coin',
-    Website: 'Basketball',
-    Storage: 'FolderOpened',
-    Cache: 'Basketball'
+    Server: 'bi bi-server',
+    Database: 'bi bi-database',
+    Website: 'bi bi-globe',
+    Storage: 'bi bi-hdd',
+    Cache: 'bi bi-lightning'
   }
-  return iconMap[type] || 'Monitor'
+  return iconMap[type] || 'bi bi-server'
 }
 
 // 獲取資源類型顏色
@@ -424,16 +431,16 @@ const getResourceTypeColor = (type: string) => {
 }
 
 // 獲取分類標籤類型
-const getCategoryTagType = (category: string) => {
+const getCategoryTagClass = (category: string) => {
   const typeMap: Record<string, string> = {
-    Environment: 'primary',
-    Priority: 'warning',
-    Department: 'success',
-    Project: 'info',
-    Technology: 'danger',
-    Other: ''
+    Environment: 'badge bg-primary',
+    Priority: 'badge bg-warning text-dark',
+    Department: 'badge bg-success',
+    Project: 'badge bg-info text-dark',
+    Technology: 'badge bg-danger',
+    Other: 'badge bg-secondary'
   }
-  return typeMap[category] || ''
+  return typeMap[category] || 'badge bg-secondary'
 }
 
 // 獲取分類標籤
@@ -559,14 +566,24 @@ const handleKeydown = (event: KeyboardEvent) => {
   }
 }
 
+// 處理點擊外部關閉
+const handleClickOutside = (event: MouseEvent) => {
+  const target = event.target as HTMLElement
+  if (!target.closest('.global-search')) {
+    searchVisible.value = false
+  }
+}
+
 // 組件掛載
 onMounted(() => {
   document.addEventListener('keydown', handleKeydown)
+  document.addEventListener('click', handleClickOutside)
 })
 
 // 組件卸載
 onUnmounted(() => {
   document.removeEventListener('keydown', handleKeydown)
+  document.removeEventListener('click', handleClickOutside)
 })
 </script>
 
@@ -576,14 +593,12 @@ onUnmounted(() => {
     position: relative;
     width: 300px;
     
-    .search-input {
-      :deep(.el-input__wrapper) {
-        border-radius: 8px;
-        transition: all 0.3s ease;
-        
-        &:hover {
-          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
+    .input-group {
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      
+      &:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       }
     }
     
@@ -592,238 +607,185 @@ onUnmounted(() => {
       right: 8px;
       top: 50%;
       transform: translateY(-50%);
-      
-      span {
-        background: var(--el-bg-color-page);
-        color: var(--el-text-color-placeholder);
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-size: 11px;
-        border: 1px solid var(--el-border-color);
-      }
+      z-index: 10;
     }
   }
-}
-
-:deep(.search-popover) {
-  padding: 0 !important;
-  border-radius: 12px !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12) !important;
-}
-</style>
-
-<style lang="scss">
-.search-popover {
-  .search-content {
+  
+  .search-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    width: 480px;
     max-height: 500px;
     overflow-y: auto;
+    margin-top: 4px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    z-index: 1000;
     
-    .section-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 12px 16px 8px;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--el-text-color-primary);
-      border-bottom: 1px solid var(--el-border-color-lighter);
-      margin-bottom: 8px;
-      
-      .el-icon {
-        font-size: 16px;
-      }
-    }
-    
-    .quick-actions {
-      .action-item {
+    .search-content {
+      .section-title {
         display: flex;
         align-items: center;
-        gap: 12px;
-        padding: 10px 16px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
+        gap: 8px;
+        padding: 12px 16px 8px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--bs-dark);
+        border-bottom: 1px solid var(--bs-border-color);
+        margin-bottom: 8px;
+        background: var(--bs-light);
         
-        &:hover {
-          background: var(--el-bg-color-page);
-        }
-        
-        .el-icon {
+        i {
           font-size: 16px;
-          color: var(--el-color-primary);
-        }
-        
-        span {
-          font-size: 14px;
-          color: var(--el-text-color-primary);
-        }
-      }
-    }
-    
-    .result-section {
-      margin-bottom: 16px;
-      
-      .result-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px 16px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-        
-        &:hover {
-          background: var(--el-bg-color-page);
-        }
-        
-        .item-icon {
-          .el-icon {
-            font-size: 18px;
-          }
-        }
-        
-        .item-content {
-          flex: 1;
-          
-          .item-name {
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--el-text-color-primary);
-            margin-bottom: 2px;
-            
-            :deep(mark) {
-              background: #fff3cd;
-              color: #856404;
-              padding: 1px 2px;
-              border-radius: 2px;
-            }
-          }
-          
-          .item-description {
-            font-size: 12px;
-            color: var(--el-text-color-placeholder);
-          }
-        }
-        
-        .item-tags {
-          display: flex;
-          gap: 4px;
-          flex-wrap: wrap;
-        }
-        
-        .item-status {
-          .el-tag {
-            font-size: 11px;
-          }
-        }
-        
-        &.tag-item {
-          .item-content {
-            .el-tag {
-              margin-bottom: 4px;
-            }
-          }
         }
       }
       
-      .show-more {
-        padding: 8px 16px;
-        text-align: center;
-        color: var(--el-color-primary);
-        font-size: 13px;
-        cursor: pointer;
-        border-top: 1px solid var(--el-border-color-lighter);
-        
-        &:hover {
-          background: var(--el-bg-color-page);
-        }
-      }
-    }
-    
-    .search-suggestions {
-      .suggestion-group {
-        margin-bottom: 16px;
-        
-        .group-title {
-          padding: 8px 16px;
-          font-size: 13px;
-          font-weight: 500;
-          color: var(--el-text-color-regular);
-        }
-        
-        .suggestion-item {
+      .quick-actions {
+        .action-item {
           display: flex;
           align-items: center;
           gap: 12px;
-          padding: 10px 16px;
-          cursor: pointer;
-          transition: background-color 0.3s ease;
           
-          &:hover {
-            background: var(--el-bg-color-page);
-          }
-          
-          .el-icon {
+          i {
             font-size: 16px;
-            color: var(--el-text-color-placeholder);
-          }
-          
-          span {
-            font-size: 14px;
-            color: var(--el-text-color-primary);
           }
         }
       }
-    }
-    
-    .no-results {
-      padding: 40px 16px;
-      text-align: center;
-    }
-    
-    .search-loading {
-      padding: 16px;
-    }
-  }
-}
-
-// 暗黑模式
-.dark {
-  .search-popover {
-    .search-content {
-      .section-title {
-        color: var(--el-text-color-primary);
-        border-bottom-color: var(--el-border-color-lighter);
-      }
       
       .result-section {
+        margin-bottom: 16px;
+        
         .result-item {
-          &:hover {
-            background: var(--el-bg-color-page);
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          
+          .item-icon {
+            i {
+              font-size: 18px;
+            }
+            
+            .avatar-circle {
+              width: 32px;
+              height: 32px;
+              border-radius: 50%;
+              background: var(--bs-primary);
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              color: white;
+              font-size: 14px;
+            }
           }
           
           .item-content {
+            flex: 1;
+            
             .item-name {
+              font-size: 14px;
+              font-weight: 500;
+              color: var(--bs-dark);
+              margin-bottom: 2px;
+              
               :deep(mark) {
-                background: #2d2419;
-                color: #d69e2e;
+                background: #fff3cd;
+                color: #856404;
+                padding: 1px 2px;
+                border-radius: 2px;
+              }
+            }
+            
+            .item-description {
+              font-size: 12px;
+              color: var(--bs-secondary);
+            }
+          }
+          
+          .item-tags {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+          }
+          
+          .item-status {
+            .badge {
+              font-size: 11px;
+            }
+          }
+          
+          &.tag-item {
+            .item-content {
+              .badge {
+                margin-bottom: 4px;
               }
             }
           }
         }
         
         .show-more {
-          border-top-color: var(--el-border-color-lighter);
-          
-          &:hover {
-            background: var(--el-bg-color-page);
-          }
+          text-align: center;
+          color: var(--bs-primary);
+          font-size: 13px;
+          border-top: 1px solid var(--bs-border-color);
         }
       }
       
       .search-suggestions {
         .suggestion-group {
+          margin-bottom: 16px;
+          
+          .group-title {
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--bs-secondary);
+          }
+          
           .suggestion-item {
-            &:hover {
-              background: var(--el-bg-color-page);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            
+            i {
+              font-size: 16px;
+            }
+          }
+        }
+      }
+      
+      .no-results {
+        padding: 40px 16px;
+        text-align: center;
+      }
+      
+      .search-loading {
+        padding: 16px;
+      }
+    }
+  }
+}
+
+// 暗黑模式
+[data-bs-theme="dark"] {
+  .global-search {
+    .search-dropdown {
+      .search-content {
+        .section-title {
+          color: var(--bs-light);
+          background: var(--bs-dark);
+        }
+        
+        .result-item {
+          .item-content {
+            .item-name {
+              color: var(--bs-light);
+              
+              :deep(mark) {
+                background: #2d2419;
+                color: #d69e2e;
+              }
             }
           }
         }

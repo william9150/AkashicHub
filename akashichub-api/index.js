@@ -6,6 +6,7 @@ import authRouter from "./routes/auth.js";
 import tagRouter from "./routes/tags.js";
 import resourceRouter from "./routes/resources.js";
 import adminUsersRouter from "./routes/adminUsers.js";
+import dashboardRouter from "./routes/dashboard.js";
 import logger from "./utils/logger.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
 import { generalLimiter } from "./middlewares/rateLimiter.js";
@@ -114,6 +115,9 @@ if (process.env.NODE_ENV === 'development') {
 
 // 掛載 auth 路由
 app.use("/api/auth", authRouter);
+
+// 掛載 dashboard 路由
+app.use("/api/dashboard", dashboardRouter);
 
 // 掛載 tags 路由
 app.use("/api/tags", tagRouter);

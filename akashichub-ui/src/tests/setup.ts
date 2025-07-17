@@ -60,47 +60,33 @@ beforeEach(() => {
 })
 
 // 全局 mocks
-vi.mock('vue-router', () => ({
-  useRouter: () => ({
-    push: vi.fn(),
-    replace: vi.fn(),
-    go: vi.fn(),
-    back: vi.fn(),
-    forward: vi.fn()
-  }),
-  useRoute: () => ({
-    params: {},
-    query: {},
-    path: '/',
-    name: 'test',
-    meta: {}
-  })
-}))
-
-// Mock Element Plus 消息組件
-vi.mock('element-plus', async () => {
-  const actual = await vi.importActual('element-plus')
+vi.mock('vue-router', async (importOriginal) => {
+  const actual = await importOriginal()
   return {
     ...actual,
-    ElMessage: {
-      success: vi.fn(),
-      error: vi.fn(),
-      warning: vi.fn(),
-      info: vi.fn()
-    },
-    ElMessageBox: {
-      confirm: vi.fn().mockResolvedValue('confirm'),
-      alert: vi.fn().mockResolvedValue('confirm'),
-      prompt: vi.fn().mockResolvedValue({ value: 'test' })
-    },
-    ElNotification: {
-      success: vi.fn(),
-      error: vi.fn(),
-      warning: vi.fn(),
-      info: vi.fn()
-    }
+    useRouter: () => ({
+      push: vi.fn(),
+      replace: vi.fn(),
+      go: vi.fn(),
+      back: vi.fn(),
+      forward: vi.fn()
+    }),
+    useRoute: () => ({
+      params: {},
+      query: {},
+      path: '/',
+      name: 'test',
+      meta: {}
+    })
   }
 })
+
+// Mock Bootstrap alerts
+vi.mock('@/utils/bootstrap-alerts', () => ({
+  showAlert: vi.fn(),
+  showConfirm: vi.fn().mockResolvedValue(true),
+  showPrompt: vi.fn().mockResolvedValue('test')
+}))
 
 // Mock ECharts
 vi.mock('echarts', () => ({

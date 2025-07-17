@@ -1,501 +1,570 @@
 <template>
   <div class="tags-list">
     <!-- 頂部操作欄 -->
-    <div class="header-actions">
-      <div class="actions-left">
-        <el-button
-          v-if="authStore.canEditITData"
-          type="primary"
-          icon="Plus"
-          @click="goToCreate"
-        >
-          新增標籤
-        </el-button>
-        <el-button
-          v-if="authStore.canDeleteAnyData && selectedRows.length > 0"
-          type="danger"
-          icon="Delete"
-          @click="handleBatchDelete"
-        >
-          批量刪除 ({{ selectedRows.length }})
-        </el-button>
-        <el-button
-          v-if="authStore.canDeleteAnyData && selectedRows.length > 1"
-          type="warning"
-          icon="Promotion"
-          @click="handleBatchMerge"
-        >
-          合併標籤
-        </el-button>
-        <el-button
-          icon="Refresh"
-          @click="refreshData"
-          :loading="loading"
-        >
-          刷新
-        </el-button>
+    <div class="header-actions row g-3 mb-3">
+      <div class="col-auto">
+        <div class="btn-group" role="group">
+          <button
+            v-if="authStore.canEditITData"
+            type="button"
+            class="btn btn-primary"
+            @click="goToCreate"
+          >
+            <i class="bi bi-plus-circle me-1"></i>
+            新增標籤
+          </button>
+          <button
+            v-if="authStore.canDeleteAnyData && selectedRows.length > 0"
+            type="button"
+            class="btn btn-danger"
+            @click="handleBatchDelete"
+          >
+            <i class="bi bi-trash me-1"></i>
+            批量刪除 ({{ selectedRows.length }})
+          </button>
+          <button
+            v-if="authStore.canDeleteAnyData && selectedRows.length > 1"
+            type="button"
+            class="btn btn-warning"
+            @click="handleBatchMerge"
+          >
+            <i class="bi bi-union me-1"></i>
+            合併標籤
+          </button>
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            @click="refreshData"
+            :disabled="loading"
+          >
+            <i class="bi bi-arrow-clockwise me-1" :class="{ 'fa-spin': loading }"></i>
+            刷新
+          </button>
+        </div>
       </div>
       
-      <div class="actions-right">
-        <el-input
-          v-model="searchQuery"
-          placeholder="搜索標籤名稱、分類..."
-          style="width: 300px;"
-          clearable
-          @keyup.enter="handleSearch"
-          @clear="handleSearchClear"
-        >
-          <template #prefix>
-            <el-icon><Search /></el-icon>
-          </template>
-          <template #suffix>
-            <el-tooltip content="高級搜索" placement="top">
-              <el-button
-                link
-                type="primary"
-                @click="goToAdvancedSearch"
-              >
-                <el-icon><Setting /></el-icon>
-              </el-button>
-            </el-tooltip>
-          </template>
-        </el-input>
-        <el-button
-          type="primary"
-          icon="Search"
-          @click="handleSearch"
-        >
-          搜索
-        </el-button>
+      <div class="col-auto ms-auto">
+        <div class="input-group" style="width: 350px;">
+          <span class="input-group-text">
+            <i class="bi bi-search"></i>
+          </span>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="搜索標籤名稱、分類..."
+            v-model="searchQuery"
+            @keyup.enter="handleSearch"
+            @input="handleSearchInput"
+          >
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            @click="goToAdvancedSearch"
+            title="高級搜索"
+          >
+            <i class="bi bi-gear"></i>
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            @click="handleSearch"
+          >
+            搜索
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- 篩選條件 -->
-    <div class="filter-bar">
-      <div class="filter-item">
-        <label>分類：</label>
-        <el-select
-          v-model="filters.category"
-          placeholder="全部分類"
-          clearable
-          style="width: 150px;"
-          @change="handleFilter"
-        >
-          <el-option
-            v-for="category in tagCategories"
-            :key="category.value"
-            :label="category.label"
-            :value="category.value"
-          />
-        </el-select>
+    <div class="filter-bar card mb-3">
+      <div class="card-body">
+        <div class="row g-3 align-items-center">
+          <div class="col-auto">
+            <label class="form-label mb-0">分類：</label>
+            <select
+              class="form-select"
+              v-model="filters.category"
+              @change="handleFilter"
+              style="width: 150px;"
+            >
+              <option value="">全部分類</option>
+              <option
+                v-for="category in tagCategories"
+                :key="category.value"
+                :value="category.value"
+              >
+                {{ category.label }}
+              </option>
+            </select>
+          </div>
+          
+          <div class="col-auto">
+            <label class="form-label mb-0">使用狀態：</label>
+            <select
+              class="form-select"
+              v-model="filters.usageStatus"
+              @change="handleFilter"
+              style="width: 120px;"
+            >
+              <option value="">全部狀態</option>
+              <option value="used">已使用</option>
+              <option value="unused">未使用</option>
+            </select>
+          </div>
+          
+          <div class="col-auto">
+            <label class="form-label mb-0">排序：</label>
+            <select
+              class="form-select"
+              v-model="filters.sortBy"
+              @change="handleFilter"
+              style="width: 150px;"
+            >
+              <option value="name_asc">名稱 A-Z</option>
+              <option value="name_desc">名稱 Z-A</option>
+              <option value="usage_desc">使用次數多</option>
+              <option value="usage_asc">使用次數少</option>
+              <option value="created_desc">創建時間新</option>
+              <option value="created_asc">創建時間舊</option>
+            </select>
+          </div>
+          
+          <div class="col-auto">
+            <button
+              type="button"
+              class="btn btn-outline-secondary"
+              @click="resetFilters"
+            >
+              <i class="bi bi-arrow-clockwise me-1"></i>
+              重置篩選
+            </button>
+          </div>
+        </div>
       </div>
-      
-      <div class="filter-item">
-        <label>使用狀態：</label>
-        <el-select
-          v-model="filters.usageStatus"
-          placeholder="全部狀態"
-          clearable
-          style="width: 120px;"
-          @change="handleFilter"
-        >
-          <el-option label="已使用" value="used" />
-          <el-option label="未使用" value="unused" />
-        </el-select>
-      </div>
-      
-      <div class="filter-item">
-        <label>排序：</label>
-        <el-select
-          v-model="filters.sortBy"
-          placeholder="排序方式"
-          style="width: 150px;"
-          @change="handleFilter"
-        >
-          <el-option label="名稱 A-Z" value="name_asc" />
-          <el-option label="名稱 Z-A" value="name_desc" />
-          <el-option label="使用次數多" value="usage_desc" />
-          <el-option label="使用次數少" value="usage_asc" />
-          <el-option label="創建時間新" value="created_desc" />
-          <el-option label="創建時間舊" value="created_asc" />
-        </el-select>
-      </div>
-      
-      <el-button
-        type="default"
-        icon="RefreshRight"
-        @click="resetFilters"
-      >
-        重置篩選
-      </el-button>
     </div>
 
     <!-- 統計卡片 -->
-    <div class="stats-cards">
-      <el-row :gutter="16">
-        <el-col :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
-          <div class="stat-card">
-            <div class="stat-icon total">
-              <el-icon><CollectionTag /></el-icon>
-            </div>
-            <div class="stat-content">
-              <div class="stat-number">{{ tagStats.total }}</div>
-              <div class="stat-label">總標籤數</div>
+    <div class="stats-cards mb-3">
+      <div class="row g-3">
+        <div class="col-6 col-md-3">
+          <div class="stat-card card h-100">
+            <div class="card-body d-flex align-items-center">
+              <div class="stat-icon total me-3">
+                <i class="bi bi-tags"></i>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">{{ tagStats.total }}</div>
+                <div class="stat-label">總標籤數</div>
+              </div>
             </div>
           </div>
-        </el-col>
+        </div>
         
-        <el-col :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
-          <div class="stat-card">
-            <div class="stat-icon used">
-              <el-icon><CircleCheckFilled /></el-icon>
-            </div>
-            <div class="stat-content">
-              <div class="stat-number">{{ tagStats.used }}</div>
-              <div class="stat-label">已使用</div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card card h-100">
+            <div class="card-body d-flex align-items-center">
+              <div class="stat-icon used me-3">
+                <i class="bi bi-check-circle-fill"></i>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">{{ tagStats.used }}</div>
+                <div class="stat-label">已使用</div>
+              </div>
             </div>
           </div>
-        </el-col>
+        </div>
         
-        <el-col :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
-          <div class="stat-card">
-            <div class="stat-icon unused">
-              <el-icon><CircleCloseFilled /></el-icon>
-            </div>
-            <div class="stat-content">
-              <div class="stat-number">{{ tagStats.unused }}</div>
-              <div class="stat-label">未使用</div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card card h-100">
+            <div class="card-body d-flex align-items-center">
+              <div class="stat-icon unused me-3">
+                <i class="bi bi-x-circle-fill"></i>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">{{ tagStats.unused }}</div>
+                <div class="stat-label">未使用</div>
+              </div>
             </div>
           </div>
-        </el-col>
+        </div>
         
-        <el-col :xs="12" :sm="6" :md="6" :lg="6" :xl="6">
-          <div class="stat-card">
-            <div class="stat-icon categories">
-              <el-icon><FolderOpened /></el-icon>
-            </div>
-            <div class="stat-content">
-              <div class="stat-number">{{ tagStats.categories }}</div>
-              <div class="stat-label">分類數</div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card card h-100">
+            <div class="card-body d-flex align-items-center">
+              <div class="stat-icon categories me-3">
+                <i class="bi bi-folder-fill"></i>
+              </div>
+              <div class="stat-content">
+                <div class="stat-number">{{ tagStats.categories }}</div>
+                <div class="stat-label">分類數</div>
+              </div>
             </div>
           </div>
-        </el-col>
-      </el-row>
+        </div>
+      </div>
     </div>
 
     <!-- 標籤表格 -->
     <div class="table-container">
-      <el-table
-        v-loading="loading"
-        :data="tableData"
-        style="width: 100%"
-        @selection-change="handleSelectionChange"
-        @sort-change="handleSortChange"
-      >
-        <el-table-column
-          v-if="authStore.canDeleteAnyData"
-          type="selection"
-          width="55"
-        />
-        
-        <el-table-column
-          prop="name"
-          label="標籤名稱"
-          sortable="custom"
-          min-width="200"
-        >
-          <template #default="{ row }">
-            <div class="tag-name">
-              <el-tag :type="getCategoryTagType(row.category)" effect="light">
-                {{ row.name }}
-              </el-tag>
-            </div>
-          </template>
-        </el-table-column>
-        
-        <el-table-column
-          prop="category"
-          label="分類"
-          width="120"
-        >
-          <template #default="{ row }">
-            <el-tag :type="getCategoryTagType(row.category)" size="small">
-              {{ getCategoryLabel(row.category) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        
-        <el-table-column
-          prop="description"
-          label="描述"
-          min-width="200"
-          show-overflow-tooltip
-        >
-          <template #default="{ row }">
-            <span>{{ row.description || '無描述' }}</span>
-          </template>
-        </el-table-column>
-        
-        <el-table-column
-          prop="usageCount"
-          label="使用次數"
-          width="100"
-          sortable="custom"
-        >
-          <template #default="{ row }">
-            <el-button
-              type="primary"
-              text
-              @click="viewTagUsage(row)"
-            >
-              {{ row.usageCount }}
-            </el-button>
-          </template>
-        </el-table-column>
-        
-        <el-table-column
-          prop="color"
-          label="顏色"
-          width="80"
-        >
-          <template #default="{ row }">
-            <div
-              class="color-preview"
-              :style="{ backgroundColor: row.color }"
-              @click="editTagColor(row)"
-            >
-            </div>
-          </template>
-        </el-table-column>
-        
-        <el-table-column
-          prop="createdBy"
-          label="創建者"
-          width="100"
-        />
-        
-        <el-table-column
-          prop="createdAt"
-          label="創建時間"
-          width="160"
-          sortable="custom"
-        >
-          <template #default="{ row }">
-            {{ formatDateTime(row.createdAt) }}
-          </template>
-        </el-table-column>
-        
-        <el-table-column
-          label="操作"
-          width="200"
-          fixed="right"
-        >
-          <template #default="{ row }">
-            <el-button
-              size="small"
-              @click="viewTagUsage(row)"
-            >
-              查看使用
-            </el-button>
-            <el-button
-              v-if="authStore.canEditITData"
-              size="small"
-              type="primary"
-              @click="goToEdit(row.id)"
-            >
-              編輯
-            </el-button>
-            <el-button
-              v-if="canDeleteTag(row)"
-              size="small"
-              type="danger"
-              @click="handleDelete(row)"
-              :disabled="row.usageCount > 0"
-            >
-              刪除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      
-      <!-- 分頁 -->
-      <div class="pagination-container">
-        <el-pagination
-          v-model:current-page="pagination.currentPage"
-          v-model:page-size="pagination.pageSize"
-          :page-sizes="[10, 20, 50, 100]"
-          :total="pagination.total"
-          layout="total, sizes, prev, pager, next, jumper"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        />
-      </div>
-    </div>
-
-    <!-- 標籤使用詳情對話框 -->
-    <el-dialog
-      v-model="usageDialogVisible"
-      :title="`標籤使用詳情 - ${selectedTag?.name}`"
-      width="800px"
-      :before-close="handleCloseUsageDialog"
-    >
-      <div class="usage-content">
-        <div class="usage-stats">
-          <el-statistic
-            title="使用次數"
-            :value="selectedTag?.usageCount || 0"
-          />
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0">標籤列表</h5>
+          <span class="text-muted">共 {{ pagination.total }} 筆資料</span>
         </div>
         
-        <el-divider />
-        
-        <div class="usage-resources">
-          <h4>使用此標籤的資源</h4>
-          <div class="resource-list">
-            <div
-              v-for="resource in tagResources"
-              :key="resource.id"
-              class="resource-item"
-              @click="goToResource(resource.id)"
-            >
-              <div class="resource-icon">
-                <el-icon :color="getResourceTypeColor(resource.resourceType)">
-                  <component :is="getResourceTypeIcon(resource.resourceType)" />
-                </el-icon>
-              </div>
-              <div class="resource-content">
-                <div class="resource-name">{{ resource.name }}</div>
-                <div class="resource-type">{{ resource.resourceType }}</div>
-                <div class="resource-ip">{{ resource.ipAddress }}</div>
-              </div>
-            </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th v-if="authStore.canDeleteAnyData" style="width: 50px;">
+                    <input
+                      type="checkbox"
+                      class="form-check-input"
+                      @change="handleSelectAll"
+                      :checked="isAllSelected"
+                      :indeterminate="isIndeterminate"
+                    >
+                  </th>
+                  <th style="min-width: 200px; cursor: pointer;" @click="handleSort('name')">
+                    <span>標籤名稱</span>
+                    <i class="bi" :class="getSortIcon('name')"></i>
+                  </th>
+                  <th style="width: 120px;">分類</th>
+                  <th style="min-width: 200px;">描述</th>
+                  <th style="width: 100px; cursor: pointer;" @click="handleSort('usageCount')">
+                    <span>使用次數</span>
+                    <i class="bi" :class="getSortIcon('usageCount')"></i>
+                  </th>
+                  <th style="width: 80px;">顏色</th>
+                  <th style="width: 100px;">創建者</th>
+                  <th style="width: 160px; cursor: pointer;" @click="handleSort('createdAt')">
+                    <span>創建時間</span>
+                    <i class="bi" :class="getSortIcon('createdAt')"></i>
+                  </th>
+                  <th style="width: 200px;">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-if="loading">
+                  <td :colspan="authStore.canDeleteAnyData ? 9 : 8" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">載入中...</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr v-else-if="tableData.length === 0">
+                  <td :colspan="authStore.canDeleteAnyData ? 9 : 8" class="text-center py-4 text-muted">
+                    <i class="bi bi-inbox fs-1"></i>
+                    <p class="mt-2">暫無標籤資料</p>
+                  </td>
+                </tr>
+                <tr v-else v-for="row in tableData" :key="row.id">
+                  <td v-if="authStore.canDeleteAnyData">
+                    <input
+                      type="checkbox"
+                      class="form-check-input"
+                      :value="row"
+                      @change="handleRowSelect"
+                      :checked="isRowSelected(row)"
+                    >
+                  </td>
+                  <td>
+                    <span class="badge" :class="getCategoryTagClass(row.category)">
+                      {{ row.name }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge" :class="getCategoryTagClass(row.category)">
+                      {{ getCategoryLabel(row.category) }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="text-truncate" :title="row.description || '無描述'">
+                      {{ row.description || '無描述' }}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      class="btn btn-link p-0 text-primary"
+                      @click="viewTagUsage(row)"
+                    >
+                      {{ row.usageCount }}
+                    </button>
+                  </td>
+                  <td>
+                    <div
+                      class="color-preview"
+                      :style="{ backgroundColor: row.color }"
+                      @click="editTagColor(row)"
+                    >
+                    </div>
+                  </td>
+                  <td class="text-muted small">{{ row.createdBy }}</td>
+                  <td class="text-muted small">{{ formatDateTime(row.createdAt) }}</td>
+                  <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button
+                        type="button"
+                        class="btn btn-outline-primary"
+                        @click="viewTagUsage(row)"
+                      >
+                        查看使用
+                      </button>
+                      <button
+                        v-if="authStore.canEditITData"
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        @click="goToEdit(row.id)"
+                      >
+                        編輯
+                      </button>
+                      <button
+                        v-if="canDeleteTag(row)"
+                        type="button"
+                        class="btn btn-outline-danger"
+                        @click="handleDelete(row)"
+                        :disabled="row.usageCount > 0"
+                      >
+                        刪除
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
       
-      <template #footer>
-        <el-button @click="usageDialogVisible = false">關閉</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 顏色編輯對話框 -->
-    <el-dialog
-      v-model="colorDialogVisible"
-      title="編輯標籤顏色"
-      width="400px"
-    >
-      <div class="color-picker-container">
-        <el-color-picker
-          v-model="selectedColor"
-          show-alpha
-          :predefine="predefineColors"
-        />
-        <div class="color-preview-large">
-          <el-tag :color="selectedColor" effect="dark">
-            {{ editingTag?.name }}
-          </el-tag>
+      <!-- 分頁 -->
+      <div class="d-flex justify-content-between align-items-center mt-3">
+        <div class="text-muted">
+          顯示第 {{ (pagination.currentPage - 1) * pagination.pageSize + 1 }} 到 {{ Math.min(pagination.currentPage * pagination.pageSize, pagination.total) }} 筆，共 {{ pagination.total }} 筆
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <label class="form-label mb-0">每頁顯示：</label>
+          <select class="form-select" v-model="pagination.pageSize" @change="handleSizeChange" style="width: 80px;">
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+          <nav>
+            <ul class="pagination pagination-sm mb-0">
+              <li class="page-item" :class="{ disabled: pagination.currentPage === 1 }">
+                <button class="page-link" @click="handleCurrentChange(1)" :disabled="pagination.currentPage === 1">
+                  <i class="bi bi-chevron-double-left"></i>
+                </button>
+              </li>
+              <li class="page-item" :class="{ disabled: pagination.currentPage === 1 }">
+                <button class="page-link" @click="handleCurrentChange(pagination.currentPage - 1)" :disabled="pagination.currentPage === 1">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+              </li>
+              <li
+                v-for="page in visiblePages"
+                :key="page"
+                class="page-item"
+                :class="{ active: page === pagination.currentPage }"
+              >
+                <button class="page-link" @click="handleCurrentChange(page)">{{ page }}</button>
+              </li>
+              <li class="page-item" :class="{ disabled: pagination.currentPage === totalPages }">
+                <button class="page-link" @click="handleCurrentChange(pagination.currentPage + 1)" :disabled="pagination.currentPage === totalPages">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+              </li>
+              <li class="page-item" :class="{ disabled: pagination.currentPage === totalPages }">
+                <button class="page-link" @click="handleCurrentChange(totalPages)" :disabled="pagination.currentPage === totalPages">
+                  <i class="bi bi-chevron-double-right"></i>
+                </button>
+              </li>
+            </ul>
+          </nav>
         </div>
       </div>
-      
-      <template #footer>
-        <el-button @click="colorDialogVisible = false">取消</el-button>
-        <el-button type="primary" @click="saveTagColor">確定</el-button>
-      </template>
-    </el-dialog>
+    </div>
 
-    <!-- 合併標籤對話框 -->
-    <el-dialog
-      v-model="mergeDialogVisible"
-      title="合併標籤"
-      width="500px"
-    >
-      <div class="merge-content">
-        <el-alert
-          title="注意"
-          description="合併標籤將會把選中的標籤合併為一個標籤，此操作不可恢復！"
-          type="warning"
-          show-icon
-          style="margin-bottom: 20px"
-        />
-        
-        <el-form label-width="100px">
-          <el-form-item label="目標標籤：">
-            <el-select
-              v-model="mergeTargetTag"
-              placeholder="選擇要保留的標籤"
-              style="width: 100%"
-            >
-              <el-option
-                v-for="tag in selectedRows"
-                :key="tag.id"
-                :label="tag.name"
-                :value="tag.id"
-              />
-            </el-select>
-          </el-form-item>
-          
-          <el-form-item label="合併預覽：">
-            <div class="merge-preview">
-              <div class="merge-sources">
-                <el-tag
-                  v-for="tag in selectedRows"
-                  :key="tag.id"
-                  :type="getCategoryTagType(tag.category)"
-                  :class="{ 'merge-target': tag.id === mergeTargetTag }"
-                >
-                  {{ tag.name }}
-                  <span v-if="tag.id === mergeTargetTag"> (保留)</span>
-                </el-tag>
+    <!-- 標籤使用詳情對話框 -->
+    <div class="modal fade" id="usageModal" tabindex="-1" v-show="usageDialogVisible">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">標籤使用詳情 - {{ selectedTag?.name }}</h5>
+            <button type="button" class="btn-close" @click="handleCloseUsageDialog"></button>
+          </div>
+          <div class="modal-body">
+            <div class="usage-content">
+              <div class="usage-stats text-center mb-3">
+                <div class="card bg-light">
+                  <div class="card-body">
+                    <h3 class="card-title">{{ selectedTag?.usageCount || 0 }}</h3>
+                    <p class="card-text text-muted">使用次數</p>
+                  </div>
+                </div>
               </div>
-              <el-icon class="merge-arrow"><ArrowRight /></el-icon>
-              <div class="merge-result">
-                <el-tag
-                  v-if="mergeTargetTag"
-                  :type="getCategoryTagType(selectedRows.find(t => t.id === mergeTargetTag)?.category)"
-                  effect="dark"
-                >
-                  {{ selectedRows.find(t => t.id === mergeTargetTag)?.name }}
-                </el-tag>
+              
+              <hr>
+              
+              <div class="usage-resources">
+                <h4 class="mb-3">使用此標籤的資源</h4>
+                <div class="resource-list" style="max-height: 300px; overflow-y: auto;">
+                  <div
+                    v-for="resource in tagResources"
+                    :key="resource.id"
+                    class="resource-item d-flex align-items-center p-3 border rounded mb-2 hover-bg-light"
+                    @click="goToResource(resource.id)"
+                    style="cursor: pointer;"
+                  >
+                    <div class="resource-icon me-3">
+                      <i class="bi fs-4" :class="getResourceTypeIcon(resource.resourceType)" :style="{ color: getResourceTypeColor(resource.resourceType) }"></i>
+                    </div>
+                    <div class="resource-content">
+                      <div class="resource-name fw-bold">{{ resource.name }}</div>
+                      <div class="resource-type text-muted small">{{ resource.resourceType }}</div>
+                      <div class="resource-ip text-muted small font-monospace">{{ resource.ipAddress }}</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </el-form-item>
-        </el-form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="handleCloseUsageDialog">關閉</button>
+          </div>
+        </div>
       </div>
-      
-      <template #footer>
-        <el-button @click="mergeDialogVisible = false">取消</el-button>
-        <el-button
-          type="primary"
-          :disabled="!mergeTargetTag"
-          @click="confirmMergeTags"
-        >
-          確認合併
-        </el-button>
-      </template>
-    </el-dialog>
+    </div>
+
+    <!-- 顏色編輯對話框 -->
+    <div class="modal fade" id="colorModal" tabindex="-1" v-show="colorDialogVisible">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">編輯標籤顏色</h5>
+            <button type="button" class="btn-close" @click="colorDialogVisible = false"></button>
+          </div>
+          <div class="modal-body">
+            <div class="color-picker-container d-flex flex-column align-items-center gap-3">
+              <input
+                type="color"
+                class="form-control form-control-color"
+                v-model="selectedColor"
+                style="width: 100px; height: 100px;"
+              >
+              <div class="color-preview-large">
+                <span class="badge fs-6 px-3 py-2" :style="{ backgroundColor: selectedColor, color: 'white' }">
+                  {{ editingTag?.name }}
+                </span>
+              </div>
+              <div class="predefined-colors">
+                <div class="row g-1">
+                  <div class="col-auto" v-for="color in predefineColors" :key="color">
+                    <button
+                      type="button"
+                      class="btn p-1 border"
+                      :style="{ backgroundColor: color, width: '30px', height: '30px' }"
+                      @click="selectedColor = color"
+                    ></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="colorDialogVisible = false">取消</button>
+            <button type="button" class="btn btn-primary" @click="saveTagColor">確定</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 合併標籤對話框 -->
+    <div class="modal fade" id="mergeModal" tabindex="-1" v-show="mergeDialogVisible">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">合併標籤</h5>
+            <button type="button" class="btn-close" @click="mergeDialogVisible = false"></button>
+          </div>
+          <div class="modal-body">
+            <div class="merge-content">
+              <div class="alert alert-warning d-flex align-items-center" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <div>
+                  <strong>注意：</strong>
+                  合併標籤將會把選中的標籤合併為一個標籤，此操作不可恢復！
+                </div>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label">目標標籤：</label>
+                <select
+                  class="form-select"
+                  v-model="mergeTargetTag"
+                >
+                  <option value="null">選擇要保留的標籤</option>
+                  <option
+                    v-for="tag in selectedRows"
+                    :key="tag.id"
+                    :value="tag.id"
+                  >
+                    {{ tag.name }}
+                  </option>
+                </select>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label">合併預覽：</label>
+                <div class="merge-preview d-flex align-items-center gap-3">
+                  <div class="merge-sources d-flex flex-column gap-2">
+                    <span
+                      v-for="tag in selectedRows"
+                      :key="tag.id"
+                      class="badge"
+                      :class="[getCategoryTagClass(tag.category), { 'border border-primary border-2': tag.id === mergeTargetTag }]"
+                    >
+                      {{ tag.name }}
+                      <span v-if="tag.id === mergeTargetTag"> (保留)</span>
+                    </span>
+                  </div>
+                  <i class="bi bi-arrow-right fs-4 text-primary"></i>
+                  <div class="merge-result">
+                    <span
+                      v-if="mergeTargetTag"
+                      class="badge fw-bold"
+                      :class="getCategoryTagClass(selectedRows.find(t => t.id === mergeTargetTag)?.category)"
+                    >
+                      {{ selectedRows.find(t => t.id === mergeTargetTag)?.name }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="mergeDialogVisible = false">取消</button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              :disabled="!mergeTargetTag"
+              @click="confirmMergeTags"
+            >
+              確認合併
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  Plus,
-  Delete,
-  Refresh,
-  Search,
-  RefreshRight,
-  CollectionTag,
-  CircleCheckFilled,
-  CircleCloseFilled,
-  FolderOpened,
-  Promotion,
-  ArrowRight,
-  Monitor,
-  Coin,
-  Basketball
-} from '@element-plus/icons-vue'
+import { showAlert, showConfirm } from '@/utils/bootstrap-alerts'
 import { useAuthStore } from '@/stores/auth'
 import { format } from 'date-fns'
 
@@ -712,17 +781,17 @@ const filteredData = computed(() => {
   return data
 })
 
-// 獲取分類標籤類型
-const getCategoryTagType = (category: string) => {
+// 獲取分類標籤類別
+const getCategoryTagClass = (category: string) => {
   const typeMap: Record<string, string> = {
-    Environment: 'primary',
-    Priority: 'warning',
-    Department: 'success',
-    Project: 'info',
-    Technology: 'danger',
-    Other: ''
+    Environment: 'bg-primary',
+    Priority: 'bg-warning',
+    Department: 'bg-success',
+    Project: 'bg-info',
+    Technology: 'bg-danger',
+    Other: 'bg-secondary'
   }
-  return typeMap[category] || ''
+  return typeMap[category] || 'bg-secondary'
 }
 
 // 獲取分類標籤
@@ -741,13 +810,13 @@ const getCategoryLabel = (category: string) => {
 // 獲取資源類型圖標
 const getResourceTypeIcon = (type: string) => {
   const iconMap: Record<string, string> = {
-    Server: 'Monitor',
-    Database: 'Coin',
-    Website: 'Basketball',
-    Storage: 'FolderOpened',
-    Cache: 'Basketball'
+    Server: 'bi-server',
+    Database: 'bi-database',
+    Website: 'bi-globe',
+    Storage: 'bi-folder',
+    Cache: 'bi-memory'
   }
-  return iconMap[type] || 'Monitor'
+  return iconMap[type] || 'bi-server'
 }
 
 // 獲取資源類型顏色
@@ -802,7 +871,7 @@ const loadData = async () => {
     
   } catch (error) {
     console.error('Failed to load tags:', error)
-    ElMessage.error('載入標籤失敗')
+    showAlert('載入標籤失敗', 'danger')
   } finally {
     loading.value = false
   }
@@ -812,6 +881,26 @@ const loadData = async () => {
 const handleSearch = () => {
   pagination.value.currentPage = 1
   loadData()
+}
+
+// 處理搜索輸入
+const handleSearchInput = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  if (target.value === '') {
+    handleSearchClear()
+  }
+}
+
+// 處理搜索清空
+const handleSearchClear = () => {
+  searchQuery.value = ''
+  pagination.value.currentPage = 1
+  loadData()
+}
+
+// 前往高級搜索
+const goToAdvancedSearch = () => {
+  // 實現高級搜索功能
 }
 
 // 處理篩選
@@ -837,6 +926,48 @@ const handleSelectionChange = (selection: any[]) => {
   selectedRows.value = selection
 }
 
+// 處理全選
+const handleSelectAll = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  if (target.checked) {
+    selectedRows.value = [...tableData.value]
+  } else {
+    selectedRows.value = []
+  }
+}
+
+// 處理單行選擇
+const handleRowSelect = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const row = target.value as any
+  
+  if (target.checked) {
+    if (!selectedRows.value.includes(row)) {
+      selectedRows.value.push(row)
+    }
+  } else {
+    const index = selectedRows.value.indexOf(row)
+    if (index > -1) {
+      selectedRows.value.splice(index, 1)
+    }
+  }
+}
+
+// 檢查行是否被選中
+const isRowSelected = (row: any) => {
+  return selectedRows.value.includes(row)
+}
+
+// 計算屬性：是否全選
+const isAllSelected = computed(() => {
+  return tableData.value.length > 0 && selectedRows.value.length === tableData.value.length
+})
+
+// 計算屬性：是否部分選擇
+const isIndeterminate = computed(() => {
+  return selectedRows.value.length > 0 && selectedRows.value.length < tableData.value.length
+})
+
 // 處理排序變化
 const handleSortChange = ({ prop, order }: any) => {
   if (prop && order) {
@@ -845,9 +976,34 @@ const handleSortChange = ({ prop, order }: any) => {
   }
 }
 
+// 處理排序
+const handleSort = (prop: string) => {
+  const currentSort = filters.value.sortBy
+  if (currentSort.startsWith(prop)) {
+    // 切換排序順序
+    filters.value.sortBy = currentSort.endsWith('_asc') ? `${prop}_desc` : `${prop}_asc`
+  } else {
+    // 新的排序屬性
+    filters.value.sortBy = `${prop}_asc`
+  }
+  loadData()
+}
+
+// 獲取排序圖標
+const getSortIcon = (prop: string) => {
+  const currentSort = filters.value.sortBy
+  if (!currentSort.startsWith(prop)) {
+    return 'bi-arrow-down-up'
+  }
+  return currentSort.endsWith('_asc') ? 'bi-arrow-up' : 'bi-arrow-down'
+}
+
 // 處理分頁大小變化
-const handleSizeChange = (size: number) => {
-  pagination.value.pageSize = size
+const handleSizeChange = (event?: Event) => {
+  if (event) {
+    const target = event.target as HTMLSelectElement
+    pagination.value.pageSize = Number(target.value)
+  }
   pagination.value.currentPage = 1
   loadData()
 }
@@ -857,6 +1013,36 @@ const handleCurrentChange = (page: number) => {
   pagination.value.currentPage = page
   loadData()
 }
+
+// 計算屬性：總頁數
+const totalPages = computed(() => {
+  return Math.ceil(pagination.value.total / pagination.value.pageSize)
+})
+
+// 計算屬性：可見的頁碼
+const visiblePages = computed(() => {
+  const current = pagination.value.currentPage
+  const total = totalPages.value
+  const delta = 2
+  
+  let start = Math.max(1, current - delta)
+  let end = Math.min(total, current + delta)
+  
+  if (end - start < 2 * delta) {
+    if (start === 1) {
+      end = Math.min(total, start + 2 * delta)
+    } else if (end === total) {
+      start = Math.max(1, end - 2 * delta)
+    }
+  }
+  
+  const pages = []
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+  
+  return pages
+})
 
 // 刷新數據
 const refreshData = () => {
@@ -924,40 +1110,40 @@ const saveTagColor = async () => {
     
     editingTag.value.color = selectedColor.value
     colorDialogVisible.value = false
-    ElMessage.success('顏色更新成功')
+    showAlert('顏色更新成功', 'success')
     loadData()
   } catch (error) {
-    ElMessage.error('顏色更新失敗')
+    showAlert('顏色更新失敗', 'error')
   }
 }
 
 // 處理刪除
 const handleDelete = async (tag: any) => {
   if (tag.usageCount > 0) {
-    ElMessage.warning('此標籤正在使用中，無法刪除')
+    showAlert('此標籤正在使用中，無法刪除', 'warning')
     return
   }
   
   try {
-    await ElMessageBox.confirm(
+    const confirmed = await showConfirm(
       `確定要刪除標籤 "${tag.name}" 嗎？此操作不可恢復。`,
       '確認刪除',
       {
-        confirmButtonText: '確定',
-        cancelButtonText: '取消',
-        type: 'warning'
+        confirmText: '確定',
+        cancelText: '取消',
+        type: 'danger'
       }
     )
+    
+    if (!confirmed) return
     
     // 這裡調用刪除API
     // await tagsApi.deleteTag(tag.id)
     
-    ElMessage.success('刪除成功')
+    showAlert('刪除成功', 'success')
     loadData()
   } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('刪除失敗')
-    }
+    showAlert('刪除失敗', 'error')
   }
 }
 
@@ -965,39 +1151,39 @@ const handleDelete = async (tag: any) => {
 const handleBatchDelete = async () => {
   const usedTags = selectedRows.value.filter(tag => tag.usageCount > 0)
   if (usedTags.length > 0) {
-    ElMessage.warning(`選中的標籤中有 ${usedTags.length} 個正在使用中，無法刪除`)
+    showAlert(`選中的標籤中有 ${usedTags.length} 個正在使用中，無法刪除`, 'warning')
     return
   }
   
   try {
-    await ElMessageBox.confirm(
+    const confirmed = await showConfirm(
       `確定要刪除選中的 ${selectedRows.value.length} 個標籤嗎？此操作不可恢復。`,
       '確認批量刪除',
       {
-        confirmButtonText: '確定',
-        cancelButtonText: '取消',
-        type: 'warning'
+        confirmText: '確定',
+        cancelText: '取消',
+        type: 'danger'
       }
     )
+    
+    if (!confirmed) return
     
     // 這裡調用批量刪除API
     // const ids = selectedRows.value.map(row => row.id)
     // await tagsApi.deleteTags(ids)
     
-    ElMessage.success('批量刪除成功')
+    showAlert('批量刪除成功', 'success')
     selectedRows.value = []
     loadData()
   } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('批量刪除失敗')
-    }
+    showAlert('批量刪除失敗', 'error')
   }
 }
 
 // 處理批量合併
 const handleBatchMerge = () => {
   if (selectedRows.value.length < 2) {
-    ElMessage.warning('請選擇至少2個標籤進行合併')
+    showAlert('請選擇至少2個標籤進行合併', 'warning')
     return
   }
   
@@ -1008,7 +1194,7 @@ const handleBatchMerge = () => {
 // 確認合併標籤
 const confirmMergeTags = async () => {
   if (!mergeTargetTag.value) {
-    ElMessage.warning('請選擇要保留的標籤')
+    showAlert('請選擇要保留的標籤', 'warning')
     return
   }
   
@@ -1020,12 +1206,12 @@ const confirmMergeTags = async () => {
     // 這裡調用合併API
     // await tagsApi.mergeTags(mergeTargetTag.value, sourceTagIds)
     
-    ElMessage.success('標籤合併成功')
+    showAlert('標籤合併成功', 'success')
     mergeDialogVisible.value = false
     selectedRows.value = []
     loadData()
   } catch (error) {
-    ElMessage.error('標籤合併失敗')
+    showAlert('標籤合併失敗', 'error')
   }
 }
 
@@ -1038,60 +1224,31 @@ onMounted(() => {
 <style lang="scss" scoped>
 .tags-list {
   .header-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    
-    .actions-left {
-      display: flex;
-      gap: 8px;
-    }
-    
-    .actions-right {
-      display: flex;
-      gap: 8px;
-    }
-  }
-  
-  .filter-bar {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
-    background: var(--el-bg-color-page);
-    border-radius: 8px;
-    margin-bottom: 16px;
-    
-    .filter-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      
-      label {
-        font-size: 14px;
-        color: var(--el-text-color-primary);
-        white-space: nowrap;
+    .btn-group {
+      .btn {
+        border-radius: 0.375rem;
+        
+        &:not(:last-child) {
+          margin-right: 0.5rem;
+        }
       }
     }
   }
   
+  .filter-bar {
+    .form-label {
+      font-weight: 500;
+      color: var(--bs-gray-700);
+    }
+  }
+  
   .stats-cards {
-    margin-bottom: 20px;
-    
     .stat-card {
-      background: var(--el-bg-color);
-      border-radius: 8px;
-      padding: 20px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       transition: all 0.3s ease;
       
       &:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
       }
       
       .stat-icon {
@@ -1102,50 +1259,76 @@ onMounted(() => {
         align-items: center;
         justify-content: center;
         
-        .el-icon {
+        i {
           font-size: 24px;
           color: white;
         }
         
         &.total {
-          background: linear-gradient(135deg, #409eff, #66b3ff);
+          background: linear-gradient(135deg, #0d6efd, #6ea8fe);
         }
         
         &.used {
-          background: linear-gradient(135deg, #67c23a, #85d85a);
+          background: linear-gradient(135deg, #198754, #75b798);
         }
         
         &.unused {
-          background: linear-gradient(135deg, #909399, #b3b8bd);
+          background: linear-gradient(135deg, #6c757d, #adb5bd);
         }
         
         &.categories {
-          background: linear-gradient(135deg, #e6a23c, #f2b85c);
+          background: linear-gradient(135deg, #fd7e14, #ffb570);
         }
       }
       
       .stat-content {
-        flex: 1;
-        
         .stat-number {
           font-size: 28px;
           font-weight: 600;
-          color: var(--el-text-color-primary);
+          color: var(--bs-gray-900);
           margin-bottom: 4px;
         }
         
         .stat-label {
           font-size: 14px;
-          color: var(--el-text-color-regular);
+          color: var(--bs-gray-600);
         }
       }
     }
   }
   
   .table-container {
-    .tag-name {
-      .el-tag {
-        font-size: 13px;
+    .table {
+      th {
+        background-color: var(--bs-gray-50);
+        border-bottom: 2px solid var(--bs-gray-200);
+        font-weight: 600;
+        
+        &[style*="cursor: pointer"] {
+          user-select: none;
+          transition: background-color 0.15s ease-in-out;
+          
+          &:hover {
+            background-color: var(--bs-gray-100);
+          }
+        }
+      }
+      
+      td {
+        vertical-align: middle;
+        padding: 0.75rem;
+        
+        .badge {
+          font-size: 0.75rem;
+        }
+      }
+      
+      tbody tr {
+        transition: background-color 0.15s ease-in-out;
+        
+        &:hover {
+          background-color: var(--bs-gray-50);
+        }
       }
     }
     
@@ -1154,126 +1337,88 @@ onMounted(() => {
       height: 24px;
       border-radius: 4px;
       cursor: pointer;
-      border: 2px solid var(--el-border-color);
+      border: 2px solid var(--bs-gray-300);
       transition: all 0.3s ease;
       
       &:hover {
         transform: scale(1.2);
-        border-color: var(--el-color-primary);
+        border-color: var(--bs-primary);
       }
     }
     
-    .pagination-container {
-      display: flex;
-      justify-content: center;
-      margin-top: 20px;
+    .btn-group-sm .btn {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.875rem;
+    }
+  }
+  
+  .pagination {
+    .page-link {
+      padding: 0.375rem 0.75rem;
+      
+      &:hover {
+        z-index: 2;
+        color: var(--bs-primary);
+        background-color: var(--bs-gray-200);
+        border-color: var(--bs-gray-300);
+      }
+    }
+    
+    .page-item.active .page-link {
+      z-index: 3;
+      color: var(--bs-white);
+      background-color: var(--bs-primary);
+      border-color: var(--bs-primary);
     }
   }
 }
 
-// 對話框樣式
-.usage-content {
-  .usage-stats {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  
-  .usage-resources {
-    h4 {
-      margin-bottom: 16px;
-      color: var(--el-text-color-primary);
-    }
-    
-    .resource-list {
-      max-height: 300px;
-      overflow-y: auto;
-      
-      .resource-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: background-color 0.3s ease;
-        
-        &:hover {
-          background-color: var(--el-bg-color-page);
-        }
-        
-        .resource-icon {
-          .el-icon {
-            font-size: 18px;
-          }
-        }
-        
-        .resource-content {
-          flex: 1;
-          
-          .resource-name {
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--el-text-color-primary);
-            margin-bottom: 2px;
-          }
-          
-          .resource-type {
-            font-size: 12px;
-            color: var(--el-text-color-regular);
-            margin-bottom: 2px;
-          }
-          
-          .resource-ip {
-            font-size: 12px;
-            color: var(--el-text-color-placeholder);
-            font-family: monospace;
-          }
-        }
+// Modal 樣式
+.modal {
+  .modal-dialog {
+    .modal-content {
+      .modal-header {
+        background-color: var(--bs-light);
+        border-bottom: 1px solid var(--bs-gray-200);
       }
+      
+      .modal-body {
+        padding: 1.5rem;
+      }
+      
+      .modal-footer {
+        border-top: 1px solid var(--bs-gray-200);
+        background-color: var(--bs-light);
+      }
+    }
+  }
+}
+
+.usage-content {
+  .resource-item {
+    transition: background-color 0.3s ease;
+    
+    &:hover {
+      background-color: var(--bs-gray-100) !important;
     }
   }
 }
 
 .color-picker-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  
-  .color-preview-large {
-    .el-tag {
-      font-size: 16px;
-      padding: 8px 16px;
+  .predefined-colors {
+    .btn {
+      &:hover {
+        transform: scale(1.1);
+      }
     }
   }
 }
 
 .merge-content {
   .merge-preview {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    
     .merge-sources {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      
-      .el-tag {
-        &.merge-target {
-          border: 2px solid var(--el-color-primary);
-        }
-      }
-    }
-    
-    .merge-arrow {
-      font-size: 20px;
-      color: var(--el-color-primary);
-    }
-    
-    .merge-result {
-      .el-tag {
-        font-weight: 600;
+      .badge {
+        margin-bottom: 0.5rem;
       }
     }
   }
@@ -1283,36 +1428,41 @@ onMounted(() => {
 @media (max-width: 768px) {
   .tags-list {
     .header-actions {
-      flex-direction: column;
-      gap: 12px;
-      
-      .actions-left,
-      .actions-right {
+      .col-auto {
         width: 100%;
-        justify-content: center;
+        
+        .btn-group {
+          width: 100%;
+          justify-content: center;
+        }
+        
+        .input-group {
+          width: 100% !important;
+        }
       }
     }
     
     .filter-bar {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 12px;
-      
-      .filter-item {
+      .row {
         flex-direction: column;
-        align-items: stretch;
+        
+        .col-auto {
+          width: 100%;
+          
+          .form-select {
+            width: 100% !important;
+          }
+        }
       }
     }
     
     .stats-cards {
       .stat-card {
-        padding: 16px;
-        
         .stat-icon {
           width: 40px;
           height: 40px;
           
-          .el-icon {
+          i {
             font-size: 20px;
           }
         }
@@ -1324,23 +1474,35 @@ onMounted(() => {
         }
       }
     }
+    
+    .table-responsive {
+      font-size: 0.875rem;
+    }
   }
 }
 
 // 暗黑模式
-.dark {
-  .filter-bar {
-    background: var(--el-bg-color-page);
-  }
-  
-  .stats-cards {
-    .stat-card {
-      background: var(--el-bg-color);
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-      
-      &:hover {
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+@media (prefers-color-scheme: dark) {
+  .tags-list {
+    .filter-bar {
+      background-color: var(--bs-dark);
+      border-color: var(--bs-gray-700);
+    }
+    
+    .stats-cards {
+      .stat-card {
+        background-color: var(--bs-dark);
+        border-color: var(--bs-gray-700);
+        
+        &:hover {
+          box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.3) !important;
+        }
       }
+    }
+    
+    .table {
+      --bs-table-bg: var(--bs-dark);
+      --bs-table-color: var(--bs-white);
     }
   }
 }

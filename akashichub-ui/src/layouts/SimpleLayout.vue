@@ -1,40 +1,89 @@
 <template>
-  <div class="simple-layout">
-    <!-- 簡單頂部導航 -->
-    <header class="header">
-      <div class="header-content">
-        <div class="logo">
-          <h2>🗂️ AkashicHub</h2>
-        </div>
-        <nav class="nav">
-          <router-link to="/">首頁</router-link>
-          <router-link to="/dashboard" v-if="isLoggedIn">儀表板</router-link>
-          <router-link to="/resources" v-if="isLoggedIn">資源</router-link>
-          <router-link to="/tags" v-if="isLoggedIn">標籤</router-link>
-          <router-link to="/users" v-if="isLoggedIn && canEditUsers">用戶群</router-link>
-          
-          <!-- 未登入狀態 -->
-          <router-link to="/login" v-if="!isLoggedIn" class="login-btn">登入</router-link>
-          
-          <!-- 已登入狀態 -->
-          <template v-if="isLoggedIn">
-            <router-link to="/profile" class="profile-link">
-              {{ currentUser?.DisplayName || currentUser?.LoginAccount || '用戶' }}
-            </router-link>
-            <button @click="logout" class="logout-btn">登出</button>
-          </template>
-        </nav>
-      </div>
-    </header>
+  <div class="app-layout">
+    <!-- 固定導航欄 -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary fixed-top">
+      <div class="container-fluid">
+        <!-- 品牌標誌 -->
+        <a class="navbar-brand" href="/">
+          <i class="bi bi-folder2-open"></i>
+          AkashicHub
+        </a>
 
-    <!-- 主要內容 -->
+        <!-- 手機版切換按鈕 -->
+        <button 
+          class="navbar-toggler" 
+          type="button" 
+          data-bs-toggle="collapse" 
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav" 
+          aria-expanded="false" 
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- 導航菜單 -->
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav me-auto">
+            <li class="nav-item">
+              <router-link to="/" class="nav-link">首頁</router-link>
+            </li>
+            <li class="nav-item" v-if="isLoggedIn">
+              <router-link to="/dashboard" class="nav-link">儀表板</router-link>
+            </li>
+            <li class="nav-item" v-if="isLoggedIn">
+              <router-link to="/resources" class="nav-link">資源</router-link>
+            </li>
+            <li class="nav-item" v-if="isLoggedIn">
+              <router-link to="/tags" class="nav-link">標籤</router-link>
+            </li>
+            <li class="nav-item" v-if="isLoggedIn && isSuperAdmin">
+              <router-link to="/users" class="nav-link">管理</router-link>
+            </li>
+          </ul>
+
+          <!-- 右側用戶資訊 -->
+          <ul class="navbar-nav ms-auto">
+            <!-- 未登入狀態 -->
+            <li class="nav-item" v-if="!isLoggedIn">
+              <router-link to="/login" class="nav-link">
+                <i class="bi bi-box-arrow-in-right"></i>
+                登入
+              </router-link>
+            </li>
+            
+            <!-- 已登入狀態 -->
+            <template v-if="isLoggedIn">
+              <li class="nav-item">
+                <router-link to="/profile" class="nav-link">
+                  <i class="bi bi-person"></i>
+                  {{ currentUser?.DisplayName || currentUser?.LoginAccount || '用戶' }}
+                </router-link>
+              </li>
+              <li class="nav-item">
+                <button @click="logout" class="nav-link btn btn-link text-light">
+                  <i class="bi bi-box-arrow-right"></i>
+                  登出
+                </button>
+              </li>
+            </template>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- 主要內容區域 -->
     <main class="main-content">
-      <slot />
+      <div class="container-fluid">
+        <slot />
+      </div>
     </main>
 
-    <!-- 簡單底部 -->
-    <footer class="footer">
-      <p>&copy; 2024 AkashicHub - IT 資源管理系統</p>
+    <!-- 底部 -->
+    <footer class="bg-dark text-light py-3 mt-5">
+      <div class="container text-center">
+        <p class="mb-0">&copy; 2024 AkashicHub - IT 資源管理系統</p>
+      </div>
     </footer>
   </div>
 </template>
@@ -51,11 +100,11 @@ const isLoggedIn = computed(() => {
   return !!localStorage.getItem('akashichub_token')
 })
 
-// 檢查用戶權限
-const canEditUsers = computed(() => {
+// 檢查是否為SuperAdmin
+const isSuperAdmin = computed(() => {
   if (!currentUser.value) return false
   const role = currentUser.value.Role
-  return role === 'SuperAdmin' || role === 'ITManager'
+  return role === 'SuperAdmin'
 })
 
 // 載入用戶資訊
@@ -70,15 +119,13 @@ const loadUserInfo = () => {
   }
 }
 
-const goToProfile = () => {
-  router.push('/profile')
-}
-
 const logout = () => {
-  localStorage.removeItem('akashichub_token')
-  localStorage.removeItem('akashichub_user')
-  currentUser.value = null
-  router.push('/login')
+  if (confirm('確定要登出嗎？')) {
+    localStorage.removeItem('akashichub_token')
+    localStorage.removeItem('akashichub_user')
+    currentUser.value = null
+    router.push('/login')
+  }
 }
 
 onMounted(() => {
@@ -87,120 +134,55 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.simple-layout {
+.app-layout {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-.header {
-  background: #409eff;
-  color: white;
-  padding: 0 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.header-content {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  height: 60px;
-}
-
-.logo h2 {
-  margin: 0;
-  color: white;
-}
-
-.nav {
-  display: flex;
-  gap: 20px;
-  align-items: center;
-}
-
-.nav a,
-.nav .profile-link {
-  color: white;
-  text-decoration: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  transition: background 0.3s;
-}
-
-.nav a:hover,
-.nav a.router-link-active,
-.nav .profile-link:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.login-btn {
-  background: #67c23a;
-  color: white;
-  padding: 8px 16px;
-  border-radius: 4px;
-  transition: background 0.3s;
-}
-
-.login-btn:hover {
-  background: #85ce61;
-}
-
-.logout-btn {
-  background: #f56c6c;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.logout-btn:hover {
-  background: #f78989;
-}
-
-.profile-link {
-  font-weight: 500;
-  max-width: 150px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .main-content {
   flex: 1;
-  background: #f5f5f5;
-  min-height: calc(100vh - 120px);
+  padding-top: 80px; /* 為固定navbar留出空間 */
+  min-height: calc(100vh - 140px);
 }
 
-.footer {
-  background: #303133;
-  color: white;
-  text-align: center;
-  padding: 20px;
+.navbar-brand {
+  font-weight: bold;
+  font-size: 1.25rem;
 }
 
-.footer p {
-  margin: 0;
+.navbar-brand i {
+  margin-right: 0.5rem;
 }
 
+/* 確保router-link-active樣式 */
+.router-link-active {
+  color: #fff !important;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 0.25rem;
+}
+
+/* 按鈕樣式調整 */
+.btn-link {
+  border: none;
+  background: none;
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+}
+
+.btn-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 0.25rem;
+}
+
+/* 響應式調整 */
 @media (max-width: 768px) {
-  .header-content {
-    flex-direction: column;
-    height: auto;
-    padding: 10px 0;
-  }
-  
-  .nav {
-    margin-top: 10px;
-    flex-wrap: wrap;
-    gap: 10px;
-  }
-  
   .main-content {
-    min-height: calc(100vh - 140px);
+    padding-top: 70px;
+  }
+  
+  .navbar-nav .nav-link {
+    padding: 0.75rem 1rem;
   }
 }
 </style>

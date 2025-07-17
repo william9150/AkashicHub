@@ -13,102 +13,104 @@
     </div>
 
     <!-- 菜單導航 -->
-    <el-menu
-      :default-active="activeMenu"
-      :collapse="appStore.sidebarCollapsed"
-      :unique-opened="appStore.settings.uniqueOpened"
-      :collapse-transition="false"
-      class="sidebar-menu"
-      router
-    >
-      <template v-for="item in menuItems" :key="item.id">
-        <!-- 單層菜單 -->
-        <el-menu-item
-          v-if="!item.children || item.children.length === 0"
-          :index="item.path"
-          :disabled="item.disabled"
-        >
-          <el-icon v-if="item.icon">
-            <component :is="item.icon" />
-          </el-icon>
-          <template #title>
-            <span>{{ item.title }}</span>
-          </template>
-        </el-menu-item>
-
-        <!-- 多層菜單 -->
-        <el-sub-menu
-          v-else
-          :index="item.path"
-          :disabled="item.disabled"
-        >
-          <template #title>
-            <el-icon v-if="item.icon">
-              <component :is="item.icon" />
-            </el-icon>
-            <span>{{ item.title }}</span>
-          </template>
-          
-          <el-menu-item
-            v-for="child in item.children"
-            :key="child.id"
-            :index="child.path"
-            :disabled="child.disabled"
+    <div class="sidebar-menu" :class="{ 'collapsed': appStore.sidebarCollapsed }">
+      <div class="menu-list">
+        <div v-for="item in menuItems" :key="item.id" class="menu-item">
+          <!-- 單層菜單 -->
+          <router-link
+            v-if="!item.children || item.children.length === 0"
+            :to="item.path"
+            class="menu-link"
+            :class="{ 'active': activeMenu === item.path, 'disabled': item.disabled }"
+            @click="!item.disabled && handleMenuClick(item)"
           >
-            <el-icon v-if="child.icon">
-              <component :is="child.icon" />
-            </el-icon>
-            <template #title>
-              <span>{{ child.title }}</span>
-            </template>
-          </el-menu-item>
-        </el-sub-menu>
-      </template>
-    </el-menu>
+            <i v-if="item.icon" class="menu-icon" :class="getIconClass(item.icon)"></i>
+            <span v-if="!appStore.sidebarCollapsed" class="menu-title">{{ item.title }}</span>
+            <span v-if="appStore.sidebarCollapsed" class="menu-tooltip" :title="item.title"></span>
+          </router-link>
+
+          <!-- 多層菜單 -->
+          <div v-else class="menu-group">
+            <div
+              class="menu-group-header"
+              :class="{ 'active': isGroupActive(item) }"
+              @click="toggleGroup(item.id)"
+            >
+              <i v-if="item.icon" class="menu-icon" :class="getIconClass(item.icon)"></i>
+              <span v-if="!appStore.sidebarCollapsed" class="menu-title">{{ item.title }}</span>
+              <i v-if="!appStore.sidebarCollapsed" class="menu-arrow bi"
+                 :class="expandedGroups.includes(item.id) ? 'bi-chevron-down' : 'bi-chevron-right'"></i>
+            </div>
+            
+            <div v-if="!appStore.sidebarCollapsed" class="menu-group-content"
+                 :class="{ 'expanded': expandedGroups.includes(item.id) }">
+              <router-link
+                v-for="child in item.children"
+                :key="child.id"
+                :to="child.path"
+                class="menu-sublink"
+                :class="{ 'active': activeMenu === child.path, 'disabled': child.disabled }"
+                @click="!child.disabled && handleMenuClick(child)"
+              >
+                <i v-if="child.icon" class="menu-subicon" :class="getIconClass(child.icon)"></i>
+                <span class="menu-subtitle">{{ child.title }}</span>
+              </router-link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
 
     <!-- 側邊欄底部 -->
     <div class="sidebar-footer">
       <!-- 收起/展開按鈕 -->
-      <el-button
-        class="collapse-btn"
-        :icon="appStore.sidebarCollapsed ? 'Expand' : 'Fold'"
+      <button
+        type="button"
+        class="btn btn-outline-secondary collapse-btn"
         @click="toggleSidebar"
       >
-        <template v-if="!appStore.sidebarCollapsed">
+        <i class="bi" :class="appStore.sidebarCollapsed ? 'bi-chevron-right' : 'bi-chevron-left'"></i>
+        <span v-if="!appStore.sidebarCollapsed" class="ms-2">
           {{ appStore.sidebarCollapsed ? '展開' : '收起' }}
-        </template>
-      </el-button>
+        </span>
+      </button>
 
       <!-- 用戶信息 -->
       <transition name="fade">
         <div v-if="!appStore.sidebarCollapsed" class="user-info">
-          <el-dropdown trigger="click" @command="handleUserCommand">
-            <div class="user-avatar">
-              <el-avatar :size="32" :src="userInfo?.avatar">
-                <el-icon><UserFilled /></el-icon>
-              </el-avatar>
+          <div class="dropdown">
+            <div class="user-avatar dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+              <div class="user-avatar-img">
+                <img v-if="userInfo?.avatar" :src="userInfo.avatar" class="avatar-img" alt="用戶頭像">
+                <i v-else class="bi bi-person-circle avatar-placeholder"></i>
+              </div>
               <div class="user-details">
                 <div class="user-name">{{ userInfo?.displayName }}</div>
                 <div class="user-role">{{ userInfo?.role }}</div>
               </div>
             </div>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="profile">
-                  <el-icon><User /></el-icon>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li>
+                <a class="dropdown-item" href="#" @click.prevent="handleUserCommand('profile')">
+                  <i class="bi bi-person me-2"></i>
                   個人資料
-                </el-dropdown-item>
-                <el-dropdown-item command="settings">
-                  <el-icon><Setting /></el-icon>
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item" href="#" @click.prevent="handleUserCommand('settings')">
+                  <i class="bi bi-gear me-2"></i>
                   設定
-                </el-dropdown-item>
-                <el-dropdown-item divided command="logout">
-                  <el-icon><SwitchButton /></el-icon>
+                </a>
+              </li>
+              <li><hr class="dropdown-divider"></li>
+              <li>
+                <a class="dropdown-item text-danger" href="#" @click.prevent="handleUserCommand('logout')">
+                  <i class="bi bi-box-arrow-right me-2"></i>
                   登出
-                </el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
       </transition>
     </div>
@@ -118,24 +120,9 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  House,
-  Server,
-  CollectionTag,
-  User,
-  UserFilled,
-  Setting,
-  Document,
-  Search,
-  InfoFilled,
-  Expand,
-  Fold,
-  SwitchButton
-} from '@element-plus/icons-vue'
+import { showAlert, showConfirm } from '@/utils/bootstrap-alerts'
 import { useAppStore } from '@/stores/app'
 import { useAuthStore } from '@/stores/auth'
-import { routerUtils } from '@/router'
 
 // 狀態管理
 const appStore = useAppStore()
@@ -147,6 +134,7 @@ const router = useRouter()
 
 // 響應式數據
 const activeMenu = ref('')
+const expandedGroups = ref<string[]>(['resources', 'tags', 'users'])
 
 // 計算屬性
 const userInfo = computed(() => authStore.userInfo)
@@ -311,6 +299,36 @@ const toggleSidebar = () => {
   appStore.toggleSidebar()
 }
 
+// 獲取圖標類別
+const getIconClass = (icon: string) => {
+  return icon
+}
+
+// 切換群組展開
+const toggleGroup = (groupId: string) => {
+  const index = expandedGroups.value.indexOf(groupId)
+  if (index > -1) {
+    expandedGroups.value.splice(index, 1)
+  } else {
+    expandedGroups.value.push(groupId)
+  }
+}
+
+// 檢查群組是否活動
+const isGroupActive = (item: any) => {
+  if (!item.children) return false
+  return item.children.some((child: any) => activeMenu.value === child.path)
+}
+
+// 處理菜單點擊
+const handleMenuClick = (item: any) => {
+  if (item.disabled) return
+  // 在移動設備上點擊菜單後收起側邊欄
+  if (appStore.isMobile) {
+    appStore.setSidebarCollapsed(true)
+  }
+}
+
 // 處理用戶命令
 const handleUserCommand = (command: string) => {
   switch (command) {
@@ -321,7 +339,7 @@ const handleUserCommand = (command: string) => {
       if (authStore.isSuperAdmin) {
         router.push('/settings')
       } else {
-        ElMessage.warning('您沒有權限訪問系統設定')
+        showAlert('您沒有權限訪問系統設定', 'warning')
       }
       break
     case 'logout':
@@ -333,21 +351,23 @@ const handleUserCommand = (command: string) => {
 // 處理登出
 const handleLogout = async () => {
   try {
-    await ElMessageBox.confirm(
+    const confirmed = await showConfirm(
       '確定要登出嗎？',
       '確認登出',
       {
-        confirmButtonText: '確定',
-        cancelButtonText: '取消',
+        confirmText: '確定',
+        cancelText: '取消',
         type: 'warning'
       }
     )
     
+    if (!confirmed) return
+    
     await authStore.logout()
-    ElMessage.success('登出成功')
+    showAlert('登出成功', 'success')
     router.push('/login')
   } catch (error) {
-    // 用戶取消登出
+    showAlert('登出失敗', 'error')
   }
 }
 
@@ -453,8 +473,8 @@ watch(
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--el-bg-color);
-  border-right: 1px solid var(--el-border-color);
+  background: var(--bs-light);
+  border-right: 1px solid var(--bs-border-color);
 }
 
 .sidebar-header {
@@ -462,7 +482,7 @@ watch(
   padding: 0 20px;
   display: flex;
   align-items: center;
-  border-bottom: 1px solid var(--el-border-color);
+  border-bottom: 1px solid var(--bs-border-color);
   
   .logo {
     display: flex;
@@ -483,7 +503,7 @@ watch(
     .logo-text {
       font-size: 18px;
       font-weight: 600;
-      color: var(--el-color-primary);
+      color: var(--bs-primary);
       margin: 0;
       white-space: nowrap;
     }
@@ -492,61 +512,178 @@ watch(
 
 .sidebar-menu {
   flex: 1;
-  border-right: none;
   overflow-y: auto;
+  padding: 0.5rem 0;
   
-  :deep(.el-menu-item) {
-    height: 48px;
-    line-height: 48px;
-    
-    &.is-active {
-      background-color: var(--el-color-primary-light-9);
-      border-right: 2px solid var(--el-color-primary);
-      
-      &::before {
-        content: '';
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        width: 3px;
-        background: var(--el-color-primary);
-      }
-    }
-    
-    &:hover {
-      background-color: var(--el-color-primary-light-9);
+  &.collapsed {
+    .menu-group-content {
+      display: none;
     }
   }
   
-  :deep(.el-sub-menu) {
-    .el-sub-menu__title {
-      height: 48px;
-      line-height: 48px;
+  .menu-list {
+    padding: 0;
+    margin: 0;
+    
+    .menu-item {
+      margin-bottom: 0.25rem;
       
-      &:hover {
-        background-color: var(--el-color-primary-light-9);
+      .menu-link {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem 1rem;
+        color: var(--bs-gray-700);
+        text-decoration: none;
+        border-radius: 0.375rem;
+        margin: 0 0.5rem;
+        transition: all 0.15s ease-in-out;
+        position: relative;
+        
+        &:hover {
+          background-color: var(--bs-primary-bg-subtle);
+          color: var(--bs-primary);
+        }
+        
+        &.active {
+          background-color: var(--bs-primary);
+          color: var(--bs-white);
+          
+          &::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 3px;
+            height: 60%;
+            background: var(--bs-white);
+            border-radius: 0 2px 2px 0;
+          }
+        }
+        
+        &.disabled {
+          opacity: 0.5;
+          cursor: not-allowed;
+        }
+        
+        .menu-icon {
+          width: 20px;
+          font-size: 18px;
+          margin-right: 0.75rem;
+          text-align: center;
+        }
+        
+        .menu-title {
+          font-weight: 500;
+          flex: 1;
+        }
+      }
+      
+      .menu-group {
+        .menu-group-header {
+          display: flex;
+          align-items: center;
+          padding: 0.75rem 1rem;
+          color: var(--bs-gray-700);
+          cursor: pointer;
+          border-radius: 0.375rem;
+          margin: 0 0.5rem;
+          transition: all 0.15s ease-in-out;
+          
+          &:hover {
+            background-color: var(--bs-primary-bg-subtle);
+            color: var(--bs-primary);
+          }
+          
+          &.active {
+            background-color: var(--bs-primary-bg-subtle);
+            color: var(--bs-primary);
+          }
+          
+          .menu-icon {
+            width: 20px;
+            font-size: 18px;
+            margin-right: 0.75rem;
+            text-align: center;
+          }
+          
+          .menu-title {
+            font-weight: 500;
+            flex: 1;
+          }
+          
+          .menu-arrow {
+            font-size: 12px;
+            transition: transform 0.15s ease-in-out;
+          }
+        }
+        
+        .menu-group-content {
+          max-height: 0;
+          overflow: hidden;
+          transition: max-height 0.3s ease-in-out;
+          
+          &.expanded {
+            max-height: 300px;
+          }
+          
+          .menu-sublink {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 1rem 0.5rem 3rem;
+            color: var(--bs-gray-600);
+            text-decoration: none;
+            border-radius: 0.375rem;
+            margin: 0 0.5rem;
+            transition: all 0.15s ease-in-out;
+            
+            &:hover {
+              background-color: var(--bs-primary-bg-subtle);
+              color: var(--bs-primary);
+            }
+            
+            &.active {
+              background-color: var(--bs-primary);
+              color: var(--bs-white);
+            }
+            
+            &.disabled {
+              opacity: 0.5;
+              cursor: not-allowed;
+            }
+            
+            .menu-subicon {
+              width: 16px;
+              font-size: 14px;
+              margin-right: 0.5rem;
+              text-align: center;
+            }
+            
+            .menu-subtitle {
+              font-size: 0.875rem;
+            }
+          }
+        }
       }
     }
-  }
-  
-  :deep(.el-icon) {
-    width: 20px;
-    font-size: 18px;
   }
 }
 
 .sidebar-footer {
   padding: 16px;
-  border-top: 1px solid var(--el-border-color);
-  background: var(--el-bg-color);
+  border-top: 1px solid var(--bs-border-color);
+  background: var(--bs-light);
   
   .collapse-btn {
     width: 100%;
     margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
     
-    :deep(.el-icon) {
-      margin-right: 8px;
+    i {
+      font-size: 16px;
     }
   }
   
@@ -559,9 +696,35 @@ watch(
       border-radius: 8px;
       cursor: pointer;
       transition: background-color 0.3s ease;
+      border: none;
+      background: transparent;
+      width: 100%;
+      text-align: left;
       
       &:hover {
-        background-color: var(--el-color-primary-light-9);
+        background-color: var(--bs-primary-bg-subtle);
+      }
+      
+      .user-avatar-img {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: var(--bs-gray-200);
+        
+        .avatar-img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+        
+        .avatar-placeholder {
+          font-size: 20px;
+          color: var(--bs-gray-500);
+        }
       }
       
       .user-details {
@@ -571,7 +734,7 @@ watch(
         .user-name {
           font-size: 14px;
           font-weight: 500;
-          color: var(--el-text-color-primary);
+          color: var(--bs-gray-800);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -579,7 +742,7 @@ watch(
         
         .user-role {
           font-size: 12px;
-          color: var(--el-text-color-regular);
+          color: var(--bs-gray-600);
           white-space: nowrap;
           overflow: hidden;
           text-overflow: ellipsis;
@@ -601,20 +764,21 @@ watch(
 }
 
 // 滾動條樣式
-:deep(.el-scrollbar) {
-  .el-scrollbar__wrap {
-    overflow-x: hidden;
+.sidebar-menu {
+  &::-webkit-scrollbar {
+    width: 4px;
   }
   
-  .el-scrollbar__bar {
-    &.is-vertical {
-      right: 2px;
-      width: 4px;
-      
-      .el-scrollbar__thumb {
-        background: var(--el-border-color-darker);
-        border-radius: 2px;
-      }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: var(--bs-gray-300);
+    border-radius: 2px;
+    
+    &:hover {
+      background: var(--bs-gray-400);
     }
   }
 }
@@ -631,19 +795,27 @@ watch(
 }
 
 // 暗黑模式
-.dark {
+@media (prefers-color-scheme: dark) {
   .app-sidebar {
-    background: var(--el-bg-color);
-    border-right-color: var(--el-border-color);
+    background: var(--bs-dark);
+    border-right-color: var(--bs-gray-700);
   }
   
   .sidebar-header {
-    border-bottom-color: var(--el-border-color);
+    border-bottom-color: var(--bs-gray-700);
   }
   
   .sidebar-footer {
-    border-top-color: var(--el-border-color);
-    background: var(--el-bg-color);
+    border-top-color: var(--bs-gray-700);
+    background: var(--bs-dark);
+  }
+  
+  .menu-link {
+    color: var(--bs-gray-300);
+    
+    &:hover {
+      color: var(--bs-white);
+    }
   }
 }
 </style>

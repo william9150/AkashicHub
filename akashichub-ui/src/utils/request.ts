@@ -1,7 +1,7 @@
 // HTTP 請求工具
 
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { showAlert } from './bootstrap-alerts'
 import type { ApiResponse, ApiError } from '@/types'
 import { getToken, removeToken } from './auth'
 import router from '@/router'
@@ -86,7 +86,7 @@ request.interceptors.response.use(
 
     // 網路錯誤
     if (!error.response) {
-      ElMessage.error('網路連接失敗，請檢查網路設定')
+      showAlert('網路連接失敗，請檢查網路設定', 'error')
       return Promise.reject({
         code: 'NETWORK_ERROR',
         message: '網路連接失敗',
@@ -99,48 +99,48 @@ request.interceptors.response.use(
     switch (status) {
       case 401:
         // 認證失敗
-        ElMessage.error('登入已過期，請重新登入')
+        showAlert('登入已過期，請重新登入', 'error')
         removeToken()
         router.push('/login')
         break
 
       case 403:
         // 權限不足
-        ElMessage.error('權限不足，無法執行此操作')
+        showAlert('權限不足，無法執行此操作', 'error')
         break
 
       case 404:
         // 資源不存在
-        ElMessage.error('請求的資源不存在')
+        showAlert('請求的資源不存在', 'error')
         break
 
       case 422:
         // 驗證錯誤
         const message = data?.error?.message || '輸入資料驗證失敗'
-        ElMessage.error(message)
+        showAlert(message, 'error')
         break
 
       case 429:
         // 請求過於頻繁
-        ElMessage.error('請求過於頻繁，請稍後再試')
+        showAlert('請求過於頻繁，請稍後再試', 'warning')
         break
 
       case 500:
         // 伺服器錯誤
-        ElMessage.error('伺服器內部錯誤，請聯繫管理員')
+        showAlert('伺服器內部錯誤，請聯繫管理員', 'error')
         break
 
       case 502:
       case 503:
       case 504:
         // 伺服器不可用
-        ElMessage.error('伺服器暫時不可用，請稍後再試')
+        showAlert('伺服器暫時不可用，請稍後再試', 'error')
         break
 
       default:
         // 其他錯誤
         const errorMessage = data?.error?.message || `請求失敗 (${status})`
-        ElMessage.error(errorMessage)
+        showAlert(errorMessage, 'error')
     }
 
     const apiError: ApiError = {

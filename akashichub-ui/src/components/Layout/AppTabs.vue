@@ -1,64 +1,73 @@
 <template>
   <div class="app-tabs">
-    <el-tabs
-      v-model="activeTab"
-      type="card"
-      closable
-      @tab-click="handleTabClick"
-      @tab-remove="handleTabRemove"
-    >
-      <el-tab-pane
-        v-for="tab in visitedViews"
-        :key="tab.name"
-        :label="tab.title"
-        :name="tab.name"
-        :closable="tab.name !== 'Dashboard'"
-      >
-        <template #label>
-          <div class="tab-label">
-            <el-icon v-if="tab.icon" class="tab-icon">
-              <component :is="tab.icon" />
-            </el-icon>
-            <span class="tab-title">{{ tab.title }}</span>
-            <el-icon
-              v-if="tab.name !== 'Dashboard'"
-              class="tab-close"
-              @click.stop="handleTabRemove(tab.name)"
-            >
-              <Close />
-            </el-icon>
-          </div>
-        </template>
-      </el-tab-pane>
-    </el-tabs>
+    <div class="tabs-nav">
+      <ul class="nav nav-tabs nav-tabs-custom">
+        <li
+          v-for="tab in visitedViews"
+          :key="tab.name"
+          class="nav-item"
+        >
+          <a
+            :class="['nav-link', { active: activeTab === tab.name }]"
+            href="#"
+            @click.prevent="handleTabClick(tab)"
+          >
+            <div class="tab-label">
+              <i v-if="tab.icon" :class="tab.icon" class="tab-icon"></i>
+              <span class="tab-title">{{ tab.title }}</span>
+              <i
+                v-if="tab.name !== 'Dashboard'"
+                class="bi bi-x-lg tab-close"
+                @click.stop="handleTabRemove(tab.name)"
+              ></i>
+            </div>
+          </a>
+        </li>
+      </ul>
+    </div>
 
     <!-- 右側操作按鈕 -->
     <div class="tabs-actions">
-      <el-dropdown trigger="click" @command="handleTabAction">
-        <el-button class="action-btn" size="small">
-          <el-icon><More /></el-icon>
-        </el-button>
-        <template #dropdown>
-          <el-dropdown-menu>
-            <el-dropdown-item command="refresh">
-              <el-icon><Refresh /></el-icon>
+      <div class="dropdown">
+        <button 
+          class="btn btn-sm btn-outline-secondary action-btn dropdown-toggle"
+          type="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          <i class="bi bi-three-dots"></i>
+        </button>
+        <ul class="dropdown-menu">
+          <li>
+            <a class="dropdown-item" href="#" @click.prevent="handleTabAction('refresh')">
+              <i class="bi bi-arrow-clockwise me-2"></i>
               刷新當前頁面
-            </el-dropdown-item>
-            <el-dropdown-item command="close-current" :disabled="activeTab === 'Dashboard'">
-              <el-icon><Close /></el-icon>
+            </a>
+          </li>
+          <li>
+            <a 
+              :class="['dropdown-item', { disabled: activeTab === 'Dashboard' }]"
+              href="#"
+              @click.prevent="handleTabAction('close-current')"
+            >
+              <i class="bi bi-x-lg me-2"></i>
               關閉當前標籤
-            </el-dropdown-item>
-            <el-dropdown-item command="close-others">
-              <el-icon><RemoveFilled /></el-icon>
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" href="#" @click.prevent="handleTabAction('close-others')">
+              <i class="bi bi-dash-circle me-2"></i>
               關閉其他標籤
-            </el-dropdown-item>
-            <el-dropdown-item command="close-all">
-              <el-icon><CircleCloseFilled /></el-icon>
+            </a>
+          </li>
+          <li>
+            <a class="dropdown-item" href="#" @click.prevent="handleTabAction('close-all')">
+              <i class="bi bi-x-circle me-2"></i>
               關閉所有標籤
-            </el-dropdown-item>
-          </el-dropdown-menu>
-        </template>
-      </el-dropdown>
+            </a>
+          </li>
+        </ul>
+      </div>
     </div>
   </div>
 </template>
@@ -66,23 +75,8 @@
 <script setup lang="ts">
 import { computed, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  House,
-  Server,
-  CollectionTag,
-  User,
-  Document,
-  Search,
-  Setting,
-  InfoFilled,
-  Close,
-  More,
-  Refresh,
-  RemoveFilled,
-  CircleCloseFilled
-} from '@element-plus/icons-vue'
 import { useAppStore } from '@/stores/app'
+import { showAlert, showConfirm } from '@/utils/bootstrap-alerts'
 
 // 狀態管理
 const appStore = useAppStore()
@@ -112,41 +106,40 @@ const visitedViews = computed(() => {
 // 獲取路由圖標
 const getRouteIcon = (routeName: string) => {
   const iconMap: Record<string, string> = {
-    'Dashboard': 'House',
-    'Resources': 'Server',
-    'ResourcesList': 'Server',
-    'ResourcesCreate': 'Server',
-    'ResourcesDetail': 'Server',
-    'ResourcesEdit': 'Server',
-    'Tags': 'CollectionTag',
-    'TagsList': 'CollectionTag',
-    'TagsCreate': 'CollectionTag',
-    'TagsEdit': 'CollectionTag',
-    'Users': 'User',
-    'UsersList': 'User',
-    'UsersCreate': 'User',
-    'UsersDetail': 'User',
-    'UsersEdit': 'User',
-    'Logs': 'Document',
-    'LogsSystem': 'Document',
-    'LogsAudit': 'Document',
-    'Search': 'Search',
-    'Settings': 'Setting',
-    'SettingsGeneral': 'Setting',
-    'SettingsSecurity': 'Setting',
-    'SettingsSystem': 'Setting',
-    'About': 'InfoFilled',
-    'Profile': 'User'
+    'Dashboard': 'bi bi-house',
+    'Resources': 'bi bi-server',
+    'ResourcesList': 'bi bi-server',
+    'ResourcesCreate': 'bi bi-server',
+    'ResourcesDetail': 'bi bi-server',
+    'ResourcesEdit': 'bi bi-server',
+    'Tags': 'bi bi-tags',
+    'TagsList': 'bi bi-tags',
+    'TagsCreate': 'bi bi-tags',
+    'TagsEdit': 'bi bi-tags',
+    'Users': 'bi bi-person',
+    'UsersList': 'bi bi-person',
+    'UsersCreate': 'bi bi-person',
+    'UsersDetail': 'bi bi-person',
+    'UsersEdit': 'bi bi-person',
+    'Logs': 'bi bi-file-text',
+    'LogsSystem': 'bi bi-file-text',
+    'LogsAudit': 'bi bi-file-text',
+    'Search': 'bi bi-search',
+    'Settings': 'bi bi-gear',
+    'SettingsGeneral': 'bi bi-gear',
+    'SettingsSecurity': 'bi bi-gear',
+    'SettingsSystem': 'bi bi-gear',
+    'About': 'bi bi-info-circle',
+    'Profile': 'bi bi-person'
   }
   
-  return iconMap[routeName] || 'Document'
+  return iconMap[routeName] || 'bi bi-file-text'
 }
 
 // 處理標籤點擊
 const handleTabClick = (tab: any) => {
-  const targetView = visitedViews.value.find(view => view.name === tab.paneName)
-  if (targetView) {
-    router.push(targetView.path)
+  if (tab.name) {
+    router.push(tab.path)
   }
 }
 
@@ -154,7 +147,7 @@ const handleTabClick = (tab: any) => {
 const handleTabRemove = (targetName: string) => {
   // 不能關閉儀表板標籤
   if (targetName === 'Dashboard') {
-    ElMessage.warning('儀表板標籤不能關閉')
+    showAlert('儀表板標籤不能關閉', 'warning')
     return
   }
   
@@ -204,22 +197,18 @@ const handleRefresh = async () => {
     // 重新添加到緩存
     appStore.addCachedView(currentView.name)
     
-    ElMessage.success('頁面已刷新')
+    showAlert('頁面已刷新', 'success')
   }
 }
 
 // 關閉其他標籤
 const handleCloseOthers = async () => {
   try {
-    await ElMessageBox.confirm(
+    const confirmed = await showConfirm(
       '確定要關閉其他所有標籤嗎？',
-      '確認操作',
-      {
-        confirmButtonText: '確定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
+      '確認操作'
     )
+    if (!confirmed) return
     
     const currentView = visitedViews.value.find(view => view.name === activeTab.value)
     const dashboardView = visitedViews.value.find(view => view.name === 'Dashboard')
@@ -239,7 +228,7 @@ const handleCloseOthers = async () => {
       }
     })
     
-    ElMessage.success('已關閉其他標籤')
+    showAlert('已關閉其他標籤', 'success')
   } catch (error) {
     // 用戶取消操作
   }
@@ -248,15 +237,11 @@ const handleCloseOthers = async () => {
 // 關閉所有標籤
 const handleCloseAll = async () => {
   try {
-    await ElMessageBox.confirm(
+    const confirmed = await showConfirm(
       '確定要關閉所有標籤嗎？將會跳轉到儀表板。',
-      '確認操作',
-      {
-        confirmButtonText: '確定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
+      '確認操作'
     )
+    if (!confirmed) return
     
     // 跳轉到儀表板
     router.push('/dashboard')
@@ -269,7 +254,7 @@ const handleCloseAll = async () => {
     appStore.addVisitedView('Dashboard', '儀表板', '/dashboard')
     appStore.addCachedView('Dashboard')
     
-    ElMessage.success('已關閉所有標籤')
+    showAlert('已關閉所有標籤', 'success')
   } catch (error) {
     // 用戶取消操作
   }
@@ -301,66 +286,44 @@ watch(
   display: flex;
   align-items: center;
   height: 100%;
-  background: var(--el-bg-color);
-  border-bottom: 1px solid var(--el-border-color);
+  background: var(--bs-body-bg);
+  border-bottom: 1px solid var(--bs-border-color);
   
-  :deep(.el-tabs) {
+  .tabs-nav {
     flex: 1;
     height: 100%;
+    overflow-x: auto;
     
-    .el-tabs__header {
-      margin: 0;
+    .nav-tabs-custom {
       border-bottom: none;
+      height: 100%;
+      flex-wrap: nowrap;
       
-      .el-tabs__nav-wrap {
-        &::after {
-          display: none;
-        }
-      }
-      
-      .el-tabs__nav {
-        border: none;
-        
-        .el-tabs__item {
+      .nav-item {
+        .nav-link {
           height: 40px;
           line-height: 40px;
           padding: 0 16px;
           border: none;
-          border-right: 1px solid var(--el-border-color);
-          background: var(--el-bg-color-page);
-          color: var(--el-text-color-regular);
+          border-right: 1px solid var(--bs-border-color);
+          background: var(--bs-light);
+          color: var(--bs-secondary);
           transition: all 0.3s ease;
+          border-radius: 0;
+          white-space: nowrap;
           
           &:hover {
-            background: var(--el-color-primary-light-9);
-            color: var(--el-text-color-primary);
+            background: var(--bs-primary-bg-subtle);
+            color: var(--bs-primary);
           }
           
-          &.is-active {
-            background: var(--el-bg-color);
-            color: var(--el-color-primary);
-            border-bottom: 2px solid var(--el-color-primary);
-          }
-          
-          &.is-closable {
-            .el-tabs__item__close {
-              width: 14px;
-              height: 14px;
-              margin-left: 8px;
-              
-              &:hover {
-                background: var(--el-color-danger-light-9);
-                color: var(--el-color-danger);
-                border-radius: 50%;
-              }
-            }
+          &.active {
+            background: var(--bs-body-bg);
+            color: var(--bs-primary);
+            border-bottom: 2px solid var(--bs-primary);
           }
         }
       }
-    }
-    
-    .el-tabs__content {
-      display: none;
     }
   }
 }
@@ -391,15 +354,15 @@ watch(
     transition: all 0.2s ease;
     
     &:hover {
-      background: var(--el-color-danger-light-9);
-      color: var(--el-color-danger);
+      background: var(--bs-danger-bg-subtle);
+      color: var(--bs-danger);
     }
   }
 }
 
 .tabs-actions {
   padding: 0 12px;
-  border-left: 1px solid var(--el-border-color);
+  border-left: 1px solid var(--bs-border-color);
   
   .action-btn {
     border: none;
@@ -407,70 +370,31 @@ watch(
     padding: 8px;
     
     &:hover {
-      background: var(--el-color-primary-light-9);
+      background: var(--bs-primary-bg-subtle);
     }
     
-    .el-icon {
+    i {
       font-size: 14px;
     }
   }
 }
 
 // 滾動條樣式
-:deep(.el-tabs__nav-wrap) {
-  &.is-scrollable {
-    .el-tabs__nav {
-      &::-webkit-scrollbar {
-        height: 3px;
-      }
-      
-      &::-webkit-scrollbar-track {
-        background: var(--el-bg-color-page);
-      }
-      
-      &::-webkit-scrollbar-thumb {
-        background: var(--el-border-color-darker);
-        border-radius: 2px;
-        
-        &:hover {
-          background: var(--el-border-color-dark);
-        }
-      }
-    }
+.tabs-nav {
+  &::-webkit-scrollbar {
+    height: 3px;
   }
-}
-
-// 右鍵菜單樣式
-.contextmenu {
-  position: fixed;
-  background: var(--el-bg-color-overlay);
-  border: 1px solid var(--el-border-color);
-  border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-  z-index: 9999;
   
-  .contextmenu-item {
-    padding: 8px 16px;
-    cursor: pointer;
-    font-size: 13px;
-    color: var(--el-text-color-primary);
+  &::-webkit-scrollbar-track {
+    background: var(--bs-light);
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: var(--bs-border-color-translucent);
+    border-radius: 2px;
     
     &:hover {
-      background: var(--el-color-primary-light-9);
-    }
-    
-    &.is-disabled {
-      color: var(--el-text-color-disabled);
-      cursor: not-allowed;
-      
-      &:hover {
-        background: transparent;
-      }
-    }
-    
-    .el-icon {
-      margin-right: 8px;
-      font-size: 14px;
+      background: var(--bs-border-color);
     }
   }
 }
@@ -478,10 +402,10 @@ watch(
 // 響應式設計
 @media (max-width: 768px) {
   .app-tabs {
-    :deep(.el-tabs) {
-      .el-tabs__header {
-        .el-tabs__nav {
-          .el-tabs__item {
+    .tabs-nav {
+      .nav-tabs-custom {
+        .nav-item {
+          .nav-link {
             padding: 0 12px;
             
             .tab-label {
@@ -502,10 +426,10 @@ watch(
 
 @media (max-width: 480px) {
   .app-tabs {
-    :deep(.el-tabs) {
-      .el-tabs__header {
-        .el-tabs__nav {
-          .el-tabs__item {
+    .tabs-nav {
+      .nav-tabs-custom {
+        .nav-item {
+          .nav-link {
             padding: 0 8px;
             
             .tab-label {
@@ -525,24 +449,24 @@ watch(
 }
 
 // 暗黑模式
-.dark {
+[data-bs-theme="dark"] {
   .app-tabs {
-    background: var(--el-bg-color);
-    border-bottom-color: var(--el-border-color);
+    background: var(--bs-body-bg);
+    border-bottom-color: var(--bs-border-color);
     
-    :deep(.el-tabs) {
-      .el-tabs__header {
-        .el-tabs__nav {
-          .el-tabs__item {
-            background: var(--el-bg-color-page);
-            border-right-color: var(--el-border-color);
+    .tabs-nav {
+      .nav-tabs-custom {
+        .nav-item {
+          .nav-link {
+            background: var(--bs-dark);
+            border-right-color: var(--bs-border-color);
             
             &:hover {
-              background: var(--el-color-primary-light-9);
+              background: var(--bs-primary-bg-subtle);
             }
             
-            &.is-active {
-              background: var(--el-bg-color);
+            &.active {
+              background: var(--bs-body-bg);
             }
           }
         }
@@ -551,11 +475,11 @@ watch(
   }
   
   .tabs-actions {
-    border-left-color: var(--el-border-color);
+    border-left-color: var(--bs-border-color);
     
     .action-btn {
       &:hover {
-        background: var(--el-color-primary-light-9);
+        background: var(--bs-primary-bg-subtle);
       }
     }
   }

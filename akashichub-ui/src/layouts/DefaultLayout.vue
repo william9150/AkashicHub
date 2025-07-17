@@ -1,22 +1,22 @@
 <template>
   <div class="app-layout">
     <!-- 主要佈局容器 -->
-    <el-container class="layout-container">
+    <div class="layout-container d-flex">
       <!-- 側邊欄 -->
-      <el-aside
-        :width="sidebarWidth"
+      <div
         class="layout-aside"
         :class="{ 'is-collapsed': appStore.sidebarCollapsed }"
+        :style="{ width: sidebarWidth }"
       >
         <AppSidebar />
-      </el-aside>
+      </div>
 
       <!-- 主要內容區域 -->
-      <el-container class="layout-main">
+      <div class="layout-main flex-grow-1 d-flex flex-column">
         <!-- 頂部導航 -->
-        <el-header class="layout-header" :class="{ 'is-fixed': appStore.settings.fixedHeader }">
+        <header class="layout-header" :class="{ 'is-fixed': appStore.settings.fixedHeader }">
           <AppHeader />
-        </el-header>
+        </header>
 
         <!-- 標籤頁導航 -->
         <div v-if="appStore.settings.showTabs" class="layout-tabs">
@@ -29,7 +29,7 @@
         </div>
 
         <!-- 主要內容 -->
-        <el-main class="layout-content">
+        <main class="layout-content flex-grow-1">
           <div class="content-wrapper">
             <router-view v-slot="{ Component }">
               <transition
@@ -46,20 +46,27 @@
               </transition>
             </router-view>
           </div>
-        </el-main>
+        </main>
 
         <!-- 底部 -->
-        <el-footer v-if="appStore.settings.showFooter" class="layout-footer">
+        <footer v-if="appStore.settings.showFooter" class="layout-footer">
           <AppFooter />
-        </el-footer>
-      </el-container>
-    </el-container>
+        </footer>
+      </div>
+    </div>
 
     <!-- 設定面板 -->
     <AppSettings />
 
     <!-- 回到頂部 -->
-    <el-backtop :right="40" :bottom="40" />
+    <button
+      v-if="showBackToTop"
+      type="button"
+      class="btn btn-primary back-to-top"
+      @click="scrollToTop"
+    >
+      <i class="bi bi-arrow-up"></i>
+    </button>
 
     <!-- 水印 -->
     <div
@@ -73,7 +80,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useAppStore } from '@/stores/app'
 import AppSidebar from '@/components/Layout/AppSidebar.vue'
 import AppHeader from '@/components/Layout/AppHeader.vue'
@@ -84,6 +91,9 @@ import AppSettings from '@/components/Layout/AppSettings.vue'
 
 // 狀態管理
 const appStore = useAppStore()
+
+// 響應式數據
+const showBackToTop = ref(false)
 
 // 計算屬性
 const sidebarWidth = computed(() => {
@@ -109,10 +119,27 @@ const handleResize = () => {
   appStore.updateDeviceType()
 }
 
+// 滾動處理
+const handleScroll = () => {
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop
+  showBackToTop.value = scrollTop > 300
+}
+
+// 回到頂部
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  })
+}
+
 // 組件掛載
 onMounted(() => {
   // 監聽視窗大小變化
   window.addEventListener('resize', handleResize)
+  
+  // 監聽滾動事件
+  window.addEventListener('scroll', handleScroll)
   
   // 初始化設備類型
   appStore.updateDeviceType()
@@ -126,6 +153,7 @@ onMounted(() => {
 // 組件卸載
 onUnmounted(() => {
   window.removeEventListener('resize', handleResize)
+  window.removeEventListener('scroll', handleScroll)
 })
 </script>
 
@@ -142,8 +170,8 @@ onUnmounted(() => {
 .layout-aside {
   position: relative;
   transition: width 0.3s ease;
-  border-right: 1px solid var(--el-border-color);
-  background: var(--el-bg-color);
+  border-right: 1px solid var(--bs-border-color);
+  background: var(--bs-light);
   
   &.is-collapsed {
     width: 64px !important;
@@ -152,7 +180,6 @@ onUnmounted(() => {
 
 .layout-main {
   position: relative;
-  flex: 1;
   overflow: hidden;
 }
 
@@ -160,8 +187,8 @@ onUnmounted(() => {
   position: relative;
   height: 60px;
   padding: 0;
-  border-bottom: 1px solid var(--el-border-color);
-  background: var(--el-bg-color);
+  border-bottom: 1px solid var(--bs-border-color);
+  background: var(--bs-light);
   z-index: 999;
   
   &.is-fixed {
@@ -175,24 +202,23 @@ onUnmounted(() => {
 
 .layout-tabs {
   height: 40px;
-  background: var(--el-bg-color);
-  border-bottom: 1px solid var(--el-border-color);
+  background: var(--bs-light);
+  border-bottom: 1px solid var(--bs-border-color);
 }
 
 .layout-breadcrumb {
   height: 40px;
   padding: 0 20px;
-  background: var(--el-bg-color-page);
-  border-bottom: 1px solid var(--el-border-color);
+  background: var(--bs-gray-50);
+  border-bottom: 1px solid var(--bs-border-color);
   display: flex;
   align-items: center;
 }
 
 .layout-content {
   position: relative;
-  flex: 1;
   overflow: auto;
-  background: var(--el-bg-color-page);
+  background: var(--bs-gray-50);
   padding: 20px;
   
   .content-wrapper {
@@ -203,11 +229,35 @@ onUnmounted(() => {
 .layout-footer {
   height: 50px;
   padding: 0 20px;
-  background: var(--el-bg-color);
-  border-top: 1px solid var(--el-border-color);
+  background: var(--bs-light);
+  border-top: 1px solid var(--bs-border-color);
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+// 回到頂部按鈕
+.back-to-top {
+  position: fixed;
+  bottom: 40px;
+  right: 40px;
+  z-index: 999;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  
+  i {
+    font-size: 16px;
+  }
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
 }
 
 // 動畫效果
@@ -262,32 +312,48 @@ onUnmounted(() => {
       left: 0;
     }
   }
+  
+  .back-to-top {
+    bottom: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    
+    i {
+      font-size: 14px;
+    }
+  }
 }
 
-// 暗黑模式
-.dark {
+// 暗黑模式支援
+@media (prefers-color-scheme: dark) {
   .layout-aside {
-    background: var(--el-bg-color);
+    background: var(--bs-dark);
+    border-right-color: var(--bs-gray-700);
   }
   
   .layout-header {
-    background: var(--el-bg-color);
+    background: var(--bs-dark);
+    border-bottom-color: var(--bs-gray-700);
   }
   
   .layout-tabs {
-    background: var(--el-bg-color);
+    background: var(--bs-dark);
+    border-bottom-color: var(--bs-gray-700);
   }
   
   .layout-breadcrumb {
-    background: var(--el-bg-color-page);
+    background: var(--bs-gray-800);
+    border-bottom-color: var(--bs-gray-700);
   }
   
   .layout-content {
-    background: var(--el-bg-color-page);
+    background: var(--bs-gray-800);
   }
   
   .layout-footer {
-    background: var(--el-bg-color);
+    background: var(--bs-dark);
+    border-top-color: var(--bs-gray-700);
   }
 }
 

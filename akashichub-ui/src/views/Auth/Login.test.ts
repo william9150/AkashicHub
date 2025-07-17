@@ -2,18 +2,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { nextTick } from 'vue'
 import Login from './Login.vue'
 import { mountComponent, setInputValue, clickElement, setupAuthState } from '@/tests/utils'
-import { ElMessage } from 'element-plus'
+import { showAlert } from '@/utils/bootstrap-alerts'
 
 // Mock vue-router
 const mockPush = vi.fn()
-vi.mock('vue-router', () => ({
-  useRouter: () => ({
-    push: mockPush
-  }),
-  useRoute: () => ({
-    query: {}
-  })
-}))
 
 describe('Login Component', () => {
   beforeEach(() => {
@@ -43,7 +35,7 @@ describe('Login Component', () => {
     await clickElement(wrapper, 'button[type="submit"]')
     await nextTick()
     
-    // 應該顯示驗證錯誤（通過 element-plus 的表單驗證）
+    // 應該顯示驗證錯誤（通過 Bootstrap 的表單驗證）
     expect(wrapper.vm.form.loginAccount).toBe('')
     expect(wrapper.vm.form.password).toBe('')
   })
@@ -101,7 +93,7 @@ describe('Login Component', () => {
       loginAccount: 'testuser',
       password: 'password123'
     })
-    expect(ElMessage.success).toHaveBeenCalledWith('登入成功！')
+    expect(showAlert).toHaveBeenCalledWith('登入成功！', 'success')
     expect(mockPush).toHaveBeenCalledWith('/')
   })
 
@@ -121,7 +113,7 @@ describe('Login Component', () => {
     await wrapper.vm.handleSubmit()
     
     expect(authStore.login).toHaveBeenCalled()
-    expect(ElMessage.error).toHaveBeenCalledWith(errorMessage)
+    expect(showAlert).toHaveBeenCalledWith(errorMessage, 'danger')
   })
 
   it('should show loading state during login', async () => {

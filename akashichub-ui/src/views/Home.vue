@@ -5,26 +5,26 @@
       <p>歡迎使用 AkashicHub - IT 內部資源檢索系統</p>
       
       <div class="quick-actions">
-        <el-button type="primary" @click="goToDashboard">
-          <el-icon><Odometer /></el-icon>
+        <button type="button" class="btn btn-primary" @click="goToDashboard">
+          <i class="bi bi-speedometer2 me-2"></i>
           前往儀表板
-        </el-button>
-        <el-button @click="goToResources">
-          <el-icon><Service /></el-icon>
+        </button>
+        <button type="button" class="btn btn-outline-light" @click="goToResources">
+          <i class="bi bi-hdd-rack me-2"></i>
           資源管理
-        </el-button>
-        <el-button @click="goToUsers">
-          <el-icon><User /></el-icon>
+        </button>
+        <button type="button" class="btn btn-outline-light" @click="goToUsers">
+          <i class="bi bi-people me-2"></i>
           用戶管理
-        </el-button>
-        <el-button v-if="!isAuthenticated" @click="goToLogin">
-          <el-icon><User /></el-icon>
+        </button>
+        <button type="button" class="btn btn-outline-light" v-if="!isAuthenticated" @click="goToLogin">
+          <i class="bi bi-box-arrow-in-right me-2"></i>
           登入系統
-        </el-button>
-        <el-button v-if="isAuthenticated" @click="goToProfile">
-          <el-icon><UserFilled /></el-icon>
+        </button>
+        <button type="button" class="btn btn-outline-light" v-if="isAuthenticated" @click="goToProfile">
+          <i class="bi bi-person-circle me-2"></i>
           個人資料
-        </el-button>
+        </button>
       </div>
       
       <div class="system-info">
@@ -43,7 +43,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { Odometer, Service, User, UserFilled } from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 
 const { MODE, VITE_API_BASE_URL } = import.meta.env   // ✅ 取出環境變數
@@ -123,9 +122,16 @@ p {
   flex-wrap: wrap;
 }
 
-.quick-actions .el-button {
+.quick-actions .btn {
   padding: 12px 24px;
   font-size: 16px;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  }
 }
 
 .system-info {
@@ -171,7 +177,7 @@ p {
     align-items: center;
   }
   
-  .quick-actions .el-button {
+  .quick-actions .btn {
     width: 200px;
   }
 }

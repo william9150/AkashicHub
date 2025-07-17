@@ -7,28 +7,25 @@
         伺服器發生內部錯誤，請稍後重試或聯繫系統管理員。
       </div>
       <div class="error-actions">
-        <el-button type="primary" @click="refresh">
-          <el-icon><Refresh /></el-icon>
+        <button type="button" class="btn btn-primary" @click="refresh">
+          <i class="bi bi-arrow-clockwise me-2"></i>
           重新載入
-        </el-button>
-        <el-button @click="goHome">
-          <el-icon><House /></el-icon>
+        </button>
+        <button type="button" class="btn btn-outline-light" @click="goHome">
+          <i class="bi bi-house-door me-2"></i>
           返回首頁
-        </el-button>
+        </button>
       </div>
     </div>
     
     <div class="error-illustration">
-      <el-icon size="200" color="#F56C6C">
-        <WarningFilled />
-      </el-icon>
+      <i class="bi bi-exclamation-triangle" style="font-size: 200px; color: rgba(255, 255, 255, 0.3);"></i>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { House, Refresh, WarningFilled } from '@element-plus/icons-vue'
 
 const router = useRouter()
 

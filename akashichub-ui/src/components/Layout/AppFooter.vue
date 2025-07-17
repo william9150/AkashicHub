@@ -27,16 +27,12 @@
         
         <div class="footer-status">
           <div class="status-item">
-            <el-icon class="status-icon" :color="getStatusColor('system')">
-              <component :is="getStatusIcon('system')" />
-            </el-icon>
+            <i class="status-icon" :class="getStatusIcon('system')" :style="{ color: getStatusColor('system') }"></i>
             <span class="status-text">系統狀態</span>
           </div>
           
           <div class="status-item">
-            <el-icon class="status-icon" :color="getStatusColor('database')">
-              <component :is="getStatusIcon('database')" />
-            </el-icon>
+            <i class="status-icon" :class="getStatusIcon('database')" :style="{ color: getStatusColor('database') }"></i>
             <span class="status-text">資料庫</span>
           </div>
         </div>
@@ -44,12 +40,14 @@
     </div>
 
     <!-- 系統信息對話框 -->
-    <el-dialog
-      v-model="aboutVisible"
-      title="關於系統"
-      width="500px"
-      center
-    >
+    <div class="modal fade" :class="{ show: aboutVisible }" tabindex="-1" :style="{ display: aboutVisible ? 'block' : 'none' }">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">關於系統</h5>
+            <button type="button" class="btn-close" @click="aboutVisible = false"></button>
+          </div>
+          <div class="modal-body">
       <div class="about-content">
         <div class="about-header">
           <img src="/favicon.ico" alt="Logo" class="about-logo" />
@@ -70,7 +68,7 @@
           </div>
           <div class="info-item">
             <span class="info-label">技術架構：</span>
-            <span class="info-value">Vue 3 + TypeScript + Element Plus</span>
+            <span class="info-value">Vue 3 + TypeScript + Bootstrap</span>
           </div>
           <div class="info-item">
             <span class="info-label">後端技術：</span>
@@ -86,71 +84,111 @@
         </div>
       </div>
       
-      <template #footer>
-        <el-button @click="aboutVisible = false">關閉</el-button>
-      </template>
-    </el-dialog>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="aboutVisible = false">關閉</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-if="aboutVisible" class="modal-backdrop fade show" @click="aboutVisible = false"></div>
 
     <!-- 幫助中心對話框 -->
-    <el-dialog
-      v-model="helpVisible"
-      title="幫助中心"
-      width="600px"
-      center
-    >
+    <div class="modal fade" :class="{ show: helpVisible }" tabindex="-1" :style="{ display: helpVisible ? 'block' : 'none' }">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">幫助中心</h5>
+            <button type="button" class="btn-close" @click="helpVisible = false"></button>
+          </div>
+          <div class="modal-body">
       <div class="help-content">
-        <el-collapse v-model="activeHelp">
-          <el-collapse-item title="如何添加新的資源？" name="1">
-            <div>
-              <p>1. 進入「資源管理」頁面</p>
-              <p>2. 點擊「新增資源」按鈕</p>
-              <p>3. 填寫資源的基本信息</p>
-              <p>4. 設置資源的標籤和分類</p>
-              <p>5. 保存設置</p>
+        <div class="accordion" id="helpAccordion">
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapse1" :class="{ collapsed: !activeHelp.includes('1') }">
+                如何添加新的資源？
+              </button>
+            </h2>
+            <div id="collapse1" class="accordion-collapse collapse" :class="{ show: activeHelp.includes('1') }" data-bs-parent="#helpAccordion">
+              <div class="accordion-body">
+                <p>1. 進入「資源管理」頁面</p>
+                <p>2. 點擊「新增資源」按鈕</p>
+                <p>3. 填寫資源的基本信息</p>
+                <p>4. 設置資源的標籤和分類</p>
+                <p>5. 保存設置</p>
+              </div>
             </div>
-          </el-collapse-item>
+          </div>
           
-          <el-collapse-item title="如何管理用戶權限？" name="2">
-            <div>
-              <p>1. 進入「用戶管理」頁面（需管理員權限）</p>
-              <p>2. 選擇要編輯的用戶</p>
-              <p>3. 修改用戶角色和權限</p>
-              <p>4. 保存更改</p>
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse2" :class="{ collapsed: !activeHelp.includes('2') }">
+                如何管理用戶權限？
+              </button>
+            </h2>
+            <div id="collapse2" class="accordion-collapse collapse" :class="{ show: activeHelp.includes('2') }" data-bs-parent="#helpAccordion">
+              <div class="accordion-body">
+                <p>1. 進入「用戶管理」頁面（需管理員權限）</p>
+                <p>2. 選擇要編輯的用戶</p>
+                <p>3. 修改用戶角色和權限</p>
+                <p>4. 保存更改</p>
+              </div>
             </div>
-          </el-collapse-item>
+          </div>
           
-          <el-collapse-item title="如何查看系統日誌？" name="3">
-            <div>
-              <p>1. 進入「日誌管理」頁面</p>
-              <p>2. 選擇日誌類型（系統日誌或審計日誌）</p>
-              <p>3. 使用篩選條件查找特定日誌</p>
-              <p>4. 查看詳細日誌信息</p>
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse3" :class="{ collapsed: !activeHelp.includes('3') }">
+                如何查看系統日誌？
+              </button>
+            </h2>
+            <div id="collapse3" class="accordion-collapse collapse" :class="{ show: activeHelp.includes('3') }" data-bs-parent="#helpAccordion">
+              <div class="accordion-body">
+                <p>1. 進入「日誌管理」頁面</p>
+                <p>2. 選擇日誌類型（系統日誌或審計日誌）</p>
+                <p>3. 使用篩選條件查找特定日誌</p>
+                <p>4. 查看詳細日誌信息</p>
+              </div>
             </div>
-          </el-collapse-item>
+          </div>
           
-          <el-collapse-item title="如何搜索資源？" name="4">
-            <div>
-              <p>1. 使用頂部搜索框進行快速搜索</p>
-              <p>2. 進入「搜尋」頁面進行高級搜索</p>
-              <p>3. 使用標籤篩選資源</p>
-              <p>4. 使用資源類型篩選</p>
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse4" :class="{ collapsed: !activeHelp.includes('4') }">
+                如何搜索資源？
+              </button>
+            </h2>
+            <div id="collapse4" class="accordion-collapse collapse" :class="{ show: activeHelp.includes('4') }" data-bs-parent="#helpAccordion">
+              <div class="accordion-body">
+                <p>1. 使用頂部搜索框進行快速搜索</p>
+                <p>2. 進入「搜尋」頁面進行高級搜索</p>
+                <p>3. 使用標籤篩選資源</p>
+                <p>4. 使用資源類型篩選</p>
+              </div>
             </div>
-          </el-collapse-item>
-        </el-collapse>
+          </div>
+        </div>
       </div>
       
-      <template #footer>
-        <el-button @click="helpVisible = false">關閉</el-button>
-      </template>
-    </el-dialog>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="helpVisible = false">關閉</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-if="helpVisible" class="modal-backdrop fade show" @click="helpVisible = false"></div>
 
     <!-- 隱私政策對話框 -->
-    <el-dialog
-      v-model="privacyVisible"
-      title="隱私政策"
-      width="600px"
-      center
-    >
+    <div class="modal fade" :class="{ show: privacyVisible }" tabindex="-1" :style="{ display: privacyVisible ? 'block' : 'none' }">
+      <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">隱私政策</h5>
+            <button type="button" class="btn-close" @click="privacyVisible = false"></button>
+          </div>
+          <div class="modal-body">
       <div class="privacy-content">
         <h3>數據收集</h3>
         <p>本系統僅收集必要的用戶信息和操作日誌，用於系統功能的正常運作和安全審計。</p>
@@ -168,23 +206,20 @@
         <p>如有隱私相關問題，請聯繫系統管理員。</p>
       </div>
       
-      <template #footer>
-        <el-button @click="privacyVisible = false">關閉</el-button>
-      </template>
-    </el-dialog>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" @click="privacyVisible = false">關閉</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div v-if="privacyVisible" class="modal-backdrop fade show" @click="privacyVisible = false"></div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { ElMessage } from 'element-plus'
-import {
-  CircleCheckFilled,
-  CircleCloseFilled,
-  WarningFilled,
-  Monitor,
-  Coin
-} from '@element-plus/icons-vue'
+import { showAlert } from '@/utils/bootstrap-alerts'
 import { useAppStore } from '@/stores/app'
 
 // 狀態管理
@@ -228,13 +263,13 @@ const getStatusIcon = (type: string) => {
   
   switch (status) {
     case 'healthy':
-      return 'CircleCheckFilled'
+      return 'bi bi-check-circle-fill'
     case 'warning':
-      return 'WarningFilled'
+      return 'bi bi-exclamation-triangle-fill'
     case 'error':
-      return 'CircleCloseFilled'
+      return 'bi bi-x-circle-fill'
     default:
-      return 'Monitor'
+      return 'bi bi-display'
   }
 }
 
@@ -261,8 +296,8 @@ const getStatusColor = (type: string) => {
   align-items: center;
   justify-content: center;
   height: 100%;
-  background: var(--el-bg-color);
-  border-top: 1px solid var(--el-border-color);
+  background: var(--bs-body-bg);
+  border-top: 1px solid var(--bs-border-color);
   
   .footer-content {
     display: flex;
@@ -278,14 +313,14 @@ const getStatusColor = (type: string) => {
       
       .copyright {
         font-size: 13px;
-        color: var(--el-text-color-regular);
+        color: var(--bs-secondary-color);
       }
       
       .version {
         font-size: 12px;
-        color: var(--el-text-color-placeholder);
+        color: var(--bs-secondary-color);
         padding: 2px 6px;
-        background: var(--el-bg-color-page);
+        background: var(--bs-light);
         border-radius: 4px;
       }
     }
@@ -301,13 +336,13 @@ const getStatusColor = (type: string) => {
         
         .footer-link {
           font-size: 13px;
-          color: var(--el-text-color-regular);
+          color: var(--bs-secondary-color);
           text-decoration: none;
           cursor: pointer;
           transition: color 0.3s ease;
           
           &:hover {
-            color: var(--el-color-primary);
+            color: var(--bs-primary);
           }
         }
       }
@@ -328,7 +363,7 @@ const getStatusColor = (type: string) => {
           
           .status-text {
             font-size: 12px;
-            color: var(--el-text-color-placeholder);
+            color: var(--bs-secondary-color);
           }
         }
       }
@@ -353,13 +388,13 @@ const getStatusColor = (type: string) => {
       h2 {
         margin: 0 0 4px 0;
         font-size: 20px;
-        color: var(--el-text-color-primary);
+        color: var(--bs-body-color);
       }
       
       p {
         margin: 0;
         font-size: 14px;
-        color: var(--el-text-color-regular);
+        color: var(--bs-secondary-color);
       }
     }
   }
@@ -374,42 +409,38 @@ const getStatusColor = (type: string) => {
       .info-label {
         width: 100px;
         font-weight: 500;
-        color: var(--el-text-color-primary);
+        color: var(--bs-body-color);
       }
       
       .info-value {
-        color: var(--el-text-color-regular);
+        color: var(--bs-secondary-color);
       }
     }
   }
   
   .about-description {
     padding: 16px;
-    background: var(--el-bg-color-page);
+    background: var(--bs-light);
     border-radius: 8px;
-    border-left: 4px solid var(--el-color-primary);
+    border-left: 4px solid var(--bs-primary);
     
     p {
       margin: 0;
       line-height: 1.6;
-      color: var(--el-text-color-regular);
+      color: var(--bs-secondary-color);
     }
   }
 }
 
 .help-content {
-  :deep(.el-collapse) {
-    .el-collapse-item {
-      .el-collapse-item__header {
-        font-weight: 500;
-      }
-      
-      .el-collapse-item__content {
-        p {
-          margin: 4px 0;
-          line-height: 1.5;
-        }
-      }
+  .accordion-button {
+    font-weight: 500;
+  }
+  
+  .accordion-body {
+    p {
+      margin: 4px 0;
+      line-height: 1.5;
     }
   }
 }
@@ -418,7 +449,7 @@ const getStatusColor = (type: string) => {
   h3 {
     margin-top: 20px;
     margin-bottom: 8px;
-    color: var(--el-text-color-primary);
+    color: var(--bs-body-color);
     font-size: 16px;
     
     &:first-child {
@@ -429,7 +460,7 @@ const getStatusColor = (type: string) => {
   p {
     margin-bottom: 12px;
     line-height: 1.6;
-    color: var(--el-text-color-regular);
+    color: var(--bs-secondary-color);
   }
 }
 
@@ -487,28 +518,28 @@ const getStatusColor = (type: string) => {
 // 暗黑模式
 .dark {
   .app-footer {
-    background: var(--el-bg-color);
-    border-top-color: var(--el-border-color);
+    background: var(--bs-body-bg);
+    border-top-color: var(--bs-border-color);
     
     .footer-content {
       .footer-left {
         .copyright {
-          color: var(--el-text-color-regular);
+          color: var(--bs-secondary-color);
         }
         
         .version {
-          color: var(--el-text-color-placeholder);
-          background: var(--el-bg-color-page);
+          color: var(--bs-secondary-color);
+          background: var(--bs-light);
         }
       }
       
       .footer-right {
         .footer-links {
           .footer-link {
-            color: var(--el-text-color-regular);
+            color: var(--bs-secondary-color);
             
             &:hover {
-              color: var(--el-color-primary);
+              color: var(--bs-primary);
             }
           }
         }
@@ -516,7 +547,7 @@ const getStatusColor = (type: string) => {
         .footer-status {
           .status-item {
             .status-text {
-              color: var(--el-text-color-placeholder);
+              color: var(--bs-secondary-color);
             }
           }
         }

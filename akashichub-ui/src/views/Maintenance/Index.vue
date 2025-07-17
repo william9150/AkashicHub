@@ -2,9 +2,7 @@
   <div class="maintenance-page">
     <div class="maintenance-content">
       <div class="maintenance-icon">
-        <el-icon size="120" color="#E6A23C">
-          <Tools />
-        </el-icon>
+        <i class="bi bi-tools" style="font-size: 120px; color: #E6A23C;"></i>
       </div>
       
       <h1 class="maintenance-title">系統維護中</h1>
@@ -16,31 +14,37 @@
       </div>
       
       <div class="maintenance-info">
-        <el-card>
-          <div class="info-item">
-            <span class="info-label">維護開始時間：</span>
-            <span class="info-value">{{ maintenanceInfo.startTime }}</span>
+        <div class="card">
+          <div class="card-body">
+            <div class="info-item">
+              <span class="info-label">維護開始時間：</span>
+              <span class="info-value">{{ maintenanceInfo.startTime }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">預計結束時間：</span>
+              <span class="info-value">{{ maintenanceInfo.endTime }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">維護類型：</span>
+              <span class="info-value">{{ maintenanceInfo.type }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">聯繫方式：</span>
+              <span class="info-value">{{ maintenanceInfo.contact }}</span>
+            </div>
           </div>
-          <div class="info-item">
-            <span class="info-label">預計結束時間：</span>
-            <span class="info-value">{{ maintenanceInfo.endTime }}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">維護類型：</span>
-            <span class="info-value">{{ maintenanceInfo.type }}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">聯繫方式：</span>
-            <span class="info-value">{{ maintenanceInfo.contact }}</span>
-          </div>
-        </el-card>
+        </div>
       </div>
       
       <div class="maintenance-actions">
-        <el-button @click="checkStatus" :loading="checking">
-          <el-icon><Refresh /></el-icon>
-          檢查狀態
-        </el-button>
+        <button 
+          class="btn btn-primary" 
+          @click="checkStatus" 
+          :disabled="checking"
+        >
+          <i class="bi bi-arrow-clockwise me-2"></i>
+          {{ checking ? '檢查中...' : '檢查狀態' }}
+        </button>
       </div>
       
       <div class="countdown" v-if="countdown">
@@ -68,8 +72,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { ElMessage } from 'element-plus'
-import { Tools, Refresh } from '@element-plus/icons-vue'
+import { showAlert } from '@/utils/bootstrap-alerts'
 
 const checking = ref(false)
 const countdown = ref(true)
@@ -95,9 +98,9 @@ const checkStatus = async () => {
   try {
     // TODO: 調用API檢查系統狀態
     await new Promise(resolve => setTimeout(resolve, 1000))
-    ElMessage.info('系統仍在維護中，請稍後再試')
+    showAlert('系統仍在維護中，請稍後再試', 'info')
   } catch (error) {
-    ElMessage.error('無法檢查系統狀態')
+    showAlert('無法檢查系統狀態', 'danger')
   } finally {
     checking.value = false
   }
@@ -111,7 +114,7 @@ const updateCountdown = () => {
   if (diff <= 0) {
     countdown.value = false
     clearInterval(countdownTimer)
-    ElMessage.success('維護時間已結束，正在重新檢查系統狀態...')
+    showAlert('維護時間已結束，正在重新檢查系統狀態...', 'success')
     checkStatus()
     return
   }

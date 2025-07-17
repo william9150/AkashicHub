@@ -1,271 +1,315 @@
 <template>
   <div class="resources-list">
     <!-- 頂部操作欄 -->
-    <div class="header-actions">
-      <div class="actions-left">
-        <el-button
-          v-if="authStore.canEditITData"
-          type="primary"
-          icon="Plus"
-          @click="goToCreate"
-        >
-          新增資源
-        </el-button>
-        <el-button
-          v-if="authStore.canDeleteAnyData && selectedRows.length > 0"
-          type="danger"
-          icon="Delete"
-          @click="handleBatchDelete"
-        >
-          批量刪除 ({{ selectedRows.length }})
-        </el-button>
-        <el-button
-          icon="Refresh"
-          @click="refreshData"
-          :loading="loading"
-        >
-          刷新
-        </el-button>
+    <div class="header-actions row g-3 mb-3">
+      <div class="col-auto">
+        <div class="btn-group" role="group">
+          <button
+            v-if="authStore.canEditITData"
+            type="button"
+            class="btn btn-primary"
+            @click="goToCreate"
+          >
+            <i class="bi bi-plus-circle me-1"></i>
+            新增資源
+          </button>
+          <button
+            v-if="authStore.canDeleteAnyData && selectedRows.length > 0"
+            type="button"
+            class="btn btn-danger"
+            @click="handleBatchDelete"
+          >
+            <i class="bi bi-trash me-1"></i>
+            批量刪除 ({{ selectedRows.length }})
+          </button>
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            @click="refreshData"
+            :disabled="loading"
+          >
+            <i class="bi bi-arrow-clockwise me-1" :class="{ 'fa-spin': loading }"></i>
+            刷新
+          </button>
+        </div>
       </div>
       
-      <div class="actions-right">
-        <el-input
-          v-model="searchQuery"
-          placeholder="搜索資源名稱、IP地址、登入用戶..."
-          style="width: 300px;"
-          clearable
-          @keyup.enter="handleSearch"
-          @clear="handleSearchClear"
-        >
-          <template #prefix>
-            <el-icon><Search /></el-icon>
-          </template>
-          <template #suffix>
-            <el-tooltip content="高級搜索" placement="top">
-              <el-button
-                link
-                type="primary"
-                @click="goToAdvancedSearch"
-              >
-                <el-icon><Setting /></el-icon>
-              </el-button>
-            </el-tooltip>
-          </template>
-        </el-input>
-        <el-button
-          type="primary"
-          icon="Search"
-          @click="handleSearch"
-        >
-          搜索
-        </el-button>
+      <div class="col-auto ms-auto">
+        <div class="input-group" style="width: 350px;">
+          <span class="input-group-text">
+            <i class="bi bi-search"></i>
+          </span>
+          <input
+            type="text"
+            class="form-control"
+            placeholder="搜索資源名稱、IP地址、登入用戶..."
+            v-model="searchQuery"
+            @keyup.enter="handleSearch"
+            @input="handleSearchInput"
+          >
+          <button
+            type="button"
+            class="btn btn-outline-secondary"
+            @click="goToAdvancedSearch"
+            title="高級搜索"
+          >
+            <i class="bi bi-gear"></i>
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            @click="handleSearch"
+          >
+            搜索
+          </button>
+        </div>
       </div>
     </div>
 
     <!-- 篩選條件 -->
-    <div class="filter-bar">
-      <div class="filter-item">
-        <label>資源類型：</label>
-        <el-select
-          v-model="filters.resourceType"
-          placeholder="全部類型"
-          clearable
-          style="width: 150px;"
-          @change="handleFilter"
-        >
-          <el-option
-            v-for="type in resourceTypes"
-            :key="type.value"
-            :label="type.label"
-            :value="type.value"
-          />
-        </el-select>
+    <div class="filter-bar card mb-3">
+      <div class="card-body">
+        <div class="row g-3 align-items-center">
+          <div class="col-auto">
+            <label class="form-label mb-0">資源類型：</label>
+            <select
+              class="form-select"
+              v-model="filters.resourceType"
+              @change="handleFilter"
+              style="width: 150px;"
+            >
+              <option value="">全部類型</option>
+              <option
+                v-for="type in resourceTypes"
+                :key="type.value"
+                :value="type.value"
+              >
+                {{ type.label }}
+              </option>
+            </select>
+          </div>
+          
+          <div class="col-auto">
+            <label class="form-label mb-0">標籤：</label>
+            <select
+              class="form-select"
+              v-model="filters.tags"
+              @change="handleFilter"
+              multiple
+              style="width: 200px;"
+            >
+              <option
+                v-for="tag in availableTags"
+                :key="tag.id"
+                :value="tag.id"
+              >
+                {{ tag.name }}
+              </option>
+            </select>
+          </div>
+          
+          <div class="col-auto">
+            <label class="form-label mb-0">狀態：</label>
+            <select
+              class="form-select"
+              v-model="filters.status"
+              @change="handleFilter"
+              style="width: 120px;"
+            >
+              <option value="">全部狀態</option>
+              <option value="active">正常</option>
+              <option value="inactive">停用</option>
+              <option value="maintenance">維護中</option>
+            </select>
+          </div>
+          
+          <div class="col-auto">
+            <button
+              type="button"
+              class="btn btn-outline-secondary"
+              @click="resetFilters"
+            >
+              <i class="bi bi-arrow-clockwise me-1"></i>
+              重置篩選
+            </button>
+          </div>
+        </div>
       </div>
-      
-      <div class="filter-item">
-        <label>標籤：</label>
-        <el-select
-          v-model="filters.tags"
-          placeholder="選擇標籤"
-          multiple
-          clearable
-          style="width: 200px;"
-          @change="handleFilter"
-        >
-          <el-option
-            v-for="tag in availableTags"
-            :key="tag.id"
-            :label="tag.name"
-            :value="tag.id"
-          />
-        </el-select>
-      </div>
-      
-      <div class="filter-item">
-        <label>狀態：</label>
-        <el-select
-          v-model="filters.status"
-          placeholder="全部狀態"
-          clearable
-          style="width: 120px;"
-          @change="handleFilter"
-        >
-          <el-option label="正常" value="active" />
-          <el-option label="停用" value="inactive" />
-          <el-option label="維護中" value="maintenance" />
-        </el-select>
-      </div>
-      
-      <el-button
-        type="default"
-        icon="RefreshRight"
-        @click="resetFilters"
-      >
-        重置篩選
-      </el-button>
     </div>
 
     <!-- 資源表格 -->
     <div class="table-container">
-      <el-table
-        v-loading="loading"
-        :data="tableData"
-        style="width: 100%"
-        @selection-change="handleSelectionChange"
-        @sort-change="handleSortChange"
-      >
-        <el-table-column
-          v-if="authStore.canDeleteAnyData"
-          type="selection"
-          width="55"
-        />
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="card-title mb-0">資源列表</h5>
+          <span class="text-muted">共 {{ pagination.total }} 筆資料</span>
+        </div>
         
-        <el-table-column
-          prop="name"
-          label="資源名稱"
-          sortable="custom"
-          min-width="200"
-        >
-          <template #default="{ row }">
-            <div class="resource-name">
-              <el-icon :color="getResourceTypeColor(row.resourceType)">
-                <component :is="getResourceTypeIcon(row.resourceType)" />
-              </el-icon>
-              <span>{{ row.name }}</span>
-            </div>
-          </template>
-        </el-table-column>
-        
-        <el-table-column
-          prop="resourceType"
-          label="類型"
-          width="120"
-        >
-          <template #default="{ row }">
-            <el-tag :type="getResourceTypeTagType(row.resourceType)">
-              {{ row.resourceType }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        
-        <el-table-column
-          prop="ipAddress"
-          label="IP地址"
-          width="140"
-        />
-        
-        <el-table-column
-          prop="loginUser"
-          label="登入用戶"
-          width="120"
-        />
-        
-        <el-table-column
-          prop="tags"
-          label="標籤"
-          min-width="200"
-        >
-          <template #default="{ row }">
-            <div class="tags-container">
-              <el-tag
-                v-for="tag in row.tags"
-                :key="tag.id"
-                size="small"
-                :type="getTagType(tag.category)"
-                style="margin-right: 4px;"
-              >
-                {{ tag.name }}
-              </el-tag>
-            </div>
-          </template>
-        </el-table-column>
-        
-        <el-table-column
-          prop="status"
-          label="狀態"
-          width="100"
-        >
-          <template #default="{ row }">
-            <el-tag :type="getStatusTagType(row.status)">
-              {{ getStatusText(row.status) }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        
-        <el-table-column
-          prop="updatedAt"
-          label="更新時間"
-          width="160"
-          sortable="custom"
-        >
-          <template #default="{ row }">
-            {{ formatDateTime(row.updatedAt) }}
-          </template>
-        </el-table-column>
-        
-        <el-table-column
-          label="操作"
-          width="180"
-          fixed="right"
-        >
-          <template #default="{ row }">
-            <el-button
-              size="small"
-              @click="goToDetail(row.id)"
-            >
-              查看
-            </el-button>
-            <el-button
-              v-if="authStore.canEditITData"
-              size="small"
-              type="primary"
-              @click="goToEdit(row.id)"
-            >
-              編輯
-            </el-button>
-            <el-button
-              v-if="canDeleteResource(row)"
-              size="small"
-              type="danger"
-              @click="handleDelete(row)"
-            >
-              刪除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th v-if="authStore.canDeleteAnyData" style="width: 50px;">
+                    <input
+                      type="checkbox"
+                      class="form-check-input"
+                      @change="handleSelectAll"
+                      :checked="isAllSelected"
+                      :indeterminate="isIndeterminate"
+                    >
+                  </th>
+                  <th style="min-width: 200px; cursor: pointer;" @click="handleSort('name')">
+                    <span>資源名稱</span>
+                    <i class="bi" :class="getSortIcon('name')"></i>
+                  </th>
+                  <th style="width: 120px;">類型</th>
+                  <th style="width: 140px;">IP地址</th>
+                  <th style="width: 120px;">登入用戶</th>
+                  <th style="min-width: 200px;">標籤</th>
+                  <th style="width: 100px;">狀態</th>
+                  <th style="width: 160px; cursor: pointer;" @click="handleSort('updatedAt')">
+                    <span>更新時間</span>
+                    <i class="bi" :class="getSortIcon('updatedAt')"></i>
+                  </th>
+                  <th style="width: 180px;">操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-if="loading">
+                  <td :colspan="authStore.canDeleteAnyData ? 9 : 8" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                      <span class="visually-hidden">載入中...</span>
+                    </div>
+                  </td>
+                </tr>
+                <tr v-else-if="tableData.length === 0">
+                  <td :colspan="authStore.canDeleteAnyData ? 9 : 8" class="text-center py-4 text-muted">
+                    <i class="bi bi-inbox fs-1"></i>
+                    <p class="mt-2">暫無資源資料</p>
+                  </td>
+                </tr>
+                <tr v-else v-for="row in tableData" :key="row.id">
+                  <td v-if="authStore.canDeleteAnyData">
+                    <input
+                      type="checkbox"
+                      class="form-check-input"
+                      :value="row"
+                      @change="handleRowSelect"
+                      :checked="isRowSelected(row)"
+                    >
+                  </td>
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <i class="bi me-2 fs-5" :class="getResourceTypeIcon(row.resourceType)" :style="{ color: getResourceTypeColor(row.resourceType) }"></i>
+                      <span>{{ row.name }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge" :class="getResourceTypeTagClass(row.resourceType)">
+                      {{ row.resourceType }}
+                    </span>
+                  </td>
+                  <td>{{ row.ipAddress }}</td>
+                  <td>{{ row.loginUser }}</td>
+                  <td>
+                    <div class="d-flex flex-wrap gap-1">
+                      <span
+                        v-for="tag in row.tags"
+                        :key="tag.id"
+                        class="badge"
+                        :class="getTagClass(tag.category)"
+                      >
+                        {{ tag.name }}
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge" :class="getStatusTagClass(row.status)">
+                      {{ getStatusText(row.status) }}
+                    </span>
+                  </td>
+                  <td class="text-muted small">{{ formatDateTime(row.updatedAt) }}</td>
+                  <td>
+                    <div class="btn-group btn-group-sm" role="group">
+                      <button
+                        type="button"
+                        class="btn btn-outline-primary"
+                        @click="goToDetail(row.id)"
+                      >
+                        查看
+                      </button>
+                      <button
+                        v-if="authStore.canEditITData"
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        @click="goToEdit(row.id)"
+                      >
+                        編輯
+                      </button>
+                      <button
+                        v-if="canDeleteResource(row)"
+                        type="button"
+                        class="btn btn-outline-danger"
+                        @click="handleDelete(row)"
+                      >
+                        刪除
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
       
       <!-- 分頁 -->
-      <div class="pagination-container">
-        <el-pagination
-          v-model:current-page="pagination.currentPage"
-          v-model:page-size="pagination.pageSize"
-          :page-sizes="[10, 20, 50, 100]"
-          :total="pagination.total"
-          layout="total, sizes, prev, pager, next, jumper"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-        />
+      <div class="d-flex justify-content-between align-items-center mt-3">
+        <div class="text-muted">
+          顯示第 {{ (pagination.currentPage - 1) * pagination.pageSize + 1 }} 到 {{ Math.min(pagination.currentPage * pagination.pageSize, pagination.total) }} 筆，共 {{ pagination.total }} 筆
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <label class="form-label mb-0">每頁顯示：</label>
+          <select class="form-select" v-model="pagination.pageSize" @change="handleSizeChange" style="width: 80px;">
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+          </select>
+          <nav>
+            <ul class="pagination pagination-sm mb-0">
+              <li class="page-item" :class="{ disabled: pagination.currentPage === 1 }">
+                <button class="page-link" @click="handleCurrentChange(1)" :disabled="pagination.currentPage === 1">
+                  <i class="bi bi-chevron-double-left"></i>
+                </button>
+              </li>
+              <li class="page-item" :class="{ disabled: pagination.currentPage === 1 }">
+                <button class="page-link" @click="handleCurrentChange(pagination.currentPage - 1)" :disabled="pagination.currentPage === 1">
+                  <i class="bi bi-chevron-left"></i>
+                </button>
+              </li>
+              <li
+                v-for="page in visiblePages"
+                :key="page"
+                class="page-item"
+                :class="{ active: page === pagination.currentPage }"
+              >
+                <button class="page-link" @click="handleCurrentChange(page)">{{ page }}</button>
+              </li>
+              <li class="page-item" :class="{ disabled: pagination.currentPage === totalPages }">
+                <button class="page-link" @click="handleCurrentChange(pagination.currentPage + 1)" :disabled="pagination.currentPage === totalPages">
+                  <i class="bi bi-chevron-right"></i>
+                </button>
+              </li>
+              <li class="page-item" :class="{ disabled: pagination.currentPage === totalPages }">
+                <button class="page-link" @click="handleCurrentChange(totalPages)" :disabled="pagination.currentPage === totalPages">
+                  <i class="bi bi-chevron-double-right"></i>
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </div>
       </div>
     </div>
   </div>
@@ -274,19 +318,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  Plus,
-  Delete,
-  Refresh,
-  Search,
-  RefreshRight,
-  Setting,
-  Monitor,
-  Coin,
-  Basketball,
-  FolderOpened
-} from '@element-plus/icons-vue'
+import { showAlert, showConfirm } from '@/utils/bootstrap-alerts'
 import { useAuthStore } from '@/stores/auth'
 import { format } from 'date-fns'
 
@@ -442,13 +474,13 @@ const filteredData = computed(() => {
 // 獲取資源類型圖標
 const getResourceTypeIcon = (type: string) => {
   const iconMap: Record<string, string> = {
-    Server: 'Monitor',
-    Database: 'Coin',
-    Website: 'Basketball',
-    Storage: 'FolderOpened',
-    Cache: 'Basketball'
+    Server: 'bi-server',
+    Database: 'bi-database',
+    Website: 'bi-globe',
+    Storage: 'bi-folder',
+    Cache: 'bi-memory'
   }
-  return iconMap[type] || 'Monitor'
+  return iconMap[type] || 'bi-server'
 }
 
 // 獲取資源類型顏色
@@ -463,37 +495,37 @@ const getResourceTypeColor = (type: string) => {
   return colorMap[type] || '#909399'
 }
 
-// 獲取資源類型標籤類型
-const getResourceTypeTagType = (type: string) => {
+// 獲取資源類型標籤類別
+const getResourceTypeTagClass = (type: string) => {
   const typeMap: Record<string, string> = {
-    Server: 'primary',
-    Database: 'success',
-    Website: 'warning',
-    Storage: 'danger',
-    Cache: 'info'
+    Server: 'bg-primary',
+    Database: 'bg-success',
+    Website: 'bg-warning',
+    Storage: 'bg-danger',
+    Cache: 'bg-info'
   }
-  return typeMap[type] || 'info'
+  return typeMap[type] || 'bg-secondary'
 }
 
-// 獲取標籤類型
-const getTagType = (category: string) => {
+// 獲取標籤類別
+const getTagClass = (category: string) => {
   const typeMap: Record<string, string> = {
-    Environment: 'primary',
-    Priority: 'warning',
-    Department: 'success',
-    Project: 'info'
+    Environment: 'bg-primary',
+    Priority: 'bg-warning',
+    Department: 'bg-success',
+    Project: 'bg-info'
   }
-  return typeMap[category] || 'info'
+  return typeMap[category] || 'bg-secondary'
 }
 
-// 獲取狀態標籤類型
-const getStatusTagType = (status: string) => {
+// 獲取狀態標籤類別
+const getStatusTagClass = (status: string) => {
   const typeMap: Record<string, string> = {
-    active: 'success',
-    inactive: 'info',
-    maintenance: 'warning'
+    active: 'bg-success',
+    inactive: 'bg-secondary',
+    maintenance: 'bg-warning'
   }
-  return typeMap[status] || 'info'
+  return typeMap[status] || 'bg-secondary'
 }
 
 // 獲取狀態文本
@@ -560,7 +592,7 @@ const loadData = async () => {
     
   } catch (error) {
     console.error('Failed to load resources:', error)
-    ElMessage.error('載入資源失敗')
+    showAlert('載入資源失敗', 'error')
   } finally {
     loading.value = false
   }
@@ -571,6 +603,14 @@ const handleSearch = () => {
   pagination.value.currentPage = 1
   updateUrlParams()
   loadData()
+}
+
+// 處理搜索輸入
+const handleSearchInput = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  if (target.value === '') {
+    handleSearchClear()
+  }
 }
 
 // 處理搜索清空
@@ -666,15 +706,81 @@ const handleSelectionChange = (selection: any[]) => {
   selectedRows.value = selection
 }
 
+// 處理全選
+const handleSelectAll = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  if (target.checked) {
+    selectedRows.value = [...tableData.value]
+  } else {
+    selectedRows.value = []
+  }
+}
+
+// 處理單行選擇
+const handleRowSelect = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const row = target.value as any
+  
+  if (target.checked) {
+    if (!selectedRows.value.includes(row)) {
+      selectedRows.value.push(row)
+    }
+  } else {
+    const index = selectedRows.value.indexOf(row)
+    if (index > -1) {
+      selectedRows.value.splice(index, 1)
+    }
+  }
+}
+
+// 檢查行是否被選中
+const isRowSelected = (row: any) => {
+  return selectedRows.value.includes(row)
+}
+
+// 計算屬性：是否全選
+const isAllSelected = computed(() => {
+  return tableData.value.length > 0 && selectedRows.value.length === tableData.value.length
+})
+
+// 計算屬性：是否部分選擇
+const isIndeterminate = computed(() => {
+  return selectedRows.value.length > 0 && selectedRows.value.length < tableData.value.length
+})
+
 // 處理排序變化
 const handleSortChange = ({ prop, order }: any) => {
   sortConfig.value = { prop, order }
   loadData()
 }
 
+// 處理排序
+const handleSort = (prop: string) => {
+  if (sortConfig.value.prop === prop) {
+    // 切換排序順序
+    sortConfig.value.order = sortConfig.value.order === 'ascending' ? 'descending' : 'ascending'
+  } else {
+    // 新的排序屬性
+    sortConfig.value.prop = prop
+    sortConfig.value.order = 'ascending'
+  }
+  loadData()
+}
+
+// 獲取排序圖標
+const getSortIcon = (prop: string) => {
+  if (sortConfig.value.prop !== prop) {
+    return 'bi-arrow-down-up'
+  }
+  return sortConfig.value.order === 'ascending' ? 'bi-arrow-up' : 'bi-arrow-down'
+}
+
 // 處理分頁大小變化
-const handleSizeChange = (size: number) => {
-  pagination.value.pageSize = size
+const handleSizeChange = (event?: Event) => {
+  if (event) {
+    const target = event.target as HTMLSelectElement
+    pagination.value.pageSize = Number(target.value)
+  }
   pagination.value.currentPage = 1
   loadData()
 }
@@ -684,6 +790,36 @@ const handleCurrentChange = (page: number) => {
   pagination.value.currentPage = page
   loadData()
 }
+
+// 計算屬性：總頁數
+const totalPages = computed(() => {
+  return Math.ceil(pagination.value.total / pagination.value.pageSize)
+})
+
+// 計算屬性：可見的頁碼
+const visiblePages = computed(() => {
+  const current = pagination.value.currentPage
+  const total = totalPages.value
+  const delta = 2
+  
+  let start = Math.max(1, current - delta)
+  let end = Math.min(total, current + delta)
+  
+  if (end - start < 2 * delta) {
+    if (start === 1) {
+      end = Math.min(total, start + 2 * delta)
+    } else if (end === total) {
+      start = Math.max(1, end - 2 * delta)
+    }
+  }
+  
+  const pages = []
+  for (let i = start; i <= end; i++) {
+    pages.push(i)
+  }
+  
+  return pages
+})
 
 // 刷新數據
 const refreshData = () => {
@@ -708,57 +844,57 @@ const goToEdit = (id: number) => {
 // 處理刪除
 const handleDelete = async (resource: any) => {
   try {
-    await ElMessageBox.confirm(
+    const confirmed = await showConfirm(
       `確定要刪除資源 "${resource.name}" 嗎？此操作不可恢復。`,
       '確認刪除',
       {
-        confirmButtonText: '確定',
-        cancelButtonText: '取消',
-        type: 'warning'
+        confirmText: '確定',
+        cancelText: '取消',
+        type: 'danger'
       }
     )
+    
+    if (!confirmed) return
     
     // 這裡調用刪除API
     // await resourcesApi.deleteResource(resource.id)
     
-    ElMessage.success('刪除成功')
+    showAlert('刪除成功', 'success')
     loadData()
   } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('刪除失敗')
-    }
+    showAlert('刪除失敗', 'error')
   }
 }
 
 // 處理批量刪除
 const handleBatchDelete = async () => {
   if (selectedRows.value.length === 0) {
-    ElMessage.warning('請選擇要刪除的資源')
+    showAlert('請選擇要刪除的資源', 'warning')
     return
   }
   
   try {
-    await ElMessageBox.confirm(
+    const confirmed = await showConfirm(
       `確定要刪除選中的 ${selectedRows.value.length} 個資源嗎？此操作不可恢復。`,
       '確認批量刪除',
       {
-        confirmButtonText: '確定',
-        cancelButtonText: '取消',
-        type: 'warning'
+        confirmText: '確定',
+        cancelText: '取消',
+        type: 'danger'
       }
     )
+    
+    if (!confirmed) return
     
     // 這裡調用批量刪除API
     // const ids = selectedRows.value.map(row => row.id)
     // await resourcesApi.deleteResources(ids)
     
-    ElMessage.success('批量刪除成功')
+    showAlert('批量刪除成功', 'success')
     selectedRows.value = []
     loadData()
   } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('批量刪除失敗')
-    }
+    showAlert('批量刪除失敗', 'error')
   }
 }
 
@@ -783,65 +919,82 @@ onMounted(() => {
 <style lang="scss" scoped>
 .resources-list {
   .header-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    
-    .actions-left {
-      display: flex;
-      gap: 8px;
-    }
-    
-    .actions-right {
-      display: flex;
-      gap: 8px;
+    .btn-group {
+      .btn {
+        border-radius: 0.375rem;
+        
+        &:not(:last-child) {
+          margin-right: 0.5rem;
+        }
+      }
     }
   }
   
   .filter-bar {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px;
-    background: var(--el-bg-color-page);
-    border-radius: 8px;
-    margin-bottom: 16px;
-    
-    .filter-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      
-      label {
-        font-size: 14px;
-        color: var(--el-text-color-primary);
-        white-space: nowrap;
-      }
+    .form-label {
+      font-weight: 500;
+      color: var(--bs-gray-700);
     }
   }
   
   .table-container {
-    .resource-name {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    .table {
+      th {
+        background-color: var(--bs-gray-50);
+        border-bottom: 2px solid var(--bs-gray-200);
+        font-weight: 600;
+        
+        &[style*="cursor: pointer"] {
+          user-select: none;
+          transition: background-color 0.15s ease-in-out;
+          
+          &:hover {
+            background-color: var(--bs-gray-100);
+          }
+        }
+      }
       
-      .el-icon {
-        font-size: 16px;
+      td {
+        vertical-align: middle;
+        padding: 0.75rem;
+        
+        .badge {
+          font-size: 0.75rem;
+        }
+      }
+      
+      tbody tr {
+        transition: background-color 0.15s ease-in-out;
+        
+        &:hover {
+          background-color: var(--bs-gray-50);
+        }
       }
     }
     
-    .tags-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
+    .btn-group-sm .btn {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.875rem;
+    }
+  }
+  
+  .pagination {
+    .page-link {
+      padding: 0.375rem 0.75rem;
+      
+      &:hover {
+        z-index: 2;
+        color: var(--bs-primary);
+        background-color: var(--bs-gray-200);
+        border-color: var(--bs-gray-300);
+      }
     }
     
-    .pagination-container {
-      display: flex;
-      justify-content: center;
-      margin-top: 20px;
+    .page-item.active .page-link {
+      z-index: 3;
+      color: var(--bs-white);
+      background-color: var(--bs-primary);
+      border-color: var(--bs-primary);
     }
   }
 }
@@ -850,33 +1003,52 @@ onMounted(() => {
 @media (max-width: 768px) {
   .resources-list {
     .header-actions {
-      flex-direction: column;
-      gap: 12px;
-      
-      .actions-left,
-      .actions-right {
+      .col-auto {
         width: 100%;
-        justify-content: center;
+        
+        .btn-group {
+          width: 100%;
+          justify-content: center;
+        }
+        
+        .input-group {
+          width: 100% !important;
+        }
       }
     }
     
     .filter-bar {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 12px;
-      
-      .filter-item {
+      .row {
         flex-direction: column;
-        align-items: stretch;
+        
+        .col-auto {
+          width: 100%;
+          
+          .form-select {
+            width: 100% !important;
+          }
+        }
       }
+    }
+    
+    .table-responsive {
+      font-size: 0.875rem;
     }
   }
 }
 
 // 暗黑模式
-.dark {
-  .filter-bar {
-    background: var(--el-bg-color-page);
+@media (prefers-color-scheme: dark) {
+  .resources-list {
+    .filter-bar {
+      background-color: var(--bs-dark);
+      border-color: var(--bs-gray-700);
+    }
+    
+    .table {
+      --bs-table-bg: var(--bs-dark);
+      --bs-table-color: var(--bs-white);
+    }
   }
 }
 </style>

@@ -1,7 +1,11 @@
 <template>
   <div class="resource-detail">
     <div v-if="loading" class="loading-container">
-      <el-skeleton :rows="8" animated />
+      <div class="d-flex justify-content-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">加載中...</span>
+        </div>
+      </div>
     </div>
     
     <div v-else-if="resource" class="detail-content">
@@ -10,19 +14,17 @@
         <div class="header-left">
           <div class="resource-info">
             <div class="resource-icon">
-              <el-icon :color="getResourceTypeColor(resource.resourceType)" size="32">
-                <component :is="getResourceTypeIcon(resource.resourceType)" />
-              </el-icon>
+              <i :class="getResourceTypeIconClass(resource.resourceType)" :style="{ color: getResourceTypeColor(resource.resourceType) }"></i>
             </div>
             <div class="resource-basic">
               <h1 class="resource-name">{{ resource.name }}</h1>
               <div class="resource-meta">
-                <el-tag :type="getResourceTypeTagType(resource.resourceType)">
+                <span :class="getResourceTypeTagClass(resource.resourceType)">
                   {{ resource.resourceType }}
-                </el-tag>
-                <el-tag :type="getStatusTagType(resource.status)">
+                </span>
+                <span :class="getStatusTagClass(resource.status)">
                   {{ getStatusText(resource.status) }}
-                </el-tag>
+                </span>
                 <span class="resource-ip">{{ resource.ipAddress }}</span>
               </div>
             </div>
@@ -30,267 +32,310 @@
         </div>
         
         <div class="header-right">
-          <el-button icon="Refresh" @click="loadData">刷新</el-button>
-          <el-button
+          <button type="button" class="btn btn-outline-secondary" @click="loadData">
+            <i class="bi bi-arrow-clockwise me-1"></i>
+            刷新
+          </button>
+          <button
             v-if="authStore.isAdmin"
-            type="primary"
-            icon="Edit"
+            type="button"
+            class="btn btn-primary"
             @click="goToEdit"
           >
+            <i class="bi bi-pencil me-1"></i>
             編輯
-          </el-button>
-          <el-button
+          </button>
+          <button
             v-if="authStore.isAdmin"
-            type="danger"
-            icon="Delete"
+            type="button"
+            class="btn btn-danger"
             @click="handleDelete"
           >
+            <i class="bi bi-trash me-1"></i>
             刪除
-          </el-button>
+          </button>
         </div>
       </div>
 
       <!-- 主要內容 -->
-      <el-row :gutter="20">
+      <div class="row">
         <!-- 左側主要信息 -->
-        <el-col :xs="24" :sm="24" :md="16" :lg="16" :xl="16">
+        <div class="col-lg-8">
           <!-- 基本信息 -->
-          <el-card class="info-card" header="基本信息">
-            <div class="info-grid">
-              <div class="info-item">
-                <label>資源名稱：</label>
-                <span>{{ resource.name }}</span>
-              </div>
-              <div class="info-item">
-                <label>資源類型：</label>
-                <el-tag :type="getResourceTypeTagType(resource.resourceType)">
-                  {{ resource.resourceType }}
-                </el-tag>
-              </div>
-              <div class="info-item">
-                <label>IP地址：</label>
-                <el-button
-                  type="primary"
-                  text
-                  @click="copyToClipboard(resource.ipAddress)"
-                >
-                  {{ resource.ipAddress }}
-                  <el-icon><DocumentCopy /></el-icon>
-                </el-button>
-              </div>
-              <div class="info-item">
-                <label>狀態：</label>
-                <el-tag :type="getStatusTagType(resource.status)">
-                  {{ getStatusText(resource.status) }}
-                </el-tag>
-              </div>
-              <div class="info-item">
-                <label>描述：</label>
-                <span>{{ resource.description || '無描述' }}</span>
-              </div>
-              <div class="info-item">
-                <label>創建時間：</label>
-                <span>{{ formatDateTime(resource.createdAt) }}</span>
-              </div>
-              <div class="info-item">
-                <label>更新時間：</label>
-                <span>{{ formatDateTime(resource.updatedAt) }}</span>
+          <div class="card info-card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">基本信息</h5>
+            </div>
+            <div class="card-body">
+              <div class="info-grid">
+                <div class="info-item">
+                  <label>資源名稱：</label>
+                  <span>{{ resource.name }}</span>
+                </div>
+                <div class="info-item">
+                  <label>資源類型：</label>
+                  <span :class="getResourceTypeTagClass(resource.resourceType)">
+                    {{ resource.resourceType }}
+                  </span>
+                </div>
+                <div class="info-item">
+                  <label>IP地址：</label>
+                  <button
+                    type="button"
+                    class="btn btn-link p-0"
+                    @click="copyToClipboard(resource.ipAddress)"
+                  >
+                    {{ resource.ipAddress }}
+                    <i class="bi bi-clipboard ms-1"></i>
+                  </button>
+                </div>
+                <div class="info-item">
+                  <label>狀態：</label>
+                  <span :class="getStatusTagClass(resource.status)">
+                    {{ getStatusText(resource.status) }}
+                  </span>
+                </div>
+                <div class="info-item">
+                  <label>描述：</label>
+                  <span>{{ resource.description || '無描述' }}</span>
+                </div>
+                <div class="info-item">
+                  <label>創建時間：</label>
+                  <span>{{ formatDateTime(resource.createdAt) }}</span>
+                </div>
+                <div class="info-item">
+                  <label>更新時間：</label>
+                  <span>{{ formatDateTime(resource.updatedAt) }}</span>
+                </div>
               </div>
             </div>
-          </el-card>
+          </div>
 
           <!-- 連接信息 -->
-          <el-card class="info-card" header="連接信息">
-            <div class="info-grid">
-              <div class="info-item">
-                <label>登入用戶：</label>
-                <el-button
-                  type="primary"
-                  text
-                  @click="copyToClipboard(resource.loginUser)"
-                >
-                  {{ resource.loginUser }}
-                  <el-icon><DocumentCopy /></el-icon>
-                </el-button>
-              </div>
-              <div class="info-item">
-                <label>登入密碼：</label>
-                <div class="password-field">
-                  <el-input
-                    v-model="decryptedPassword"
-                    type="password"
-                    readonly
-                    style="width: 200px;"
-                  />
-                  <el-button
-                    type="primary"
-                    text
-                    @click="decryptPassword"
-                    :loading="decryptLoading"
+          <div class="card info-card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">連接信息</h5>
+            </div>
+            <div class="card-body">
+              <div class="info-grid">
+                <div class="info-item">
+                  <label>登入用戶：</label>
+                  <button
+                    type="button"
+                    class="btn btn-link p-0"
+                    @click="copyToClipboard(resource.loginUser)"
                   >
-                    <el-icon><View /></el-icon>
-                    解密
-                  </el-button>
-                  <el-button
-                    v-if="decryptedPassword"
-                    type="primary"
-                    text
-                    @click="copyToClipboard(decryptedPassword)"
-                  >
-                    <el-icon><DocumentCopy /></el-icon>
-                    複製
-                  </el-button>
+                    {{ resource.loginUser }}
+                    <i class="bi bi-clipboard ms-1"></i>
+                  </button>
+                </div>
+                <div class="info-item">
+                  <label>登入密碼：</label>
+                  <div class="password-field">
+                    <input
+                      v-model="decryptedPassword"
+                      type="password"
+                      class="form-control"
+                      readonly
+                      style="width: 200px;"
+                    />
+                    <button
+                      type="button"
+                      class="btn btn-link p-0"
+                      @click="decryptPassword"
+                      :disabled="decryptLoading"
+                    >
+                      <span v-if="decryptLoading" class="spinner-border spinner-border-sm me-1"></span>
+                      <i v-else class="bi bi-eye me-1"></i>
+                      解密
+                    </button>
+                    <button
+                      v-if="decryptedPassword"
+                      type="button"
+                      class="btn btn-link p-0"
+                      @click="copyToClipboard(decryptedPassword)"
+                    >
+                      <i class="bi bi-clipboard me-1"></i>
+                      複製
+                    </button>
+                  </div>
+                </div>
+                <div class="info-item">
+                  <label>端口：</label>
+                  <span>{{ resource.port }}</span>
+                </div>
+                <div class="info-item">
+                  <label>協議：</label>
+                  <span class="badge bg-info">{{ resource.protocol?.toUpperCase() }}</span>
                 </div>
               </div>
-              <div class="info-item">
-                <label>端口：</label>
-                <span>{{ resource.port }}</span>
-              </div>
-              <div class="info-item">
-                <label>協議：</label>
-                <el-tag type="info">{{ resource.protocol?.toUpperCase() }}</el-tag>
-              </div>
             </div>
-          </el-card>
+          </div>
 
           <!-- 標籤信息 -->
-          <el-card class="info-card" header="標籤信息">
-            <div class="tags-container">
-              <el-tag
-                v-for="tag in resource.tags"
-                :key="tag.id"
-                :type="getTagType(tag.category)"
-                class="tag-item"
-              >
-                {{ tag.name }}
-              </el-tag>
-              <el-tag
-                v-for="customTag in resource.customTags"
-                :key="customTag"
-                type="info"
-                class="tag-item"
-              >
-                {{ customTag }}
-              </el-tag>
+          <div class="card info-card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">標籤信息</h5>
             </div>
-          </el-card>
+            <div class="card-body">
+              <div class="tags-container">
+                <span
+                  v-for="tag in resource.tags"
+                  :key="tag.id"
+                  :class="getTagClass(tag.category)"
+                  class="tag-item"
+                >
+                  {{ tag.name }}
+                </span>
+                <span
+                  v-for="customTag in resource.customTags"
+                  :key="customTag"
+                  class="badge bg-info tag-item"
+                >
+                  {{ customTag }}
+                </span>
+              </div>
+            </div>
+          </div>
 
           <!-- 操作記錄 -->
-          <el-card class="info-card" header="操作記錄">
-            <div class="activity-list">
-              <div
-                v-for="activity in activities"
-                :key="activity.id"
-                class="activity-item"
-              >
-                <div class="activity-icon">
-                  <el-icon :color="getActivityColor(activity.type)">
-                    <component :is="getActivityIcon(activity.type)" />
-                  </el-icon>
-                </div>
-                <div class="activity-content">
-                  <div class="activity-title">{{ activity.title }}</div>
-                  <div class="activity-description">{{ activity.description }}</div>
-                  <div class="activity-meta">
-                    <span class="activity-user">{{ activity.user }}</span>
-                    <span class="activity-time">{{ formatTime(activity.createdAt) }}</span>
+          <div class="card info-card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">操作記錄</h5>
+            </div>
+            <div class="card-body">
+              <div class="activity-list">
+                <div
+                  v-for="activity in activities"
+                  :key="activity.id"
+                  class="activity-item"
+                >
+                  <div class="activity-icon">
+                    <i :class="getActivityIcon(activity.type)" :style="{ color: getActivityColor(activity.type) }"></i>
+                  </div>
+                  <div class="activity-content">
+                    <div class="activity-title">{{ activity.title }}</div>
+                    <div class="activity-description">{{ activity.description }}</div>
+                    <div class="activity-meta">
+                      <span class="activity-user">{{ activity.user }}</span>
+                      <span class="activity-time">{{ formatTime(activity.createdAt) }}</span>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </el-card>
-        </el-col>
+          </div>
+        </div>
 
         <!-- 右側附加信息 -->
-        <el-col :xs="24" :sm="24" :md="8" :lg="8" :xl="8">
+        <div class="col-lg-4">
           <!-- 快速操作 -->
-          <el-card class="info-card" header="快速操作">
-            <div class="quick-actions">
-              <el-button
-                type="primary"
-                icon="Link"
-                @click="testConnection"
-                :loading="testingConnection"
-              >
-                測試連接
-              </el-button>
-              <el-button
-                type="success"
-                icon="Monitor"
-                @click="openMonitoring"
-              >
-                監控狀態
-              </el-button>
-              <el-button
-                type="warning"
-                icon="Tools"
-                @click="openMaintenance"
-              >
-                維護模式
-              </el-button>
+          <div class="card info-card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">快速操作</h5>
             </div>
-          </el-card>
+            <div class="card-body">
+              <div class="quick-actions d-grid gap-2">
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  @click="testConnection"
+                  :disabled="testingConnection"
+                >
+                  <i class="bi bi-link-45deg me-2"></i>
+                  {{ testingConnection ? '測試中...' : '測試連接' }}
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-success"
+                  @click="openMonitoring"
+                >
+                  <i class="bi bi-activity me-2"></i>
+                  監控狀態
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-warning"
+                  @click="openMaintenance"
+                >
+                  <i class="bi bi-tools me-2"></i>
+                  維護模式
+                </button>
+              </div>
+            </div>
+          </div>
 
           <!-- 相關資源 -->
-          <el-card class="info-card" header="相關資源">
-            <div class="related-resources">
-              <div
-                v-for="relatedResource in relatedResources"
-                :key="relatedResource.id"
-                class="related-item"
-                @click="goToResource(relatedResource.id)"
-              >
-                <div class="related-icon">
-                  <el-icon :color="getResourceTypeColor(relatedResource.resourceType)">
-                    <component :is="getResourceTypeIcon(relatedResource.resourceType)" />
-                  </el-icon>
-                </div>
-                <div class="related-content">
-                  <div class="related-name">{{ relatedResource.name }}</div>
-                  <div class="related-type">{{ relatedResource.resourceType }}</div>
+          <div class="card info-card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">相關資源</h5>
+            </div>
+            <div class="card-body">
+              <div class="related-resources">
+                <div
+                  v-for="relatedResource in relatedResources"
+                  :key="relatedResource.id"
+                  class="related-item"
+                  @click="goToResource(relatedResource.id)"
+                >
+                  <div class="related-icon">
+                    <i :class="getResourceTypeIcon(relatedResource.resourceType)" :style="{ color: getResourceTypeColor(relatedResource.resourceType) }"></i>
+                  </div>
+                  <div class="related-content">
+                    <div class="related-name">{{ relatedResource.name }}</div>
+                    <div class="related-type">{{ relatedResource.resourceType }}</div>
+                  </div>
                 </div>
               </div>
             </div>
-          </el-card>
+          </div>
 
           <!-- 統計信息 -->
-          <el-card class="info-card" header="統計信息">
-            <div class="stats-grid">
-              <div class="stat-item">
-                <div class="stat-label">訪問次數</div>
-                <div class="stat-value">{{ stats.accessCount }}</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-label">最後訪問</div>
-                <div class="stat-value">{{ formatTime(stats.lastAccess) }}</div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-label">連接狀態</div>
-                <div class="stat-value">
-                  <el-tag :type="stats.connectionStatus === 'online' ? 'success' : 'danger'">
-                    {{ stats.connectionStatus === 'online' ? '在線' : '離線' }}
-                  </el-tag>
+          <div class="card info-card">
+            <div class="card-header">
+              <h5 class="card-title mb-0">統計信息</h5>
+            </div>
+            <div class="card-body">
+              <div class="stats-grid">
+                <div class="stat-item">
+                  <div class="stat-label">訪問次數</div>
+                  <div class="stat-value">{{ stats.accessCount }}</div>
                 </div>
-              </div>
-              <div class="stat-item">
-                <div class="stat-label">重要程度</div>
-                <div class="stat-value">
-                  <el-rate
-                    v-model="resource.priority"
-                    disabled
-                    show-score
-                    text-color="#ff9900"
-                  />
+                <div class="stat-item">
+                  <div class="stat-label">最後訪問</div>
+                  <div class="stat-value">{{ formatTime(stats.lastAccess) }}</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-label">連接狀態</div>
+                  <div class="stat-value">
+                    <span :class="stats.connectionStatus === 'online' ? 'badge bg-success' : 'badge bg-danger'">
+                      {{ stats.connectionStatus === 'online' ? '在線' : '離線' }}
+                    </span>
+                  </div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-label">重要程度</div>
+                  <div class="stat-value">
+                    <div class="priority-rating">
+                      <span v-for="n in 5" :key="n" class="star">
+                        <i :class="n <= resource.priority ? 'bi bi-star-fill text-warning' : 'bi bi-star text-muted'"></i>
+                      </span>
+                      <span class="ms-2 text-muted">{{ resource.priority }}/5</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
-          </el-card>
-        </el-col>
-      </el-row>
+          </div>
+        </div>
+      </div>
     </div>
     
     <div v-else class="error-state">
-      <el-empty description="資源不存在或已被刪除" />
+      <div class="text-center py-5">
+        <i class="bi bi-exclamation-triangle text-muted" style="font-size: 4rem;"></i>
+        <p class="mt-3 text-muted">資源不存在或已被刪除</p>
+      </div>
     </div>
   </div>
 </template>
@@ -298,25 +343,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  Refresh,
-  Edit,
-  Delete,
-  DocumentCopy,
-  View,
-  Link,
-  Monitor,
-  Tools,
-  Plus,
-  Setting,
-  User,
-  Warning
-} from '@element-plus/icons-vue'
 import { useAuthStore } from '@/stores/auth'
 import { format } from 'date-fns'
 import { formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
+import { showAlert, showConfirm } from '@/utils/bootstrap-alerts'
 
 // 狀態管理
 const authStore = useAuthStore()
@@ -382,13 +413,25 @@ const stats = ref({
 // 獲取資源類型圖標
 const getResourceTypeIcon = (type: string) => {
   const iconMap: Record<string, string> = {
-    Server: 'Monitor',
-    Database: 'Coin',
-    Website: 'Basketball',
-    Storage: 'FolderOpened',
-    Cache: 'Basketball'
+    Server: 'bi bi-server',
+    Database: 'bi bi-database',
+    Website: 'bi bi-globe',
+    Storage: 'bi bi-hdd',
+    Cache: 'bi bi-lightning'
   }
-  return iconMap[type] || 'Monitor'
+  return iconMap[type] || 'bi bi-server'
+}
+
+// 獲取資源類型圖標類別 (for header)
+const getResourceTypeIconClass = (type: string) => {
+  const iconMap: Record<string, string> = {
+    Server: 'bi bi-server',
+    Database: 'bi bi-database',
+    Website: 'bi bi-globe',
+    Storage: 'bi bi-hdd',
+    Cache: 'bi bi-lightning'
+  }
+  return iconMap[type] || 'bi bi-server'
 }
 
 // 獲取資源類型顏色
@@ -404,25 +447,25 @@ const getResourceTypeColor = (type: string) => {
 }
 
 // 獲取資源類型標籤類型
-const getResourceTypeTagType = (type: string) => {
+const getResourceTypeTagClass = (type: string) => {
   const typeMap: Record<string, string> = {
-    Server: 'primary',
-    Database: 'success',
-    Website: 'warning',
-    Storage: 'danger',
-    Cache: 'info'
+    Server: 'badge bg-primary',
+    Database: 'badge bg-success',
+    Website: 'badge bg-warning text-dark',
+    Storage: 'badge bg-danger',
+    Cache: 'badge bg-info text-dark'
   }
-  return typeMap[type] || 'info'
+  return typeMap[type] || 'badge bg-info text-dark'
 }
 
 // 獲取狀態標籤類型
-const getStatusTagType = (status: string) => {
+const getStatusTagClass = (status: string) => {
   const typeMap: Record<string, string> = {
-    active: 'success',
-    inactive: 'info',
-    maintenance: 'warning'
+    active: 'badge bg-success',
+    inactive: 'badge bg-info text-dark',
+    maintenance: 'badge bg-warning text-dark'
   }
-  return typeMap[status] || 'info'
+  return typeMap[status] || 'badge bg-info text-dark'
 }
 
 // 獲取狀態文本
@@ -449,13 +492,13 @@ const getTagType = (category: string) => {
 // 獲取活動圖標
 const getActivityIcon = (type: string) => {
   const iconMap: Record<string, string> = {
-    create: 'Plus',
-    update: 'Edit',
-    delete: 'Delete',
-    access: 'View',
-    maintenance: 'Tools'
+    create: 'bi bi-plus-circle',
+    update: 'bi bi-pencil',
+    delete: 'bi bi-trash',
+    access: 'bi bi-eye',
+    maintenance: 'bi bi-tools'
   }
-  return iconMap[type] || 'InfoFilled'
+  return iconMap[type] || 'bi bi-info-circle'
 }
 
 // 獲取活動顏色
@@ -487,9 +530,9 @@ const formatTime = (time: Date) => {
 const copyToClipboard = async (text: string) => {
   try {
     await navigator.clipboard.writeText(text)
-    ElMessage.success('已複製到剪貼板')
+    showAlert('已複製到剪貼板', 'success')
   } catch (error) {
-    ElMessage.error('複製失敗')
+    showAlert('複製失敗', 'danger')
   }
 }
 
@@ -506,9 +549,9 @@ const decryptPassword = async () => {
     await new Promise(resolve => setTimeout(resolve, 500))
     decryptedPassword.value = 'decrypted_password_123'
     
-    ElMessage.success('密碼解密成功')
+    showAlert('密碼解密成功', 'success')
   } catch (error) {
-    ElMessage.error('密碼解密失敗')
+    showAlert('密碼解密失敗', 'danger')
   } finally {
     decryptLoading.value = false
   }
@@ -525,9 +568,9 @@ const testConnection = async () => {
     // 模擬測試
     await new Promise(resolve => setTimeout(resolve, 1000))
     
-    ElMessage.success('連接測試成功')
+    showAlert('連接測試成功', 'success')
   } catch (error) {
-    ElMessage.error('連接測試失敗')
+    showAlert('連接測試失敗', 'danger')
   } finally {
     testingConnection.value = false
   }
@@ -535,12 +578,12 @@ const testConnection = async () => {
 
 // 打開監控
 const openMonitoring = () => {
-  ElMessage.info('監控功能開發中...')
+  showAlert('監控功能開發中...', 'info')
 }
 
 // 打開維護模式
 const openMaintenance = () => {
-  ElMessage.info('維護功能開發中...')
+  showAlert('維護功能開發中...', 'info')
 }
 
 // 前往編輯頁面
@@ -556,25 +599,20 @@ const goToResource = (id: number) => {
 // 處理刪除
 const handleDelete = async () => {
   try {
-    await ElMessageBox.confirm(
+    const confirmed = await showConfirm(
       `確定要刪除資源 "${resource.value.name}" 嗎？此操作不可恢復。`,
-      '確認刪除',
-      {
-        confirmButtonText: '確定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }
+      '確認刪除'
     )
+    
+    if (!confirmed) return
     
     // 這裡調用刪除API
     // await resourcesApi.deleteResource(resource.value.id)
     
-    ElMessage.success('刪除成功')
+    showAlert('刪除成功', 'success')
     router.push('/resources')
   } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('刪除失敗')
-    }
+    showAlert('刪除失敗', 'danger')
   }
 }
 
@@ -614,7 +652,7 @@ const loadData = async () => {
     
   } catch (error) {
     console.error('Failed to load resource:', error)
-    ElMessage.error('載入資源失敗')
+    showAlert('載入資源失敗', 'danger')
   } finally {
     loading.value = false
   }
@@ -639,9 +677,9 @@ onMounted(() => {
       align-items: center;
       margin-bottom: 20px;
       padding: 20px;
-      background: var(--el-bg-color);
+      background: var(--bs-body-bg);
       border-radius: 8px;
-      border: 1px solid var(--el-border-color);
+      border: 1px solid var(--bs-border-color);
       
       .header-left {
         .resource-info {
@@ -655,7 +693,7 @@ onMounted(() => {
             display: flex;
             align-items: center;
             justify-content: center;
-            background: var(--el-bg-color-page);
+            background: var(--bs-light);
             border-radius: 12px;
           }
           
@@ -664,7 +702,7 @@ onMounted(() => {
               margin: 0 0 8px 0;
               font-size: 28px;
               font-weight: 600;
-              color: var(--el-text-color-primary);
+              color: var(--bs-body-color);
             }
             
             .resource-meta {
@@ -674,8 +712,8 @@ onMounted(() => {
               
               .resource-ip {
                 font-family: monospace;
-                color: var(--el-text-color-regular);
-                background: var(--el-bg-color-page);
+                color: var(--bs-secondary-color);
+                background: var(--bs-light);
                 padding: 2px 8px;
                 border-radius: 4px;
               }
@@ -705,7 +743,7 @@ onMounted(() => {
           
           label {
             font-weight: 500;
-            color: var(--el-text-color-regular);
+            color: var(--bs-secondary-color);
             min-width: 80px;
           }
           
@@ -733,7 +771,7 @@ onMounted(() => {
           align-items: flex-start;
           gap: 12px;
           padding: 12px 0;
-          border-bottom: 1px solid var(--el-border-color-lighter);
+          border-bottom: 1px solid var(--bs-border-color);
           
           &:last-child {
             border-bottom: none;
@@ -742,7 +780,7 @@ onMounted(() => {
           .activity-icon {
             margin-top: 4px;
             
-            .el-icon {
+            i {
               font-size: 16px;
             }
           }
@@ -753,13 +791,13 @@ onMounted(() => {
             .activity-title {
               font-size: 14px;
               font-weight: 500;
-              color: var(--el-text-color-primary);
+              color: var(--bs-body-color);
               margin-bottom: 4px;
             }
             
             .activity-description {
               font-size: 13px;
-              color: var(--el-text-color-regular);
+              color: var(--bs-secondary-color);
               margin-bottom: 4px;
             }
             
@@ -770,12 +808,12 @@ onMounted(() => {
               
               .activity-user {
                 font-size: 12px;
-                color: var(--el-text-color-placeholder);
+                color: var(--bs-secondary-color);
               }
               
               .activity-time {
                 font-size: 12px;
-                color: var(--el-text-color-placeholder);
+                color: var(--bs-secondary-color);
               }
             }
           }
@@ -787,8 +825,7 @@ onMounted(() => {
         flex-direction: column;
         gap: 12px;
         
-        .el-button {
-          width: 100%;
+        .btn {
           justify-content: flex-start;
         }
       }
@@ -799,12 +836,12 @@ onMounted(() => {
           align-items: center;
           gap: 12px;
           padding: 12px 0;
-          border-bottom: 1px solid var(--el-border-color-lighter);
+          border-bottom: 1px solid var(--bs-border-color);
           cursor: pointer;
           transition: background-color 0.3s ease;
           
           &:hover {
-            background-color: var(--el-bg-color-page);
+            background-color: var(--bs-light);
           }
           
           &:last-child {
@@ -812,7 +849,7 @@ onMounted(() => {
           }
           
           .related-icon {
-            .el-icon {
+            i {
               font-size: 18px;
             }
           }
@@ -823,13 +860,13 @@ onMounted(() => {
             .related-name {
               font-size: 14px;
               font-weight: 500;
-              color: var(--el-text-color-primary);
+              color: var(--bs-body-color);
               margin-bottom: 2px;
             }
             
             .related-type {
               font-size: 12px;
-              color: var(--el-text-color-regular);
+              color: var(--bs-secondary-color);
             }
           }
         }
@@ -845,14 +882,24 @@ onMounted(() => {
           
           .stat-label {
             font-size: 12px;
-            color: var(--el-text-color-regular);
+            color: var(--bs-secondary-color);
             margin-bottom: 4px;
           }
           
           .stat-value {
             font-size: 14px;
             font-weight: 500;
-            color: var(--el-text-color-primary);
+            color: var(--bs-body-color);
+            
+            .priority-stars {
+              display: flex;
+              align-items: center;
+              
+              i {
+                font-size: 12px;
+                margin-right: 2px;
+              }
+            }
           }
         }
       }
@@ -909,12 +956,17 @@ onMounted(() => {
 }
 
 // 暗黑模式
-.dark {
+@media (prefers-color-scheme: dark) {
   .resource-detail {
     .detail-content {
       .page-header {
-        background: var(--el-bg-color);
-        border-color: var(--el-border-color);
+        background: var(--bs-dark);
+        border-color: var(--bs-border-color);
+      }
+      
+      .info-card {
+        background: var(--bs-dark);
+        border-color: var(--bs-gray-700);
       }
     }
   }

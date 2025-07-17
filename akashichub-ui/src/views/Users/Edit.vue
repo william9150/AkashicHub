@@ -1,374 +1,513 @@
 <template>
   <div class="user-edit">
-    <div v-if="loading" class="loading-container">
-      <el-skeleton :rows="8" animated />
-    </div>
-    
-    <div v-else-if="user">
-      <div class="page-header">
-        <h2>編輯用戶</h2>
-        <p>修改用戶 "{{ user.displayName }}" 的配置信息</p>
-      </div>
-
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-width="120px"
-        class="user-form"
-      >
-        <!-- 基本資訊 -->
-        <el-card class="form-section" header="基本資訊">
-          <el-form-item label="登入帳號" prop="loginAccount">
-            <el-input
-              v-model="form.loginAccount"
-              placeholder="請輸入登入帳號"
-              maxlength="50"
-              show-word-limit
-              :disabled="!canEditAccount"
-              @blur="checkAccountAvailability"
-            />
-            <div v-if="accountCheckResult" class="account-check-result">
-              <el-text 
-                :type="accountCheckResult.available ? 'success' : 'danger'"
-                size="small"
-              >
-                <el-icon>
-                  <component :is="accountCheckResult.available ? 'SuccessFilled' : 'CircleCloseFilled'" />
-                </el-icon>
-                {{ accountCheckResult.message }}
-              </el-text>
-            </div>
-            <div v-if="!canEditAccount" class="field-disabled-hint">
-              <el-text type="info" size="small">
-                <el-icon><InfoFilled /></el-icon>
-                管理員帳號不允許修改登入帳號
-              </el-text>
-            </div>
-          </el-form-item>
-
-          <el-form-item label="用戶名稱" prop="displayName">
-            <el-input
-              v-model="form.displayName"
-              placeholder="請輸入用戶顯示名稱"
-              maxlength="100"
-              show-word-limit
-            />
-          </el-form-item>
-
-          <el-form-item label="電子郵件" prop="email">
-            <el-input
-              v-model="form.email"
-              placeholder="請輸入電子郵件地址"
-              maxlength="255"
-            />
-          </el-form-item>
-
-          <el-form-item label="部門" prop="department">
-            <el-select
-              v-model="form.department"
-              placeholder="請選擇部門"
-              style="width: 100%"
-              filterable
-              allow-create
-            >
-              <el-option
-                v-for="dept in departments"
-                :key="dept"
-                :label="dept"
-                :value="dept"
-              />
-            </el-select>
-          </el-form-item>
-
-          <el-form-item label="手機號碼" prop="phone">
-            <el-input
-              v-model="form.phone"
-              placeholder="請輸入手機號碼（可選）"
-              maxlength="20"
-            />
-          </el-form-item>
-        </el-card>
-
-        <!-- 權限設定 -->
-        <el-card class="form-section" header="權限設定">
-          <el-form-item label="用戶角色" prop="role">
-            <el-radio-group v-model="form.role" :disabled="!canEditRole">
-              <el-radio value="User">
-                <div class="role-option">
-                  <div class="role-header">
-                    <el-icon color="#67c23a"><User /></el-icon>
-                    <span class="role-name">普通用戶</span>
-                  </div>
-                  <div class="role-desc">可以查看和使用系統資源，但無法進行管理操作</div>
-                </div>
-              </el-radio>
-              <el-radio value="Admin">
-                <div class="role-option">
-                  <div class="role-header">
-                    <el-icon color="#f56c6c"><UserFilled /></el-icon>
-                    <span class="role-name">管理員</span>
-                  </div>
-                  <div class="role-desc">擁有完整的系統管理權限，可以管理用戶、資源等</div>
-                </div>
-              </el-radio>
-            </el-radio-group>
-            <div v-if="!canEditRole" class="field-disabled-hint">
-              <el-text type="info" size="small">
-                <el-icon><InfoFilled /></el-icon>
-                {{ roleEditDisabledReason }}
-              </el-text>
-            </div>
-          </el-form-item>
-
-          <el-form-item label="帳號狀態" prop="status">
-            <el-radio-group v-model="form.status" :disabled="!canEditStatus">
-              <el-radio value="active">
-                <el-tag type="success" size="small">啟用</el-tag>
-                <span style="margin-left: 8px;">用戶可以正常登入和使用系統</span>
-              </el-radio>
-              <el-radio value="inactive">
-                <el-tag type="info" size="small">停用</el-tag>
-                <span style="margin-left: 8px;">用戶無法登入系統</span>
-              </el-radio>
-              <el-radio value="locked">
-                <el-tag type="warning" size="small">鎖定</el-tag>
-                <span style="margin-left: 8px;">帳號被系統鎖定</span>
-              </el-radio>
-            </el-radio-group>
-            <div v-if="!canEditStatus" class="field-disabled-hint">
-              <el-text type="info" size="small">
-                <el-icon><InfoFilled /></el-icon>
-                無法修改自己的帳號狀態
-              </el-text>
-            </div>
-          </el-form-item>
-
-          <el-form-item label="權限預覽">
-            <div class="permissions-preview">
-              <div class="permission-group">
-                <h4>資源管理</h4>
-                <ul>
-                  <li>
-                    <el-icon :color="form.role === 'Admin' ? '#67c23a' : '#e6a23c'">
-                      <component :is="form.role === 'Admin' ? 'Check' : 'View'" />
-                    </el-icon>
-                    {{ form.role === 'Admin' ? '完整管理權限' : '僅查看權限' }}
-                  </li>
-                </ul>
-              </div>
-              <div class="permission-group">
-                <h4>用戶群</h4>
-                <ul>
-                  <li>
-                    <el-icon :color="form.role === 'Admin' ? '#67c23a' : '#f56c6c'">
-                      <component :is="form.role === 'Admin' ? 'Check' : 'Close'" />
-                    </el-icon>
-                    {{ form.role === 'Admin' ? '可以管理其他用戶' : '無權限' }}
-                  </li>
-                </ul>
-              </div>
-              <div class="permission-group">
-                <h4>系統設定</h4>
-                <ul>
-                  <li>
-                    <el-icon :color="form.role === 'Admin' ? '#67c23a' : '#f56c6c'">
-                      <component :is="form.role === 'Admin' ? 'Check' : 'Close'" />
-                    </el-icon>
-                    {{ form.role === 'Admin' ? '可以修改系統設定' : '無權限' }}
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </el-form-item>
-        </el-card>
-
-        <!-- 安全設定 -->
-        <el-card class="form-section" header="安全設定">
-          <el-form-item label="密碼操作">
-            <div class="password-actions">
-              <el-button
-                type="warning"
-                icon="Key"
-                @click="showResetPasswordDialog"
-              >
-                重置密碼
-              </el-button>
-              <el-button
-                type="info"
-                icon="RefreshRight"
-                @click="handleForcePasswordChange"
-              >
-                強制下次登入修改密碼
-              </el-button>
-            </div>
-          </el-form-item>
-
-          <el-form-item label="雙重驗證">
-            <el-switch
-              v-model="form.twoFactorEnabled"
-              active-text="啟用"
-              inactive-text="停用"
-            />
-            <div class="field-hint">
-              <el-text type="info" size="small">
-                啟用後用戶登入時需要提供額外的驗證碼
-              </el-text>
-            </div>
-          </el-form-item>
-
-          <el-form-item label="登入限制">
-            <el-input-number
-              v-model="form.maxFailedLogins"
-              :min="0"
-              :max="10"
-              controls-position="right"
-              style="width: 150px"
-            />
-            <span style="margin-left: 8px;">次失敗登入後鎖定帳號</span>
-          </el-form-item>
-
-          <el-form-item label="會話超時">
-            <el-select
-              v-model="form.sessionTimeout"
-              placeholder="選擇會話超時時間"
-              style="width: 200px"
-            >
-              <el-option label="30分鐘" :value="30" />
-              <el-option label="1小時" :value="60" />
-              <el-option label="2小時" :value="120" />
-              <el-option label="4小時" :value="240" />
-              <el-option label="8小時" :value="480" />
-              <el-option label="永不過期" :value="-1" />
-            </el-select>
-          </el-form-item>
-        </el-card>
-
-        <!-- 其他設定 -->
-        <el-card class="form-section" header="其他設定">
-          <el-form-item label="備註">
-            <el-input
-              v-model="form.notes"
-              type="textarea"
-              placeholder="可以添加關於此用戶的備註信息（可選）"
-              :rows="3"
-              maxlength="500"
-              show-word-limit
-            />
-          </el-form-item>
-
-          <el-form-item label="通知設定">
-            <el-checkbox-group v-model="form.notifications">
-              <el-checkbox value="email">電子郵件通知</el-checkbox>
-              <el-checkbox value="system">系統內通知</el-checkbox>
-              <el-checkbox value="security">安全警報</el-checkbox>
-            </el-checkbox-group>
-          </el-form-item>
-        </el-card>
-
-        <!-- 修改歷史 -->
-        <el-card class="form-section" header="修改歷史">
-          <div class="history-info">
-            <div class="history-item">
-              <label>創建時間：</label>
-              <span>{{ formatDateTime(user.createdAt) }}</span>
-            </div>
-            <div class="history-item">
-              <label>創建者：</label>
-              <span>{{ user.createdBy }}</span>
-            </div>
-            <div class="history-item">
-              <label>最後修改：</label>
-              <span>{{ formatDateTime(user.updatedAt) }}</span>
-            </div>
-            <div class="history-item">
-              <label>修改者：</label>
-              <span>{{ user.updatedBy || '系統' }}</span>
-            </div>
+    <div class="container-fluid">
+      <!-- 載入中 -->
+      <div v-if="loading" class="loading-container">
+        <div class="d-flex justify-content-center">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">載入中...</span>
           </div>
-        </el-card>
-
-        <!-- 操作按鈕 -->
-        <div class="form-actions">
-          <el-button @click="goBack">取消</el-button>
-          <el-button @click="resetForm">重置</el-button>
-          <el-button
-            type="primary"
-            :loading="submitting"
-            @click="handleSubmit"
-            :disabled="!hasChanges"
-          >
-            保存更改
-          </el-button>
         </div>
-      </el-form>
-    </div>
-    
-    <div v-else class="error-state">
-      <el-empty description="用戶不存在或已被刪除" />
-    </div>
-
-    <!-- 重置密碼對話框 -->
-    <el-dialog
-      v-model="resetPasswordVisible"
-      title="重置密碼"
-      width="400px"
-    >
-      <div class="reset-password-content">
-        <el-alert
-          title="重置密碼"
-          :description="`確定要重置用戶 '${user?.displayName}' 的密碼嗎？`"
-          type="warning"
-          show-icon
-          style="margin-bottom: 20px"
-        />
-        
-        <el-form label-width="100px">
-          <el-form-item label="新密碼：">
-            <el-input
-              v-model="newPassword"
-              type="password"
-              placeholder="留空則自動生成"
-              show-password
-            />
-          </el-form-item>
-          <el-form-item>
-            <el-button @click="generatePassword">生成隨機密碼</el-button>
-          </el-form-item>
-        </el-form>
       </div>
       
-      <template #footer>
-        <el-button @click="resetPasswordVisible = false">取消</el-button>
-        <el-button
-          type="primary"
-          :loading="resetPasswordLoading"
-          @click="confirmResetPassword"
-        >
-          確認重置
-        </el-button>
-      </template>
-    </el-dialog>
+      <!-- 編輯用戶 -->
+      <div v-else-if="user" class="row">
+        <div class="col-12">
+          <div class="page-header mb-4">
+            <h2>編輯用戶</h2>
+            <p class="text-muted">修改用戶 "{{ user.displayName }}" 的配置信息</p>
+          </div>
+
+          <form @submit.prevent="handleSubmit">
+            <!-- 基本資訊 -->
+            <div class="card mb-4">
+              <div class="card-header">
+                <h5 class="card-title mb-0">基本資訊</h5>
+              </div>
+              <div class="card-body">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">登入帳號</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      v-model="form.loginAccount"
+                      placeholder="請輸入登入帳號"
+                      maxlength="50"
+                      :disabled="!canEditAccount"
+                      @blur="checkAccountAvailability"
+                    >
+                    <div v-if="accountCheckResult" class="account-check-result mt-2">
+                      <small :class="accountCheckResult.available ? 'text-success' : 'text-danger'">
+                        <i :class="accountCheckResult.available ? 'bi bi-check-circle' : 'bi bi-x-circle'"></i>
+                        {{ accountCheckResult.message }}
+                      </small>
+                    </div>
+                    <div v-if="!canEditAccount" class="field-disabled-hint mt-2">
+                      <small class="text-muted">
+                        <i class="bi bi-info-circle"></i>
+                        管理員帳號不允許修改登入帳號
+                      </small>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">用戶名稱</label>
+                    <input
+                      type="text"
+                      class="form-control"
+                      v-model="form.displayName"
+                      placeholder="請輸入用戶顯示名稱"
+                      maxlength="100"
+                      required
+                    >
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">電子郵件</label>
+                    <input
+                      type="email"
+                      class="form-control"
+                      v-model="form.email"
+                      placeholder="請輸入電子郵件地址"
+                      maxlength="255"
+                      required
+                    >
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">部門</label>
+                    <select class="form-select" v-model="form.department" required>
+                      <option value="">請選擇部門</option>
+                      <option v-for="dept in departments" :key="dept" :value="dept">
+                        {{ dept }}
+                      </option>
+                    </select>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">手機號碼</label>
+                    <input
+                      type="tel"
+                      class="form-control"
+                      v-model="form.phone"
+                      placeholder="請輸入手機號碼（可選）"
+                      maxlength="20"
+                    >
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 權限設定 -->
+            <div class="card mb-4">
+              <div class="card-header">
+                <h5 class="card-title mb-0">權限設定</h5>
+              </div>
+              <div class="card-body">
+                <div class="row g-3">
+                  <div class="col-12">
+                    <label class="form-label">用戶角色</label>
+                    <div class="role-options" :class="{ 'disabled': !canEditRole }">
+                      <div class="form-check">
+                        <input
+                          class="form-check-input"
+                          type="radio"
+                          id="roleUser"
+                          value="User"
+                          v-model="form.role"
+                          :disabled="!canEditRole"
+                        >
+                        <label class="form-check-label" for="roleUser">
+                          <div class="role-option">
+                            <div class="role-header">
+                              <i class="bi bi-person text-success"></i>
+                              <span class="role-name">普通用戶</span>
+                            </div>
+                            <div class="role-desc">可以查看和使用系統資源，但無法進行管理操作</div>
+                          </div>
+                        </label>
+                      </div>
+                      <div class="form-check">
+                        <input
+                          class="form-check-input"
+                          type="radio"
+                          id="roleAdmin"
+                          value="Admin"
+                          v-model="form.role"
+                          :disabled="!canEditRole"
+                        >
+                        <label class="form-check-label" for="roleAdmin">
+                          <div class="role-option">
+                            <div class="role-header">
+                              <i class="bi bi-person-fill text-danger"></i>
+                              <span class="role-name">管理員</span>
+                            </div>
+                            <div class="role-desc">擁有完整的系統管理權限，可以管理用戶、資源等</div>
+                          </div>
+                        </label>
+                      </div>
+                    </div>
+                    <div v-if="!canEditRole" class="field-disabled-hint mt-2">
+                      <small class="text-muted">
+                        <i class="bi bi-info-circle"></i>
+                        {{ roleEditDisabledReason }}
+                      </small>
+                    </div>
+                  </div>
+
+                  <div class="col-12">
+                    <label class="form-label">帳號狀態</label>
+                    <div class="status-options" :class="{ 'disabled': !canEditStatus }">
+                      <div class="form-check">
+                        <input
+                          class="form-check-input"
+                          type="radio"
+                          id="statusActive"
+                          value="active"
+                          v-model="form.status"
+                          :disabled="!canEditStatus"
+                        >
+                        <label class="form-check-label" for="statusActive">
+                          <span class="badge bg-success me-2">啟用</span>
+                          用戶可以正常登入和使用系統
+                        </label>
+                      </div>
+                      <div class="form-check">
+                        <input
+                          class="form-check-input"
+                          type="radio"
+                          id="statusInactive"
+                          value="inactive"
+                          v-model="form.status"
+                          :disabled="!canEditStatus"
+                        >
+                        <label class="form-check-label" for="statusInactive">
+                          <span class="badge bg-secondary me-2">停用</span>
+                          用戶無法登入系統
+                        </label>
+                      </div>
+                      <div class="form-check">
+                        <input
+                          class="form-check-input"
+                          type="radio"
+                          id="statusLocked"
+                          value="locked"
+                          v-model="form.status"
+                          :disabled="!canEditStatus"
+                        >
+                        <label class="form-check-label" for="statusLocked">
+                          <span class="badge bg-warning me-2">鎖定</span>
+                          帳號被系統鎖定
+                        </label>
+                      </div>
+                    </div>
+                    <div v-if="!canEditStatus" class="field-disabled-hint mt-2">
+                      <small class="text-muted">
+                        <i class="bi bi-info-circle"></i>
+                        無法修改自己的帳號狀態
+                      </small>
+                    </div>
+                  </div>
+
+                  <div class="col-12">
+                    <label class="form-label">權限預覽</label>
+                    <div class="permissions-preview">
+                      <div class="permission-group">
+                        <h6>資源管理</h6>
+                        <ul class="list-unstyled">
+                          <li>
+                            <i :class="form.role === 'Admin' ? 'bi bi-check-circle text-success' : 'bi bi-eye text-warning'"></i>
+                            {{ form.role === 'Admin' ? '完整管理權限' : '僅查看權限' }}
+                          </li>
+                        </ul>
+                      </div>
+                      <div class="permission-group">
+                        <h6>用戶群</h6>
+                        <ul class="list-unstyled">
+                          <li>
+                            <i :class="form.role === 'Admin' ? 'bi bi-check-circle text-success' : 'bi bi-x-circle text-danger'"></i>
+                            {{ form.role === 'Admin' ? '可以管理其他用戶' : '無權限' }}
+                          </li>
+                        </ul>
+                      </div>
+                      <div class="permission-group">
+                        <h6>系統設定</h6>
+                        <ul class="list-unstyled">
+                          <li>
+                            <i :class="form.role === 'Admin' ? 'bi bi-check-circle text-success' : 'bi bi-x-circle text-danger'"></i>
+                            {{ form.role === 'Admin' ? '可以修改系統設定' : '無權限' }}
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 安全設定 -->
+            <div class="card mb-4">
+              <div class="card-header">
+                <h5 class="card-title mb-0">安全設定</h5>
+              </div>
+              <div class="card-body">
+                <div class="row g-3">
+                  <div class="col-12">
+                    <label class="form-label">密碼操作</label>
+                    <div class="password-actions">
+                      <button
+                        type="button"
+                        class="btn btn-warning me-2"
+                        @click="showResetPasswordDialog"
+                      >
+                        <i class="bi bi-key me-1"></i>
+                        重置密碼
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-info"
+                        @click="handleForcePasswordChange"
+                      >
+                        <i class="bi bi-arrow-clockwise me-1"></i>
+                        強制下次登入修改密碼
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">雙重驗證</label>
+                    <div class="form-check form-switch">
+                      <input
+                        class="form-check-input"
+                        type="checkbox"
+                        id="twoFactorEnabled"
+                        v-model="form.twoFactorEnabled"
+                      >
+                      <label class="form-check-label" for="twoFactorEnabled">
+                        {{ form.twoFactorEnabled ? '啟用' : '停用' }}
+                      </label>
+                    </div>
+                    <div class="field-hint mt-2">
+                      <small class="text-muted">
+                        啟用後用戶登入時需要提供額外的驗證碼
+                      </small>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">登入限制</label>
+                    <div class="input-group">
+                      <input
+                        type="number"
+                        class="form-control"
+                        v-model="form.maxFailedLogins"
+                        min="0"
+                        max="10"
+                        style="max-width: 150px"
+                      >
+                      <span class="input-group-text">次失敗登入後鎖定帳號</span>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <label class="form-label">會話超時</label>
+                    <select class="form-select" v-model="form.sessionTimeout" style="max-width: 200px">
+                      <option value="30">30分鐘</option>
+                      <option value="60">1小時</option>
+                      <option value="120">2小時</option>
+                      <option value="240">4小時</option>
+                      <option value="480">8小時</option>
+                      <option value="-1">永不過期</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 其他設定 -->
+            <div class="card mb-4">
+              <div class="card-header">
+                <h5 class="card-title mb-0">其他設定</h5>
+              </div>
+              <div class="card-body">
+                <div class="row g-3">
+                  <div class="col-12">
+                    <label class="form-label">備註</label>
+                    <textarea
+                      class="form-control"
+                      v-model="form.notes"
+                      placeholder="可以添加關於此用戶的備註信息（可選）"
+                      rows="3"
+                      maxlength="500"
+                    ></textarea>
+                  </div>
+
+                  <div class="col-12">
+                    <label class="form-label">通知設定</label>
+                    <div class="notification-options">
+                      <div class="form-check">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="notifyEmail"
+                          value="email"
+                          v-model="form.notifications"
+                        >
+                        <label class="form-check-label" for="notifyEmail">
+                          電子郵件通知
+                        </label>
+                      </div>
+                      <div class="form-check">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="notifySystem"
+                          value="system"
+                          v-model="form.notifications"
+                        >
+                        <label class="form-check-label" for="notifySystem">
+                          系統內通知
+                        </label>
+                      </div>
+                      <div class="form-check">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          id="notifySecurity"
+                          value="security"
+                          v-model="form.notifications"
+                        >
+                        <label class="form-check-label" for="notifySecurity">
+                          安全警報
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 修改歷史 -->
+            <div class="card mb-4">
+              <div class="card-header">
+                <h5 class="card-title mb-0">修改歷史</h5>
+              </div>
+              <div class="card-body">
+                <div class="history-info">
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <div class="history-item">
+                        <label class="form-label">創建時間：</label>
+                        <span>{{ formatDateTime(user.createdAt) }}</span>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="history-item">
+                        <label class="form-label">創建者：</label>
+                        <span>{{ user.createdBy }}</span>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="history-item">
+                        <label class="form-label">最後修改：</label>
+                        <span>{{ formatDateTime(user.updatedAt) }}</span>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="history-item">
+                        <label class="form-label">修改者：</label>
+                        <span>{{ user.updatedBy || '系統' }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 操作按鈕 -->
+            <div class="form-actions">
+              <button type="button" class="btn btn-secondary me-2" @click="goBack">
+                取消
+              </button>
+              <button type="button" class="btn btn-outline-primary me-2" @click="resetForm">
+                重置
+              </button>
+              <button
+                type="submit"
+                class="btn btn-primary"
+                :disabled="!hasChanges || submitting"
+              >
+                <span v-if="submitting" class="spinner-border spinner-border-sm me-2"></span>
+                {{ submitting ? '保存中...' : '保存更改' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <!-- 錯誤狀態 -->
+      <div v-else class="error-state">
+        <div class="text-center py-5">
+          <i class="bi bi-exclamation-triangle fs-1 text-warning"></i>
+          <p class="mt-3 text-muted">用戶不存在或已被刪除</p>
+        </div>
+      </div>
+
+      <!-- 重置密碼對話框 -->
+      <div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="resetPasswordModalLabel">重置密碼</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <div class="alert alert-warning" role="alert">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                確定要重置用戶 '{{ user?.displayName }}' 的密碼嗎？
+              </div>
+              
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label">新密碼：</label>
+                  <input
+                    type="password"
+                    class="form-control"
+                    v-model="newPassword"
+                    placeholder="留空則自動生成"
+                  >
+                </div>
+                <div class="col-12">
+                  <button type="button" class="btn btn-outline-secondary" @click="generatePassword">
+                    生成隨機密碼
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+              <button
+                type="button"
+                class="btn btn-primary"
+                :disabled="resetPasswordLoading"
+                @click="confirmResetPassword"
+              >
+                <span v-if="resetPasswordLoading" class="spinner-border spinner-border-sm me-2"></span>
+                {{ resetPasswordLoading ? '重置中...' : '確認重置' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import {
-  User,
-  UserFilled,
-  Check,
-  Close,
-  View,
-  InfoFilled,
-  SuccessFilled,
-  CircleCloseFilled,
-  Key,
-  RefreshRight
-} from '@element-plus/icons-vue'
-import type { FormInstance, FormRules } from 'element-plus'
+import { showAlert, showConfirm } from '@/utils/bootstrap-alerts'
 import { useAuthStore } from '@/stores/auth'
 import { format } from 'date-fns'
 
@@ -380,7 +519,6 @@ const route = useRoute()
 const router = useRouter()
 
 // 響應式數據
-const formRef = ref<FormInstance>()
 const loading = ref(true)
 const submitting = ref(false)
 const user = ref<any>(null)
@@ -421,34 +559,33 @@ const departments = ref([
   '管理部'
 ])
 
-// 表單驗證規則
-const rules: FormRules = {
-  loginAccount: [
-    { required: true, message: '請輸入登入帳號', trigger: 'blur' },
-    { min: 3, max: 50, message: '帳號長度在 3 到 50 個字符', trigger: 'blur' },
-    {
-      pattern: /^[a-zA-Z0-9_-]+$/,
-      message: '帳號只能包含字母、數字、下劃線和連字符',
-      trigger: 'blur'
-    }
-  ],
-  displayName: [
-    { required: true, message: '請輸入用戶名稱', trigger: 'blur' },
-    { min: 1, max: 100, message: '用戶名稱長度在 1 到 100 個字符', trigger: 'blur' }
-  ],
-  email: [
-    { required: true, message: '請輸入電子郵件', trigger: 'blur' },
-    { type: 'email', message: '請輸入有效的電子郵件地址', trigger: 'blur' }
-  ],
-  department: [
-    { required: true, message: '請選擇部門', trigger: 'change' }
-  ],
-  role: [
-    { required: true, message: '請選擇用戶角色', trigger: 'change' }
-  ],
-  status: [
-    { required: true, message: '請選擇帳號狀態', trigger: 'change' }
-  ]
+// 表單驗證（基本驗證）
+const validateForm = () => {
+  if (!form.loginAccount) {
+    showAlert('請輸入登入帳號', 'error')
+    return false
+  }
+  if (!form.displayName) {
+    showAlert('請輸入用戶名稱', 'error')
+    return false
+  }
+  if (!form.email) {
+    showAlert('請輸入電子郵件', 'error')
+    return false
+  }
+  if (!form.department) {
+    showAlert('請選擇部門', 'error')
+    return false
+  }
+  if (!form.role) {
+    showAlert('請選擇用戶角色', 'error')
+    return false
+  }
+  if (!form.status) {
+    showAlert('請選擇帳號狀態', 'error')
+    return false
+  }
+  return true
 }
 
 // 計算屬性
@@ -551,17 +688,20 @@ const resetForm = () => {
 }
 
 // 返回上一頁
-const goBack = () => {
+const goBack = async () => {
   if (hasChanges.value) {
-    ElMessageBox.confirm('您有未保存的更改，確定要離開嗎？', '確認離開', {
-      confirmButtonText: '確定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }).then(() => {
+    const confirmed = await showConfirm(
+      '您有未保存的更改，確定要離開嗎？',
+      '確認離開',
+      {
+        confirmText: '確定',
+        cancelText: '取消',
+        type: 'warning'
+      }
+    )
+    if (confirmed) {
       router.go(-1)
-    }).catch(() => {
-      // 用戶取消
-    })
+    }
   } else {
     router.go(-1)
   }
@@ -570,7 +710,8 @@ const goBack = () => {
 // 顯示重置密碼對話框
 const showResetPasswordDialog = () => {
   newPassword.value = ''
-  resetPasswordVisible.value = true
+  const modal = new (window as any).bootstrap.Modal(document.getElementById('resetPasswordModal'))
+  modal.show()
 }
 
 // 生成隨機密碼
@@ -594,14 +735,15 @@ const confirmResetPassword = async () => {
     // 模擬API請求
     await new Promise(resolve => setTimeout(resolve, 1000))
     
-    ElMessage.success('密碼重置成功')
-    resetPasswordVisible.value = false
+    showAlert('密碼重置成功', 'success')
+    const modal = (window as any).bootstrap.Modal.getInstance(document.getElementById('resetPasswordModal'))
+    modal.hide()
     
     if (!newPassword.value) {
-      ElMessage.info('新密碼已發送到用戶郵箱')
+      showAlert('新密碼已發送到用戶郵箱', 'info')
     }
   } catch (error) {
-    ElMessage.error('密碼重置失敗')
+    showAlert('密碼重置失敗', 'error')
   } finally {
     resetPasswordLoading.value = false
   }
@@ -610,36 +752,34 @@ const confirmResetPassword = async () => {
 // 處理強制修改密碼
 const handleForcePasswordChange = async () => {
   try {
-    await ElMessageBox.confirm(
+    const confirmed = await showConfirm(
       '確定要強制用戶在下次登入時修改密碼嗎？',
       '確認操作',
       {
-        confirmButtonText: '確定',
-        cancelButtonText: '取消',
+        confirmText: '確定',
+        cancelText: '取消',
         type: 'warning'
       }
     )
     
+    if (!confirmed) return
+    
     // 這裡調用API設置強制修改密碼標記
     // await usersApi.forcePasswordChange(user.value.id)
     
-    ElMessage.success('設定成功，用戶下次登入時需要修改密碼')
+    showAlert('設定成功，用戶下次登入時需要修改密碼', 'success')
   } catch (error) {
-    if (error !== 'cancel') {
-      ElMessage.error('設定失敗')
-    }
+    showAlert('設定失敗', 'error')
   }
 }
 
 // 提交表單
 const handleSubmit = async () => {
-  if (!formRef.value) return
+  if (!validateForm()) return
   
   try {
-    await formRef.value.validate()
-    
     if (accountCheckResult.value && !accountCheckResult.value.available) {
-      ElMessage.error('請修正帳號可用性問題')
+      showAlert('請修正帳號可用性問題', 'error')
       return
     }
     
@@ -653,7 +793,7 @@ const handleSubmit = async () => {
     // 模擬API請求
     await new Promise(resolve => setTimeout(resolve, 1500))
     
-    ElMessage.success('用戶更新成功！')
+    showAlert('用戶更新成功！', 'success')
     
     // 更新原始數據
     originalForm.value = { ...form }
@@ -662,7 +802,7 @@ const handleSubmit = async () => {
     
   } catch (error) {
     console.error('Failed to update user:', error)
-    ElMessage.error('用戶更新失敗')
+    showAlert('用戶更新失敗', 'error')
   } finally {
     submitting.value = false
   }
@@ -706,7 +846,7 @@ const loadData = async () => {
     
   } catch (error) {
     console.error('Failed to load user:', error)
-    ElMessage.error('載入用戶失敗')
+    showAlert('載入用戶失敗', 'error')
   } finally {
     loading.value = false
   }
@@ -720,237 +860,183 @@ onMounted(() => {
 
 <style lang="scss" scoped>
 .user-edit {
-  max-width: 800px;
-  margin: 0 auto;
+  padding: 1rem;
   
   .loading-container {
-    padding: 20px;
+    padding: 2rem;
   }
   
   .page-header {
-    margin-bottom: 24px;
-    
     h2 {
-      margin: 0 0 8px 0;
-      font-size: 24px;
-      font-weight: 600;
-      color: var(--el-text-color-primary);
+      color: var(--bs-primary);
+      margin-bottom: 0.5rem;
     }
     
     p {
-      margin: 0;
-      color: var(--el-text-color-regular);
+      color: var(--bs-gray-600);
     }
   }
   
-  .user-form {
-    .form-section {
-      margin-bottom: 24px;
-      
-      :deep(.el-card__header) {
-        background: var(--el-bg-color-page);
-        font-weight: 600;
-      }
+  .account-check-result {
+    i {
+      margin-right: 0.25rem;
+    }
+  }
+  
+  .field-disabled-hint,
+  .field-hint {
+    i {
+      margin-right: 0.25rem;
+    }
+  }
+  
+  .role-options,
+  .status-options {
+    &.disabled {
+      opacity: 0.6;
+      pointer-events: none;
     }
     
-    .account-check-result {
-      margin-top: 8px;
+    .form-check {
+      margin-bottom: 1rem;
       
-      .el-text {
-        display: flex;
-        align-items: center;
-        gap: 4px;
+      .form-check-label {
+        cursor: pointer;
       }
     }
-    
-    .field-disabled-hint,
-    .field-hint {
-      margin-top: 8px;
-      
-      .el-text {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-      }
-    }
-    
-    .role-option {
-      .role-header {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 4px;
-        
-        .role-name {
-          font-weight: 500;
-        }
-      }
-      
-      .role-desc {
-        font-size: 12px;
-        color: var(--el-text-color-placeholder);
-        margin-left: 24px;
-      }
-    }
-    
-    .permissions-preview {
-      padding: 16px;
-      background: var(--el-bg-color-page);
-      border-radius: 8px;
-      border: 1px solid var(--el-border-color);
-      
-      .permission-group {
-        margin-bottom: 16px;
-        
-        &:last-child {
-          margin-bottom: 0;
-        }
-        
-        h4 {
-          margin: 0 0 8px 0;
-          font-size: 14px;
-          color: var(--el-text-color-primary);
-        }
-        
-        ul {
-          margin: 0;
-          padding: 0;
-          list-style: none;
-          
-          li {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: var(--el-text-color-regular);
-          }
-        }
-      }
-    }
-    
-    .password-actions {
+  }
+  
+  .role-option {
+    .role-header {
       display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-    
-    .history-info {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 16px;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.25rem;
       
-      .history-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        
-        label {
-          min-width: 80px;
-          font-weight: 500;
-          color: var(--el-text-color-regular);
-        }
+      .role-name {
+        font-weight: 500;
       }
     }
     
-    .form-actions {
-      display: flex;
-      justify-content: center;
-      gap: 16px;
-      margin-top: 32px;
-      padding: 24px;
-      background: var(--el-bg-color-page);
-      border-radius: 8px;
+    .role-desc {
+      font-size: 0.875rem;
+      color: var(--bs-gray-600);
+      margin-left: 1.5rem;
     }
+  }
+  
+  .permissions-preview {
+    padding: 1rem;
+    background: var(--bs-gray-50);
+    border-radius: 0.5rem;
+    border: 1px solid var(--bs-border-color);
+    
+    .permission-group {
+      margin-bottom: 1rem;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+      
+      h6 {
+        margin-bottom: 0.5rem;
+        color: var(--bs-gray-800);
+      }
+      
+      ul {
+        li {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-size: 0.875rem;
+          color: var(--bs-gray-700);
+        }
+      }
+    }
+  }
+  
+  .password-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+  
+  .notification-options {
+    .form-check {
+      margin-bottom: 0.5rem;
+    }
+  }
+  
+  .history-info {
+    .history-item {
+      margin-bottom: 0.75rem;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+      
+      label {
+        font-weight: 500;
+        color: var(--bs-gray-800);
+        margin-bottom: 0.25rem;
+      }
+      
+      span {
+        color: var(--bs-gray-600);
+      }
+    }
+  }
+  
+  .form-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: var(--bs-gray-50);
+    border-radius: 0.5rem;
   }
   
   .error-state {
-    padding: 40px;
+    padding: 2rem;
     text-align: center;
-  }
-}
-
-// 對話框樣式
-.reset-password-content {
-  .el-form-item {
-    margin-bottom: 16px;
   }
 }
 
 // 響應式設計
 @media (max-width: 768px) {
   .user-edit {
-    max-width: 100%;
-    padding: 0 16px;
+    .role-option {
+      .role-desc {
+        margin-left: 0;
+        margin-top: 0.25rem;
+      }
+    }
     
-    .user-form {
-      .role-option {
-        .role-desc {
-          margin-left: 0;
-          margin-top: 4px;
-        }
-      }
+    .password-actions {
+      flex-direction: column;
+    }
+    
+    .form-actions {
+      flex-direction: column;
       
-      .permissions-preview {
-        .permission-group {
-          h4 {
-            font-size: 13px;
-          }
-          
-          ul li {
-            font-size: 12px;
-          }
-        }
-      }
-      
-      .password-actions {
-        flex-direction: column;
-      }
-      
-      .history-info {
-        grid-template-columns: 1fr;
-        
-        .history-item {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 4px;
-        }
-      }
-      
-      .form-actions {
-        flex-direction: column;
-        
-        .el-button {
-          width: 100%;
-        }
+      .btn {
+        width: 100%;
       }
     }
   }
 }
 
 // 暗黑模式
-.dark {
+@media (prefers-color-scheme: dark) {
   .user-edit {
-    .page-header {
-      h2 {
-        color: var(--el-text-color-primary);
-      }
+    .permissions-preview {
+      background: var(--bs-gray-800);
+      border-color: var(--bs-gray-700);
     }
     
-    .user-form {
-      .form-section {
-        :deep(.el-card__header) {
-          background: var(--el-bg-color-page);
-        }
-      }
-      
-      .permissions-preview {
-        background: var(--el-bg-color-page);
-        border-color: var(--el-border-color);
-      }
-      
-      .form-actions {
-        background: var(--el-bg-color-page);
-      }
+    .form-actions {
+      background: var(--bs-gray-800);
     }
   }
 }

@@ -1,7 +1,11 @@
 <template>
   <div class="resource-edit">
     <div v-if="loading" class="loading-container">
-      <el-skeleton :rows="8" animated />
+      <div class="d-flex justify-content-center">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">載入中...</span>
+        </div>
+      </div>
     </div>
     
     <div v-else-if="resource">
@@ -10,238 +14,383 @@
         <p>修改資源 "{{ resource.name }}" 的配置信息</p>
       </div>
 
-      <el-form
+      <form
         ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-width="120px"
         class="resource-form"
+        @submit.prevent="handleSubmit"
       >
         <!-- 基本資訊 -->
-        <el-card class="form-section" header="基本資訊">
-          <el-form-item label="資源名稱" prop="name">
-            <el-input
-              v-model="form.name"
-              placeholder="請輸入資源名稱"
-              maxlength="100"
-              show-word-limit
-            />
-          </el-form-item>
+        <div class="card form-section">
+          <div class="card-header">
+            <h5 class="card-title mb-0">基本資訊</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label" for="name">資源名稱 <span class="text-danger">*</span></label>
+              <input
+                id="name"
+                v-model="form.name"
+                type="text"
+                class="form-control"
+                :class="{ 'is-invalid': errors.name }"
+                placeholder="請輸入資源名稱"
+                maxlength="100"
+              />
+              <div class="form-text">
+                {{ form.name.length }}/100
+              </div>
+              <div v-if="errors.name" class="invalid-feedback">
+                {{ errors.name }}
+              </div>
+            </div>
 
-          <el-form-item label="資源類型" prop="resourceType">
-            <el-select
-              v-model="form.resourceType"
-              placeholder="請選擇資源類型"
-              style="width: 100%"
-            >
-              <el-option
-                v-for="type in resourceTypes"
-                :key="type.value"
-                :label="type.label"
-                :value="type.value"
+            <div class="mb-3">
+              <label class="form-label" for="resourceType">資源類型 <span class="text-danger">*</span></label>
+              <select
+                id="resourceType"
+                v-model="form.resourceType"
+                class="form-select"
+                :class="{ 'is-invalid': errors.resourceType }"
               >
-                <div class="resource-type-option">
-                  <el-icon :color="type.color">
-                    <component :is="type.icon" />
-                  </el-icon>
-                  <span>{{ type.label }}</span>
-                </div>
-              </el-option>
-            </el-select>
-          </el-form-item>
+                <option value="">請選擇資源類型</option>
+                <option
+                  v-for="type in resourceTypes"
+                  :key="type.value"
+                  :value="type.value"
+                >
+                  {{ type.label }}
+                </option>
+              </select>
+              <div v-if="errors.resourceType" class="invalid-feedback">
+                {{ errors.resourceType }}
+              </div>
+            </div>
 
-          <el-form-item label="IP地址" prop="ipAddress">
-            <el-input
-              v-model="form.ipAddress"
-              placeholder="請輸入IP地址，例如：192.168.1.100"
-            />
-          </el-form-item>
+            <div class="mb-3">
+              <label class="form-label" for="ipAddress">IP地址 <span class="text-danger">*</span></label>
+              <input
+                id="ipAddress"
+                v-model="form.ipAddress"
+                type="text"
+                class="form-control"
+                :class="{ 'is-invalid': errors.ipAddress }"
+                placeholder="請輸入IP地址，例如：192.168.1.100"
+              />
+              <div v-if="errors.ipAddress" class="invalid-feedback">
+                {{ errors.ipAddress }}
+              </div>
+            </div>
 
-          <el-form-item label="描述" prop="description">
-            <el-input
-              v-model="form.description"
-              type="textarea"
-              placeholder="請輸入資源描述"
-              :rows="3"
-              maxlength="500"
-              show-word-limit
-            />
-          </el-form-item>
-        </el-card>
+            <div class="mb-3">
+              <label class="form-label" for="description">描述</label>
+              <textarea
+                id="description"
+                v-model="form.description"
+                class="form-control"
+                :class="{ 'is-invalid': errors.description }"
+                placeholder="請輸入資源描述"
+                rows="3"
+                maxlength="500"
+              ></textarea>
+              <div class="form-text">
+                {{ form.description.length }}/500
+              </div>
+              <div v-if="errors.description" class="invalid-feedback">
+                {{ errors.description }}
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- 連接資訊 -->
-        <el-card class="form-section" header="連接資訊">
-          <el-form-item label="登入用戶" prop="loginUser">
-            <el-input
-              v-model="form.loginUser"
-              placeholder="請輸入登入用戶名"
-            />
-          </el-form-item>
-
-          <el-form-item label="登入密碼" prop="loginPassword">
-            <div class="password-field">
-              <el-input
-                v-model="form.loginPassword"
-                type="password"
-                placeholder="請輸入登入密碼"
-                show-password
-                style="flex: 1"
+        <div class="card form-section">
+          <div class="card-header">
+            <h5 class="card-title mb-0">連接資訊</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label" for="loginUser">登入用戶 <span class="text-danger">*</span></label>
+              <input
+                id="loginUser"
+                v-model="form.loginUser"
+                type="text"
+                class="form-control"
+                :class="{ 'is-invalid': errors.loginUser }"
+                placeholder="請輸入登入用戶名"
               />
-              <el-button
-                type="primary"
-                @click="generatePassword"
-              >
-                生成密碼
-              </el-button>
+              <div v-if="errors.loginUser" class="invalid-feedback">
+                {{ errors.loginUser }}
+              </div>
             </div>
-          </el-form-item>
 
-          <el-form-item label="端口" prop="port">
-            <el-input-number
-              v-model="form.port"
-              placeholder="端口號"
-              :min="1"
-              :max="65535"
-              style="width: 100%"
-            />
-          </el-form-item>
+            <div class="mb-3">
+              <label class="form-label" for="loginPassword">登入密碼 <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <input
+                  id="loginPassword"
+                  v-model="form.loginPassword"
+                  :type="showPassword ? 'text' : 'password'"
+                  class="form-control"
+                  :class="{ 'is-invalid': errors.loginPassword }"
+                  placeholder="請輸入登入密碼"
+                />
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  @click="showPassword = !showPassword"
+                >
+                  <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-primary"
+                  @click="generatePassword"
+                >
+                  生成密碼
+                </button>
+              </div>
+              <div v-if="errors.loginPassword" class="invalid-feedback">
+                {{ errors.loginPassword }}
+              </div>
+            </div>
 
-          <el-form-item label="連接協議" prop="protocol">
-            <el-select
-              v-model="form.protocol"
-              placeholder="請選擇連接協議"
-              style="width: 100%"
-            >
-              <el-option label="SSH" value="ssh" />
-              <el-option label="HTTP" value="http" />
-              <el-option label="HTTPS" value="https" />
-              <el-option label="FTP" value="ftp" />
-              <el-option label="RDP" value="rdp" />
-              <el-option label="MySQL" value="mysql" />
-              <el-option label="PostgreSQL" value="postgresql" />
-              <el-option label="Redis" value="redis" />
-              <el-option label="其他" value="other" />
-            </el-select>
-          </el-form-item>
-        </el-card>
+            <div class="mb-3">
+              <label class="form-label" for="port">端口 <span class="text-danger">*</span></label>
+              <input
+                id="port"
+                v-model.number="form.port"
+                type="number"
+                class="form-control"
+                :class="{ 'is-invalid': errors.port }"
+                placeholder="端口號"
+                min="1"
+                max="65535"
+              />
+              <div v-if="errors.port" class="invalid-feedback">
+                {{ errors.port }}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" for="protocol">連接協議 <span class="text-danger">*</span></label>
+              <select
+                id="protocol"
+                v-model="form.protocol"
+                class="form-select"
+                :class="{ 'is-invalid': errors.protocol }"
+              >
+                <option value="">請選擇連接協議</option>
+                <option value="ssh">SSH</option>
+                <option value="http">HTTP</option>
+                <option value="https">HTTPS</option>
+                <option value="ftp">FTP</option>
+                <option value="rdp">RDP</option>
+                <option value="mysql">MySQL</option>
+                <option value="postgresql">PostgreSQL</option>
+                <option value="redis">Redis</option>
+                <option value="other">其他</option>
+              </select>
+              <div v-if="errors.protocol" class="invalid-feedback">
+                {{ errors.protocol }}
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- 分類標籤 -->
-        <el-card class="form-section" header="分類標籤">
-          <el-form-item label="標籤" prop="tags">
-            <div class="tags-section">
-              <el-select
-                v-model="form.tags"
-                placeholder="請選擇標籤"
-                multiple
-                filterable
-                style="width: 100%"
+        <div class="card form-section">
+          <div class="card-header">
+            <h5 class="card-title mb-0">分類標籤</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label" for="tags">標籤</label>
+              <select
+                id="tags"
+                v-model="selectedTag"
+                class="form-select"
+                @change="addTag"
               >
-                <el-option
+                <option value="">請選擇標籤</option>
+                <option
                   v-for="tag in availableTags"
                   :key="tag.id"
-                  :label="tag.name"
                   :value="tag.id"
+                  :disabled="form.tags.includes(tag.id)"
                 >
-                  <div class="tag-option">
-                    <el-tag :type="getTagType(tag.category)" size="small">
-                      {{ tag.name }}
-                    </el-tag>
-                    <span class="tag-category">{{ tag.category }}</span>
-                  </div>
-                </el-option>
-              </el-select>
+                  {{ tag.name }} ({{ tag.category }})
+                </option>
+              </select>
               
-              <div class="selected-tags">
-                <el-tag
+              <div class="selected-tags mt-3">
+                <span
                   v-for="tagId in form.tags"
                   :key="tagId"
-                  :type="getTagType(getTagById(tagId)?.category)"
-                  closable
-                  @close="removeTag(tagId)"
+                  :class="getTagClass(getTagById(tagId)?.category)"
+                  class="badge me-2 mb-2"
                 >
                   {{ getTagById(tagId)?.name }}
-                </el-tag>
+                  <button
+                    type="button"
+                    class="btn-close btn-close-white ms-1"
+                    @click="removeTag(tagId)"
+                  ></button>
+                </span>
               </div>
             </div>
-          </el-form-item>
 
-          <el-form-item label="自定義標籤">
-            <div class="custom-tags-section">
-              <el-input
-                v-model="customTagInput"
-                placeholder="輸入自定義標籤，回車添加"
-                @keyup.enter="addCustomTag"
-              >
-                <template #append>
-                  <el-button @click="addCustomTag">添加</el-button>
-                </template>
-              </el-input>
+            <div class="mb-3">
+              <label class="form-label" for="customTagInput">自定義標籤</label>
+              <div class="input-group">
+                <input
+                  id="customTagInput"
+                  v-model="customTagInput"
+                  type="text"
+                  class="form-control"
+                  placeholder="輸入自定義標籤，回車添加"
+                  @keyup.enter="addCustomTag"
+                />
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  @click="addCustomTag"
+                >
+                  添加
+                </button>
+              </div>
               
-              <div class="custom-tags">
-                <el-tag
+              <div class="custom-tags mt-3">
+                <span
                   v-for="(tag, index) in customTags"
                   :key="index"
-                  type="info"
-                  closable
-                  @close="removeCustomTag(index)"
+                  class="badge bg-secondary me-2 mb-2"
                 >
                   {{ tag }}
-                </el-tag>
+                  <button
+                    type="button"
+                    class="btn-close btn-close-white ms-1"
+                    @click="removeCustomTag(index)"
+                  ></button>
+                </span>
               </div>
             </div>
-          </el-form-item>
-        </el-card>
+          </div>
+        </div>
 
         <!-- 額外配置 -->
-        <el-card class="form-section" header="額外配置">
-          <el-form-item label="狀態" prop="status">
-            <el-radio-group v-model="form.status">
-              <el-radio value="active">正常</el-radio>
-              <el-radio value="inactive">停用</el-radio>
-              <el-radio value="maintenance">維護中</el-radio>
-            </el-radio-group>
-          </el-form-item>
+        <div class="card form-section">
+          <div class="card-header">
+            <h5 class="card-title mb-0">額外配置</h5>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label">狀態</label>
+              <div class="form-check-group">
+                <div class="form-check">
+                  <input
+                    id="status-active"
+                    v-model="form.status"
+                    class="form-check-input"
+                    type="radio"
+                    value="active"
+                  />
+                  <label class="form-check-label" for="status-active">
+                    正常
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input
+                    id="status-inactive"
+                    v-model="form.status"
+                    class="form-check-input"
+                    type="radio"
+                    value="inactive"
+                  />
+                  <label class="form-check-label" for="status-inactive">
+                    停用
+                  </label>
+                </div>
+                <div class="form-check">
+                  <input
+                    id="status-maintenance"
+                    v-model="form.status"
+                    class="form-check-input"
+                    type="radio"
+                    value="maintenance"
+                  />
+                  <label class="form-check-label" for="status-maintenance">
+                    維護中
+                  </label>
+                </div>
+              </div>
+            </div>
 
-          <el-form-item label="重要程度" prop="priority">
-            <el-slider
-              v-model="form.priority"
-              :min="1"
-              :max="5"
-              :marks="priorityMarks"
-              show-tooltip
-              style="width: 300px"
-            />
-          </el-form-item>
+            <div class="mb-3">
+              <label class="form-label" for="priority">重要程度</label>
+              <input
+                id="priority"
+                v-model.number="form.priority"
+                type="range"
+                class="form-range"
+                min="1"
+                max="5"
+                step="1"
+              />
+              <div class="d-flex justify-content-between small text-muted">
+                <span>很低</span>
+                <span>低</span>
+                <span>中</span>
+                <span>高</span>
+                <span>很高</span>
+              </div>
+              <div class="form-text">
+                當前選擇：{{ getPriorityLabel(form.priority) }}
+              </div>
+            </div>
 
-          <el-form-item label="備註" prop="notes">
-            <el-input
-              v-model="form.notes"
-              type="textarea"
-              placeholder="請輸入備註資訊"
-              :rows="2"
-              maxlength="200"
-              show-word-limit
-            />
-          </el-form-item>
-        </el-card>
+            <div class="mb-3">
+              <label class="form-label" for="notes">備註</label>
+              <textarea
+                id="notes"
+                v-model="form.notes"
+                class="form-control"
+                placeholder="請輸入備註資訊"
+                rows="2"
+                maxlength="200"
+              ></textarea>
+              <div class="form-text">
+                {{ form.notes.length }}/200
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- 操作按鈕 -->
         <div class="form-actions">
-          <el-button @click="goBack">取消</el-button>
-          <el-button @click="resetForm">重置</el-button>
-          <el-button
-            type="primary"
-            :loading="submitting"
-            @click="handleSubmit"
+          <button type="button" class="btn btn-secondary" @click="goBack">
+            取消
+          </button>
+          <button type="button" class="btn btn-outline-secondary" @click="resetForm">
+            重置
+          </button>
+          <button
+            type="submit"
+            class="btn btn-primary"
+            :disabled="submitting"
           >
+            <span v-if="submitting" class="spinner-border spinner-border-sm me-2"></span>
             保存更改
-          </el-button>
+          </button>
         </div>
-      </el-form>
+      </form>
     </div>
     
     <div v-else class="error-state">
-      <el-empty description="資源不存在或已被刪除" />
+      <div class="text-center py-5">
+        <i class="bi bi-exclamation-triangle text-muted" style="font-size: 4rem;"></i>
+        <h4 class="mt-3 text-muted">資源不存在或已被刪除</h4>
+        <p class="text-muted">請檢查資源ID是否正確或聯繫管理員</p>
+      </div>
     </div>
   </div>
 </template>
@@ -249,26 +398,22 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import {
-  Monitor,
-  Coin,
-  Basketball,
-  FolderOpened
-} from '@element-plus/icons-vue'
-import type { FormInstance, FormRules } from 'element-plus'
+import { showAlert } from '@/utils/bootstrap-alerts'
 
 // 路由
 const route = useRoute()
 const router = useRouter()
 
 // 響應式數據
-const formRef = ref<FormInstance>()
+const formRef = ref<HTMLFormElement>()
 const loading = ref(true)
 const submitting = ref(false)
 const resource = ref<any>(null)
 const customTagInput = ref('')
 const customTags = ref<string[]>([])
+const selectedTag = ref<number | null>(null)
+const showPassword = ref(false)
+const errors = ref<Record<string, string>>({})
 
 // 表單數據
 const form = reactive({
@@ -291,32 +436,32 @@ const resourceTypes = ref([
   {
     label: '伺服器',
     value: 'Server',
-    icon: 'Monitor',
-    color: '#409eff'
+    icon: 'bi-server',
+    color: '#0d6efd'
   },
   {
     label: '資料庫',
     value: 'Database',
-    icon: 'Coin',
-    color: '#67c23a'
+    icon: 'bi-database',
+    color: '#198754'
   },
   {
     label: '網站',
     value: 'Website',
-    icon: 'Basketball',
-    color: '#e6a23c'
+    icon: 'bi-globe',
+    color: '#fd7e14'
   },
   {
     label: '儲存',
     value: 'Storage',
-    icon: 'FolderOpened',
-    color: '#f56c6c'
+    icon: 'bi-hdd',
+    color: '#dc3545'
   },
   {
     label: '緩存',
     value: 'Cache',
-    icon: 'Basketball',
-    color: '#722ed1'
+    icon: 'bi-lightning',
+    color: '#6610f2'
   }
 ])
 
@@ -343,52 +488,93 @@ const priorityMarks = ref({
   5: '很高'
 })
 
-// 表單驗證規則
-const rules: FormRules = {
-  name: [
-    { required: true, message: '請輸入資源名稱', trigger: 'blur' },
-    { min: 2, max: 100, message: '資源名稱長度在 2 到 100 個字符', trigger: 'blur' }
-  ],
-  resourceType: [
-    { required: true, message: '請選擇資源類型', trigger: 'change' }
-  ],
-  ipAddress: [
-    { required: true, message: '請輸入IP地址', trigger: 'blur' },
-    {
-      pattern: /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/,
-      message: '請輸入有效的IP地址',
-      trigger: 'blur'
+// 表單驗證
+const validateForm = () => {
+  const newErrors: Record<string, string> = {}
+  
+  // 驗證資源名稱
+  if (!form.name.trim()) {
+    newErrors.name = '請輸入資源名稱'
+  } else if (form.name.length < 2 || form.name.length > 100) {
+    newErrors.name = '資源名稱長度在 2 到 100 個字符'
+  }
+  
+  // 驗證資源類型
+  if (!form.resourceType) {
+    newErrors.resourceType = '請選擇資源類型'
+  }
+  
+  // 驗證IP地址
+  if (!form.ipAddress.trim()) {
+    newErrors.ipAddress = '請輸入IP地址'
+  } else {
+    const ipPattern = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/
+    if (!ipPattern.test(form.ipAddress)) {
+      newErrors.ipAddress = '請輸入有效的IP地址'
     }
-  ],
-  loginUser: [
-    { required: true, message: '請輸入登入用戶名', trigger: 'blur' }
-  ],
-  loginPassword: [
-    { required: true, message: '請輸入登入密碼', trigger: 'blur' },
-    { min: 6, message: '密碼長度至少 6 個字符', trigger: 'blur' }
-  ],
-  port: [
-    { required: true, message: '請輸入端口號', trigger: 'blur' }
-  ],
-  protocol: [
-    { required: true, message: '請選擇連接協議', trigger: 'change' }
-  ]
+  }
+  
+  // 驗證登入用戶
+  if (!form.loginUser.trim()) {
+    newErrors.loginUser = '請輸入登入用戶名'
+  }
+  
+  // 驗證登入密碼
+  if (!form.loginPassword.trim()) {
+    newErrors.loginPassword = '請輸入登入密碼'
+  } else if (form.loginPassword.length < 6 && form.loginPassword !== '******') {
+    newErrors.loginPassword = '密碼長度至少 6 個字符'
+  }
+  
+  // 驗證端口
+  if (!form.port || form.port < 1 || form.port > 65535) {
+    newErrors.port = '請輸入有效的端口號 (1-65535)'
+  }
+  
+  // 驗證協議
+  if (!form.protocol) {
+    newErrors.protocol = '請選擇連接協議'
+  }
+  
+  errors.value = newErrors
+  return Object.keys(newErrors).length === 0
 }
 
-// 獲取標籤類型
-const getTagType = (category: string) => {
+
+// 獲取標籤類別
+const getTagClass = (category: string) => {
   const typeMap: Record<string, string> = {
-    Environment: 'primary',
-    Priority: 'warning',
-    Department: 'success',
-    Project: 'info'
+    Environment: 'bg-primary',
+    Priority: 'bg-warning',
+    Department: 'bg-success',
+    Project: 'bg-info'
   }
-  return typeMap[category] || 'info'
+  return typeMap[category] || 'bg-info'
+}
+
+// 獲取優先級標籤
+const getPriorityLabel = (priority: number) => {
+  const labels = {
+    1: '很低',
+    2: '低',
+    3: '中',
+    4: '高',
+    5: '很高'
+  }
+  return labels[priority as keyof typeof labels] || '中'
 }
 
 // 根據ID獲取標籤
 const getTagById = (id: number) => {
   return availableTags.value.find(tag => tag.id === id)
+}
+
+// 添加標籤
+const addTag = () => {
+  if (selectedTag.value && !form.tags.includes(selectedTag.value)) {
+    form.tags.push(selectedTag.value)
+    selectedTag.value = null
+  }
 }
 
 // 移除標籤
@@ -421,7 +607,7 @@ const generatePassword = () => {
     password += chars.charAt(Math.floor(Math.random() * chars.length))
   }
   form.loginPassword = password
-  ElMessage.success('密碼已生成')
+  showAlert('密碼已生成', 'success')
 }
 
 // 重置表單
@@ -456,10 +642,12 @@ const goBack = () => {
 
 // 提交表單
 const handleSubmit = async () => {
-  if (!formRef.value) return
+  if (!validateForm()) {
+    showAlert('請檢查表單輸入是否正確', 'error')
+    return
+  }
   
   try {
-    await formRef.value.validate()
     submitting.value = true
     
     // 準備提交數據
@@ -471,15 +659,15 @@ const handleSubmit = async () => {
     // 這裡調用API更新資源
     // await resourcesApi.updateResource(resource.value.id, submitData)
     
-    // 模擬API請求
+    // 模擬 API請求
     await new Promise(resolve => setTimeout(resolve, 1000))
     
-    ElMessage.success('資源更新成功！')
+    showAlert('資源更新成功！', 'success')
     router.push(`/resources/${resource.value.id}`)
     
   } catch (error) {
     console.error('Failed to update resource:', error)
-    ElMessage.error('資源更新失敗')
+    showAlert('資源更新失敗', 'error')
   } finally {
     submitting.value = false
   }
@@ -523,7 +711,7 @@ const loadData = async () => {
     
   } catch (error) {
     console.error('Failed to load resource:', error)
-    ElMessage.error('載入資源失敗')
+    showAlert('載入資源失敗', 'error')
   } finally {
     loading.value = false
   }
@@ -551,67 +739,82 @@ onMounted(() => {
       margin: 0 0 8px 0;
       font-size: 24px;
       font-weight: 600;
-      color: var(--el-text-color-primary);
+      color: var(--bs-gray-900);
     }
     
     p {
       margin: 0;
-      color: var(--el-text-color-regular);
+      color: var(--bs-gray-600);
     }
   }
   
   .resource-form {
     .form-section {
       margin-bottom: 24px;
+    }
+    
+    
+    
+    .selected-tags {
+      min-height: 40px;
       
-      :deep(.el-card__header) {
-        background: var(--el-bg-color-page);
-        font-weight: 600;
+      .badge {
+        position: relative;
+        padding-right: 24px;
+        
+        .btn-close {
+          position: absolute;
+          top: 50%;
+          right: 4px;
+          transform: translateY(-50%);
+          font-size: 10px;
+          width: 12px;
+          height: 12px;
+          background: none;
+          border: none;
+          opacity: 0.8;
+          
+          &:hover {
+            opacity: 1;
+          }
+        }
       }
     }
     
-    .resource-type-option {
-      display: flex;
-      align-items: center;
-      gap: 8px;
+    
+    .custom-tags {
+      min-height: 40px;
       
-      .el-icon {
-        font-size: 16px;
+      .badge {
+        position: relative;
+        padding-right: 24px;
+        
+        .btn-close {
+          position: absolute;
+          top: 50%;
+          right: 4px;
+          transform: translateY(-50%);
+          font-size: 10px;
+          width: 12px;
+          height: 12px;
+          background: none;
+          border: none;
+          opacity: 0.8;
+          
+          &:hover {
+            opacity: 1;
+          }
+        }
       }
     }
     
-    .password-field {
+    .form-check-group {
       display: flex;
-      gap: 8px;
-    }
-    
-    .tags-section {
-      .selected-tags {
-        margin-top: 12px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-      }
-    }
-    
-    .tag-option {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      width: 100%;
+      gap: 20px;
+      flex-wrap: wrap;
       
-      .tag-category {
-        font-size: 12px;
-        color: var(--el-text-color-placeholder);
-      }
-    }
-    
-    .custom-tags-section {
-      .custom-tags {
-        margin-top: 12px;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
+      .form-check {
+        margin-bottom: 0;
       }
     }
     
@@ -621,7 +824,7 @@ onMounted(() => {
       gap: 16px;
       margin-top: 32px;
       padding: 24px;
-      background: var(--el-bg-color-page);
+      background: var(--bs-gray-50);
       border-radius: 8px;
     }
   }
@@ -639,14 +842,15 @@ onMounted(() => {
     padding: 0 16px;
     
     .resource-form {
-      .password-field {
+      .form-check-group {
         flex-direction: column;
+        gap: 10px;
       }
       
       .form-actions {
         flex-direction: column;
         
-        .el-button {
+        .btn {
           width: 100%;
         }
       }
@@ -654,24 +858,22 @@ onMounted(() => {
   }
 }
 
-// 暗黑模式
-.dark {
+// 暗黑模式支援
+@media (prefers-color-scheme: dark) {
   .resource-edit {
     .page-header {
       h2 {
-        color: var(--el-text-color-primary);
+        color: var(--bs-gray-100);
+      }
+      
+      p {
+        color: var(--bs-gray-300);
       }
     }
     
     .resource-form {
-      .form-section {
-        :deep(.el-card__header) {
-          background: var(--el-bg-color-page);
-        }
-      }
-      
       .form-actions {
-        background: var(--el-bg-color-page);
+        background: var(--bs-gray-800);
       }
     }
   }

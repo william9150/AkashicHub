@@ -7,28 +7,25 @@
         抱歉，您沒有權限訪問此頁面或資源。
       </div>
       <div class="error-actions">
-        <el-button type="primary" @click="goHome">
-          <el-icon><House /></el-icon>
+        <button type="button" class="btn btn-primary" @click="goHome">
+          <i class="bi bi-house-door me-2"></i>
           返回首頁
-        </el-button>
-        <el-button @click="goBack">
-          <el-icon><ArrowLeft /></el-icon>
+        </button>
+        <button type="button" class="btn btn-outline-light" @click="goBack">
+          <i class="bi bi-arrow-left me-2"></i>
           返回上頁
-        </el-button>
+        </button>
       </div>
     </div>
     
     <div class="error-illustration">
-      <el-icon size="200" color="#E6A23C">
-        <Lock />
-      </el-icon>
+      <i class="bi bi-lock" style="font-size: 200px; color: rgba(255, 255, 255, 0.3);"></i>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import { House, ArrowLeft, Lock } from '@element-plus/icons-vue'
 
 const router = useRouter()
 

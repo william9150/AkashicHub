@@ -3,7 +3,7 @@
 import type { Router } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useAppStore } from '@/stores/app'
-import { ElMessage } from 'element-plus'
+import { showAlert } from '@/utils/bootstrap-alerts'
 import NProgress from 'nprogress'
 
 // 設置路由守衛
@@ -76,7 +76,7 @@ export function setupRouterGuards(router: Router) {
     appStore.setLoading(false)
     
     // 顯示錯誤訊息
-    ElMessage.error('頁面載入失敗，請重試')
+    showAlert('頁面載入失敗，請重試', 'error')
   })
 }
 
@@ -116,7 +116,7 @@ export const permissionGuard = (permission: string) => {
     const authStore = useAuthStore()
     
     if (!authStore.hasPermission(permission)) {
-      ElMessage.error(`需要 ${permission} 權限才能訪問此頁面`)
+      showAlert(`需要 ${permission} 權限才能訪問此頁面`, 'error')
       next({ name: 'Forbidden' })
       return
     }
@@ -131,7 +131,7 @@ export const roleGuard = (role: string) => {
     const authStore = useAuthStore()
     
     if (!authStore.hasRole(role)) {
-      ElMessage.error(`需要 ${role} 角色才能訪問此頁面`)
+      showAlert(`需要 ${role} 角色才能訪問此頁面`, 'error')
       next({ name: 'Forbidden' })
       return
     }
@@ -145,7 +145,7 @@ export const adminGuard = (to: any, from: any, next: any) => {
   const authStore = useAuthStore()
   
   if (!authStore.isAdmin) {
-    ElMessage.error('需要管理員權限才能訪問此頁面')
+    showAlert('需要管理員權限才能訪問此頁面', 'error')
     next({ name: 'Forbidden' })
     return
   }
