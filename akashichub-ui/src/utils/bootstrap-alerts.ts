@@ -1,5 +1,5 @@
 // Bootstrap 警告和確認對話框工具函數
-export function showAlert(message: string, type: 'success' | 'error' | 'warning' | 'info' = 'info') {
+export function showAlert(message: string, type: 'success' | 'error' | 'warning' | 'danger' | 'info' = 'info') {
   const alertContainer = document.createElement('div')
   alertContainer.className = 'position-fixed top-0 start-50 translate-middle-x'
   alertContainer.style.zIndex = '9999'

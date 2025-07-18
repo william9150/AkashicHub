@@ -730,17 +730,17 @@ const tagStats = ref({
 // ])
 
 // 從 API 取得的真實資料
-const tagsData = ref([])
+const tagsData: Ref<any[]> = ref([])
 const totalTags = ref(0)
 
 // 計算屬性
 const filteredData = computed(() => {
-  let data = [...tagsData.value]
+  let data:any[] = [...tagsData.value]
   
   // 搜索篩選
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    data = data.filter(item => 
+    data = data.filter((item:any) => 
       item.name.toLowerCase().includes(query) ||
       item.description?.toLowerCase().includes(query)
     )

@@ -517,70 +517,6 @@ const userStats = ref({
   online: 8
 })
 
-// // 模擬數據 - 已註解，改為使用API
-// const mockData = ref([
-  {
-    id: 1,
-    loginAccount: 'admin',
-    displayName: '系統管理員',
-    role: 'Admin',
-    status: 'active',
-    email: 'admin@example.com',
-    department: 'IT部門',
-    avatar: '',
-    lastLoginAt: new Date('2024-01-15T10:30:00'),
-    createdAt: new Date('2024-01-01T00:00:00')
-  },
-  {
-    id: 2,
-    loginAccount: 'user1',
-    displayName: '張三',
-    role: 'User',
-    status: 'active',
-    email: 'zhang.san@example.com',
-    department: '開發部',
-    avatar: '',
-    lastLoginAt: new Date('2024-01-14T15:45:00'),
-    createdAt: new Date('2024-01-02T08:00:00')
-  },
-  {
-    id: 3,
-    loginAccount: 'user2',
-    displayName: '李四',
-    role: 'User',
-    status: 'active',
-    email: 'li.si@example.com',
-    department: '測試部',
-    avatar: '',
-    lastLoginAt: new Date('2024-01-13T09:20:00'),
-    createdAt: new Date('2024-01-03T10:00:00')
-  },
-  {
-    id: 4,
-    loginAccount: 'user3',
-    displayName: '王五',
-    role: 'User',
-    status: 'inactive',
-    email: 'wang.wu@example.com',
-    department: '運維部',
-    avatar: '',
-    lastLoginAt: null,
-    createdAt: new Date('2024-01-04T12:00:00')
-  },
-  {
-    id: 5,
-    loginAccount: 'manager1',
-    displayName: '趙六',
-    role: 'Admin',
-    status: 'active',
-    email: 'zhao.liu@example.com',
-    department: '管理部',
-    avatar: '',
-    lastLoginAt: new Date('2024-01-15T08:15:00'),
-    createdAt: new Date('2024-01-05T14:00:00')
-  }
-// ])
-
 // 從 API 取得的真實資料
 const usersData = ref([])
 const totalUsers = ref(0)
@@ -592,7 +528,7 @@ const filteredData = computed(() => {
   // 搜索篩選
   if (searchQuery.value) {
     const query = searchQuery.value.toLowerCase()
-    data = data.filter(item => 
+    data = data.filter((item:any) => 
       item.displayName.toLowerCase().includes(query) ||
       item.loginAccount.toLowerCase().includes(query) ||
       item.email?.toLowerCase().includes(query) ||
