@@ -24,7 +24,7 @@ export async function login(req, res) {
       error: { code: "INVALID_CREDENTIALS", message: "帳號或密碼錯誤" },
     });
   }
-  const token = jwt.sign({ id: user.Id, loginAccount: user.LoginAccount, role: user.Role }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || "7d" });
+  const token = jwt.sign({ id: user.Id, loginAccount: user.LoginAccount, displayName: user.DisplayName, role: user.Role }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || "7d" });
   res.json({
     success: true,
     data: {
