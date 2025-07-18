@@ -191,7 +191,7 @@
         updateStatus('apiStatus', 'loading', '測試中...')
 
         try {
-          const response = await fetch('/api/health')
+          const response = await fetch('http://localhost:3000/api/health')
           if (response.ok) {
             updateStatus('apiStatus', 'ok', '正常')
             log('✅ API連接正常')
