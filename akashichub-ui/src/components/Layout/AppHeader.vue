@@ -161,7 +161,7 @@
             </div>
           </div>
           <div class="user-info">
-            <div class="user-name">{{ userInfo?.displayName }}</div>
+            <div class="user-name">{{ userInfo?.displayName || userInfo?.loginAccount || '用戶' }}</div>
             <div class="user-role">{{ userInfo?.role }}</div>
           </div>
           <i class="bi bi-chevron-down dropdown-icon"></i>

@@ -5,10 +5,6 @@
       <p>歡迎使用 AkashicHub - IT 內部資源檢索系統</p>
       
       <div class="quick-actions">
-        <button type="button" class="btn btn-primary" @click="goToDashboard">
-          <i class="bi bi-speedometer2 me-2"></i>
-          前往儀表板
-        </button>
         <button type="button" class="btn btn-outline-light" @click="goToResources">
           <i class="bi bi-hdd-rack me-2"></i>
           資源管理
@@ -54,15 +50,6 @@ const authStore = useAuthStore()
 // 檢查用戶是否已登入
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 
-const goToDashboard = () => {
-  // 檢查用戶是否已登入
-  const token = localStorage.getItem('akashichub_token')
-  if (!token) {
-    router.push('/login?redirect=/dashboard')
-  } else {
-    router.push('/dashboard')
-  }
-}
 
 const goToResources = () => {
   router.push('/resources')

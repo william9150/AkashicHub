@@ -270,18 +270,18 @@
                     >
                   </td>
                   <td>
-                    <span class="badge" :class="getCategoryTagClass(row.category)">
-                      {{ row.name }}
+                    <span class="badge" :class="getCategoryTagClass(row.Category)">
+                      {{ row.Name }}
                     </span>
                   </td>
                   <td>
-                    <span class="badge" :class="getCategoryTagClass(row.category)">
-                      {{ getCategoryLabel(row.category) }}
+                    <span class="badge" :class="getCategoryTagClass(row.Category)">
+                      {{ getCategoryLabel(row.Category) }}
                     </span>
                   </td>
                   <td>
-                    <span class="text-truncate" :title="row.description || '無描述'">
-                      {{ row.description || '無描述' }}
+                    <span class="text-truncate" :title="row.Description || '無描述'">
+                      {{ row.Description || '無描述' }}
                     </span>
                   </td>
                   <td>
@@ -296,13 +296,13 @@
                   <td>
                     <div
                       class="color-preview"
-                      :style="{ backgroundColor: row.color }"
+                      :style="{ backgroundColor: row.Color }"
                       @click="editTagColor(row)"
                     >
                     </div>
                   </td>
-                  <td class="text-muted small">{{ row.createdBy }}</td>
-                  <td class="text-muted small">{{ formatDateTime(row.createdAt) }}</td>
+                  <td class="text-muted small">{{ row.CreatedBy }}</td>
+                  <td class="text-muted small">{{ formatDateTime(row.CreatedAt) }}</td>
                   <td>
                     <div class="btn-group btn-group-sm" role="group">
                       <button
@@ -316,7 +316,7 @@
                         v-if="authStore.canEditITData"
                         type="button"
                         class="btn btn-outline-secondary"
-                        @click="goToEdit(row.id)"
+                        @click="goToEdit(row.Id)"
                       >
                         編輯
                       </button>
@@ -325,7 +325,7 @@
                         type="button"
                         class="btn btn-outline-danger"
                         @click="handleDelete(row)"
-                        :disabled="row.usageCount > 0"
+                        :disabled="row.UsageCount > 0"
                       >
                         刪除
                       </button>
@@ -508,10 +508,10 @@
                   <option value="null">選擇要保留的標籤</option>
                   <option
                     v-for="tag in selectedRows"
-                    :key="tag.id"
-                    :value="tag.id"
+                    :key="tag.Id"
+                    :value="tag.Id"
                   >
-                    {{ tag.name }}
+                    {{ tag.Name }}
                   </option>
                 </select>
               </div>
@@ -522,12 +522,12 @@
                   <div class="merge-sources d-flex flex-column gap-2">
                     <span
                       v-for="tag in selectedRows"
-                      :key="tag.id"
+                      :key="tag.Id"
                       class="badge"
-                      :class="[getCategoryTagClass(tag.category), { 'border border-primary border-2': tag.id === mergeTargetTag }]"
+                      :class="[getCategoryTagClass(tag.Category), { 'border border-primary border-2': tag.Id === mergeTargetTag }]"
                     >
-                      {{ tag.name }}
-                      <span v-if="tag.id === mergeTargetTag"> (保留)</span>
+                      {{ tag.Name }}
+                      <span v-if="tag.Id === mergeTargetTag"> (保留)</span>
                     </span>
                   </div>
                   <i class="bi bi-arrow-right fs-4 text-primary"></i>
@@ -567,6 +567,7 @@ import { useRouter } from 'vue-router'
 import { showAlert, showConfirm } from '@/utils/bootstrap-alerts'
 import { useAuthStore } from '@/stores/auth'
 import { format } from 'date-fns'
+import { getTags, deleteTag, batchDeleteTags } from '@/api/tags'
 
 // 狀態管理
 const authStore = useAuthStore()
@@ -634,103 +635,107 @@ const tagStats = ref({
   categories: 6
 })
 
-// 模擬數據
-const mockData = ref([
-  {
-    id: 1,
-    name: '生產環境',
-    category: 'Environment',
-    description: '生產環境相關資源',
-    usageCount: 25,
-    color: '#f56c6c',
-    createdBy: 1,
-    createdAt: new Date('2024-01-10T08:00:00')
-  },
-  {
-    id: 2,
-    name: '測試環境',
-    category: 'Environment',
-    description: '測試環境相關資源',
-    usageCount: 12,
-    color: '#e6a23c',
-    createdBy: 1,
-    createdAt: new Date('2024-01-11T09:00:00')
-  },
-  {
-    id: 3,
-    name: '開發環境',
-    category: 'Environment',
-    description: '開發環境相關資源',
-    usageCount: 8,
-    color: '#67c23a',
-    createdBy: 1,
-    createdAt: new Date('2024-01-12T10:00:00')
-  },
-  {
-    id: 4,
-    name: '高優先級',
-    category: 'Priority',
-    description: '高優先級資源',
-    usageCount: 15,
-    color: '#f56c6c',
-    createdBy: 1,
-    createdAt: new Date('2024-01-13T11:00:00')
-  },
-  {
-    id: 5,
-    name: '中優先級',
-    category: 'Priority',
-    description: '中優先級資源',
-    usageCount: 20,
-    color: '#e6a23c',
-    createdBy: 1,
-    createdAt: new Date('2024-01-14T12:00:00')
-  },
-  {
-    id: 6,
-    name: '低優先級',
-    category: 'Priority',
-    description: '低優先級資源',
-    usageCount: 8,
-    color: '#909399',
-    createdBy: 1,
-    createdAt: new Date('2024-01-15T13:00:00')
-  },
-  {
-    id: 7,
-    name: '前端',
-    category: 'Department',
-    description: '前端開發相關',
-    usageCount: 6,
-    color: '#409eff',
-    createdBy: 2,
-    createdAt: new Date('2024-01-16T14:00:00')
-  },
-  {
-    id: 8,
-    name: '後端',
-    category: 'Department',
-    description: '後端開發相關',
-    usageCount: 10,
-    color: '#67c23a',
-    createdBy: 2,
-    createdAt: new Date('2024-01-17T15:00:00')
-  },
-  {
-    id: 9,
-    name: '未使用標籤',
-    category: 'Other',
-    description: '暫未使用的標籤',
-    usageCount: 0,
-    color: '#909399',
-    createdBy: 1,
-    createdAt: new Date('2024-01-18T16:00:00')
-  }
-])
+// // 模擬數據 - 已註解，改為使用API
+// const mockData = ref([
+//   {
+//     id: 1,
+//     name: '生產環境',
+//     category: 'Environment',
+//     description: '生產環境相關資源',
+//     usageCount: 25,
+//     color: '#f56c6c',
+//     createdBy: 1,
+//     createdAt: new Date('2024-01-10T08:00:00')
+//   },
+//   {
+//     id: 2,
+//     name: '測試環境',
+//     category: 'Environment',
+//     description: '測試環境相關資源',
+//     usageCount: 12,
+//     color: '#e6a23c',
+//     createdBy: 1,
+//     createdAt: new Date('2024-01-11T09:00:00')
+//   },
+//   {
+//     id: 3,
+//     name: '開發環境',
+//     category: 'Environment',
+//     description: '開發環境相關資源',
+//     usageCount: 8,
+//     color: '#67c23a',
+//     createdBy: 1,
+//     createdAt: new Date('2024-01-12T10:00:00')
+//   },
+//   {
+//     id: 4,
+//     name: '高優先級',
+//     category: 'Priority',
+//     description: '高優先級資源',
+//     usageCount: 15,
+//     color: '#f56c6c',
+//     createdBy: 1,
+//     createdAt: new Date('2024-01-13T11:00:00')
+//   },
+//   {
+//     id: 5,
+//     name: '中優先級',
+//     category: 'Priority',
+//     description: '中優先級資源',
+//     usageCount: 20,
+//     color: '#e6a23c',
+//     createdBy: 1,
+//     createdAt: new Date('2024-01-14T12:00:00')
+//   },
+//   {
+//     id: 6,
+//     name: '低優先級',
+//     category: 'Priority',
+//     description: '低優先級資源',
+//     usageCount: 8,
+//     color: '#909399',
+//     createdBy: 1,
+//     createdAt: new Date('2024-01-15T13:00:00')
+//   },
+//   {
+//     id: 7,
+//     name: '前端',
+//     category: 'Department',
+//     description: '前端開發相關',
+//     usageCount: 6,
+//     color: '#409eff',
+//     createdBy: 2,
+//     createdAt: new Date('2024-01-16T14:00:00')
+//   },
+//   {
+//     id: 8,
+//     name: '後端',
+//     category: 'Department',
+//     description: '後端開發相關',
+//     usageCount: 10,
+//     color: '#67c23a',
+//     createdBy: 2,
+//     createdAt: new Date('2024-01-17T15:00:00')
+//   },
+//   {
+//     id: 9,
+//     name: '未使用標籤',
+//     category: 'Other',
+//     description: '暫未使用的標籤',
+//     usageCount: 0,
+//     color: '#909399',
+//     createdBy: 1,
+//     createdAt: new Date('2024-01-18T16:00:00')
+//   }
+// ])
+
+// 從 API 取得的真實資料
+const tagsData = ref([])
+const totalTags = ref(0)
 
 // 計算屬性
 const filteredData = computed(() => {
-  let data = [...mockData.value]
+  let data = [...tagsData.value]
   
   // 搜索篩選
   if (searchQuery.value) {
@@ -839,7 +844,7 @@ const canDeleteTag = (tag: any) => {
   }
   
   // ITManager 只能刪除自己創建的標籤
-  if (authStore.canDeleteOwnData && authStore.user?.id === tag.createdBy) {
+  if (authStore.canDeleteOwnData && authStore.user?.id === tag.CreatedBy) {
     return true
   }
   
@@ -856,16 +861,25 @@ const loadData = async () => {
   try {
     loading.value = true
     
-    // 模擬API請求
-    await new Promise(resolve => setTimeout(resolve, 500))
+    // 調用真實API
+    const params = {
+      page: pagination.value.currentPage,
+      pageSize: pagination.value.pageSize,
+      search: searchQuery.value,
+      category: filters.value.category,
+      usageStatus: filters.value.usageStatus,
+      sortBy: filters.value.sortBy
+    }
     
-    // 應用篩選和排序
-    let data = filteredData.value
+    const response = await getTags(params)
     
-    // 分頁
+    // 更新數據 - 後端返回 { success: true, data: tags[] }
+    tagsData.value = response || []
+    
+    // 前端處理分頁和篩選
+    const data = filteredData.value
     const start = (pagination.value.currentPage - 1) * pagination.value.pageSize
     const end = start + pagination.value.pageSize
-    
     tableData.value = data.slice(start, end)
     pagination.value.total = data.length
     
@@ -1119,14 +1133,14 @@ const saveTagColor = async () => {
 
 // 處理刪除
 const handleDelete = async (tag: any) => {
-  if (tag.usageCount > 0) {
+  if (tag.UsageCount > 0) {
     showAlert('此標籤正在使用中，無法刪除', 'warning')
     return
   }
   
   try {
     const confirmed = await showConfirm(
-      `確定要刪除標籤 "${tag.name}" 嗎？此操作不可恢復。`,
+      `確定要刪除標籤 "${tag.Name}" 嗎？此操作不可恢復。`,
       '確認刪除',
       {
         confirmText: '確定',
@@ -1137,19 +1151,20 @@ const handleDelete = async (tag: any) => {
     
     if (!confirmed) return
     
-    // 這裡調用刪除API
-    // await tagsApi.deleteTag(tag.id)
+    // 調用真實刪除API
+    await deleteTag(tag.Id)
     
     showAlert('刪除成功', 'success')
     loadData()
   } catch (error) {
-    showAlert('刪除失敗', 'error')
+    console.error('Delete tag failed:', error)
+    showAlert('刪除失敗，請檢查網路連線', 'danger')
   }
 }
 
 // 處理批量刪除
 const handleBatchDelete = async () => {
-  const usedTags = selectedRows.value.filter(tag => tag.usageCount > 0)
+  const usedTags = selectedRows.value.filter(tag => tag.UsageCount > 0)
   if (usedTags.length > 0) {
     showAlert(`選中的標籤中有 ${usedTags.length} 個正在使用中，無法刪除`, 'warning')
     return
@@ -1168,15 +1183,16 @@ const handleBatchDelete = async () => {
     
     if (!confirmed) return
     
-    // 這裡調用批量刪除API
-    // const ids = selectedRows.value.map(row => row.id)
-    // await tagsApi.deleteTags(ids)
+    // 調用真實批量刪除API
+    const ids = selectedRows.value.map(row => row.id)
+    await batchDeleteTags(ids)
     
     showAlert('批量刪除成功', 'success')
     selectedRows.value = []
     loadData()
   } catch (error) {
-    showAlert('批量刪除失敗', 'error')
+    console.error('Batch delete tags failed:', error)
+    showAlert('批量刪除失敗，請檢查網路連線', 'danger')
   }
 }
 
@@ -1200,9 +1216,9 @@ const confirmMergeTags = async () => {
   
   try {
     const sourceTagIds = selectedRows.value
-      .filter(tag => tag.id !== mergeTargetTag.value)
-      .map(tag => tag.id)
-    
+      .filter(tag => tag.Id !== mergeTargetTag.value)
+      .map(tag => tag.Id)
+
     // 這裡調用合併API
     // await tagsApi.mergeTags(mergeTargetTag.value, sourceTagIds)
     

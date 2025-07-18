@@ -143,13 +143,6 @@ const userInfo = computed(() => authStore.userInfo)
 const menuItems = computed(() => {
   const items = [
     {
-      id: 'dashboard',
-      title: '儀表板',
-      icon: 'House',
-      path: '/dashboard',
-      disabled: false
-    },
-    {
       id: 'resources',
       title: '資源管理',
       icon: 'Server',
@@ -374,12 +367,6 @@ const handleLogout = async () => {
 // 更新活動菜單
 const updateActiveMenu = () => {
   const currentPath = route.path
-  
-  // 精確匹配
-  if (currentPath === '/dashboard') {
-    activeMenu.value = '/dashboard'
-    return
-  }
   
   // 資源管理
   if (currentPath.startsWith('/resources')) {

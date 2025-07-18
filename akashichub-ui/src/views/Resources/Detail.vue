@@ -467,7 +467,16 @@ const getStatusTagClass = (status: string) => {
   }
   return typeMap[status] || 'badge bg-info text-dark'
 }
-
+// 獲取標籤類型
+const getTagClass = (category: string) => {
+  const typeMap: Record<string, string> = {
+    Environment: 'bg-primary',
+    Priority: 'bg-warning',
+    Department: 'bg-success',
+    Project: 'bg-info'
+  }
+  return typeMap[category] || 'bg-info'
+}
 // 獲取狀態文本
 const getStatusText = (status: string) => {
   const textMap: Record<string, string> = {

@@ -140,7 +140,7 @@ const handleLogin = async () => {
     showAlert('登入成功！', 'success')
     
     // 重定向到目標頁面或儀表板
-    const redirect = route.query.redirect as string || '/dashboard'
+    const redirect = route.query.redirect as string || '/resources'
     router.push(redirect)
     
   } catch (error: any) {

@@ -173,7 +173,7 @@ export const guestGuard = (to: any, from: any, next: any) => {
   const authStore = useAuthStore()
   
   if (authStore.isAuthenticated) {
-    next({ name: 'Dashboard' })
+    next({ name: 'Resources' })
     return
   }
   

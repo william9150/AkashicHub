@@ -40,19 +40,6 @@ const routes: RouteRecordRaw[] = [
     }
   },
   {
-    path: '/dashboard',
-    name: 'Dashboard',
-    component: () => import('@/views/Dashboard/Index.vue'),
-    meta: {
-      title: '儀表板',
-      requiresAuth: true,
-      icon: 'House',
-      breadcrumb: [
-        { title: '首頁', path: '/dashboard' }
-      ]
-    }
-  },
-  {
     path: '/resources',
     name: 'Resources',
     component: () => import('@/views/Resources/Index.vue'),
@@ -61,7 +48,7 @@ const routes: RouteRecordRaw[] = [
       requiresAuth: true,
       icon: 'Server',
       breadcrumb: [
-        { title: '首頁', path: '/dashboard' },
+        { title: '首頁', path: '/resources' },
         { title: '資源管理' }
       ]
     },
@@ -85,7 +72,7 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresAdmin: true,
           breadcrumb: [
-            { title: '首頁', path: '/dashboard' },
+            { title: '首頁', path: '/resources' },
             { title: '資源管理', path: '/resources' },
             { title: '新增資源' }
           ]
@@ -100,7 +87,7 @@ const routes: RouteRecordRaw[] = [
           title: '資源詳情',
           requiresAuth: true,
           breadcrumb: [
-            { title: '首頁', path: '/dashboard' },
+            { title: '首頁', path: '/resources' },
             { title: '資源管理', path: '/resources' },
             { title: '資源詳情' }
           ]
@@ -116,7 +103,7 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresAdmin: true,
           breadcrumb: [
-            { title: '首頁', path: '/dashboard' },
+            { title: '首頁', path: '/resources' },
             { title: '資源管理', path: '/resources' },
             { title: '編輯資源' }
           ]
@@ -133,7 +120,7 @@ const routes: RouteRecordRaw[] = [
       requiresAuth: true,
       icon: 'CollectionTag',
       breadcrumb: [
-        { title: '首頁', path: '/dashboard' },
+        { title: '首頁', path: '/resources' },
         { title: '標籤管理' }
       ]
     },
@@ -157,7 +144,7 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresAdmin: true,
           breadcrumb: [
-            { title: '首頁', path: '/dashboard' },
+            { title: '首頁', path: '/resources' },
             { title: '標籤管理', path: '/tags' },
             { title: '新增標籤' }
           ]
@@ -173,7 +160,7 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresAdmin: true,
           breadcrumb: [
-            { title: '首頁', path: '/dashboard' },
+            { title: '首頁', path: '/resources' },
             { title: '標籤管理', path: '/tags' },
             { title: '編輯標籤' }
           ]
@@ -191,7 +178,7 @@ const routes: RouteRecordRaw[] = [
       requiresAdmin: true,
       icon: 'User',
       breadcrumb: [
-        { title: '首頁', path: '/dashboard' },
+        { title: '首頁', path: '/resources' },
         { title: '用戶群' }
       ]
     },
@@ -216,7 +203,7 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresAdmin: true,
           breadcrumb: [
-            { title: '首頁', path: '/dashboard' },
+            { title: '首頁', path: '/resources' },
             { title: '用戶管理', path: '/users' },
             { title: '新增用戶' }
           ]
@@ -232,7 +219,7 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresAdmin: true,
           breadcrumb: [
-            { title: '首頁', path: '/dashboard' },
+            { title: '首頁', path: '/resources' },
             { title: '用戶管理', path: '/users' },
             { title: '用戶詳情' }
           ]
@@ -248,7 +235,7 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresAdmin: true,
           breadcrumb: [
-            { title: '首頁', path: '/dashboard' },
+            { title: '首頁', path: '/resources' },
             { title: '用戶管理', path: '/users' },
             { title: '編輯用戶' }
           ]
@@ -265,7 +252,7 @@ const routes: RouteRecordRaw[] = [
       requiresAuth: true,
       icon: 'UserFilled',
       breadcrumb: [
-        { title: '首頁', path: '/dashboard' },
+        { title: '首頁', path: '/resources' },
         { title: '個人資料' }
       ]
     }
@@ -280,7 +267,7 @@ const routes: RouteRecordRaw[] = [
       requiresAdmin: true,
       icon: 'Setting',
       breadcrumb: [
-        { title: '首頁', path: '/dashboard' },
+        { title: '首頁', path: '/resources' },
         { title: '系統設定' }
       ]
     },
@@ -298,7 +285,7 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresAdmin: true,
           breadcrumb: [
-            { title: '首頁', path: '/dashboard' },
+            { title: '首頁', path: '/resources' },
             { title: '系統設定', path: '/settings' },
             { title: '一般設定' }
           ]
@@ -313,7 +300,7 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresAdmin: true,
           breadcrumb: [
-            { title: '首頁', path: '/dashboard' },
+            { title: '首頁', path: '/resources' },
             { title: '系統設定', path: '/settings' },
             { title: '安全設定' }
           ]
@@ -328,7 +315,7 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresAdmin: true,
           breadcrumb: [
-            { title: '首頁', path: '/dashboard' },
+            { title: '首頁', path: '/resources' },
             { title: '系統設定', path: '/settings' },
             { title: '系統狀態' }
           ]
@@ -346,7 +333,7 @@ const routes: RouteRecordRaw[] = [
       requiresAdmin: true,
       icon: 'Document',
       breadcrumb: [
-        { title: '首頁', path: '/dashboard' },
+        { title: '首頁', path: '/resources' },
         { title: '日誌管理' }
       ]
     },
@@ -364,7 +351,7 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresAdmin: true,
           breadcrumb: [
-            { title: '首頁', path: '/dashboard' },
+            { title: '首頁', path: '/resources' },
             { title: '日誌管理', path: '/logs' },
             { title: '系統日誌' }
           ]
@@ -379,7 +366,7 @@ const routes: RouteRecordRaw[] = [
           requiresAuth: true,
           requiresAdmin: true,
           breadcrumb: [
-            { title: '首頁', path: '/dashboard' },
+            { title: '首頁', path: '/resources' },
             { title: '日誌管理', path: '/logs' },
             { title: '審計日誌' }
           ]
@@ -396,7 +383,7 @@ const routes: RouteRecordRaw[] = [
       requiresAuth: true,
       icon: 'Search',
       breadcrumb: [
-        { title: '首頁', path: '/dashboard' },
+        { title: '首頁', path: '/resources' },
         { title: '搜尋' }
       ]
     }
@@ -410,7 +397,7 @@ const routes: RouteRecordRaw[] = [
       requiresAuth: true,
       icon: 'InfoFilled',
       breadcrumb: [
-        { title: '首頁', path: '/dashboard' },
+        { title: '首頁', path: '/resources' },
         { title: '關於系統' }
       ]
     }

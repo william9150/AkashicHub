@@ -469,6 +469,8 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { format, formatDistanceToNow } from 'date-fns'
 import { zhTW } from 'date-fns/locale'
+import { getUsers, deleteUser, batchDeleteUsers } from '@/api/users'
+import { showAlert, showConfirm } from '@/utils/bootstrap-alerts'
 
 // 狀態管理
 const authStore = useAuthStore()
@@ -515,8 +517,8 @@ const userStats = ref({
   online: 8
 })
 
-// 模擬數據
-const mockData = ref([
+// // 模擬數據 - 已註解，改為使用API
+// const mockData = ref([
   {
     id: 1,
     loginAccount: 'admin',
@@ -577,11 +579,15 @@ const mockData = ref([
     lastLoginAt: new Date('2024-01-15T08:15:00'),
     createdAt: new Date('2024-01-05T14:00:00')
   }
-])
+// ])
+
+// 從 API 取得的真實資料
+const usersData = ref([])
+const totalUsers = ref(0)
 
 // 計算屬性
 const filteredData = computed(() => {
-  let data = [...mockData.value]
+  let data = [...usersData.value]
   
   // 搜索篩選
   if (searchQuery.value) {
@@ -709,32 +715,35 @@ const loadData = async () => {
   try {
     loading.value = true
     
-    // 模擬API請求
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    // 應用篩選和排序
-    let data = filteredData.value
-    
-    // 排序
-    if (sortConfig.value.prop) {
-      data.sort((a, b) => {
-        const aValue = a[sortConfig.value.prop]
-        const bValue = b[sortConfig.value.prop]
-        
-        if (sortConfig.value.order === 'ascending') {
-          return aValue > bValue ? 1 : -1
-        } else {
-          return aValue < bValue ? 1 : -1
-        }
-      })
+    // 調用真實API
+    const params = {
+      page: pagination.value.currentPage,
+      pageSize: pagination.value.pageSize,
+      search: searchQuery.value,
+      role: filters.value.role,
+      status: filters.value.status,
+      sortBy: sortConfig.value.prop,
+      sortOrder: sortConfig.value.order
     }
     
-    // 分頁
-    const start = (pagination.value.currentPage - 1) * pagination.value.pageSize
-    const end = start + pagination.value.pageSize
+    const response = await getUsers(params)
     
-    tableData.value = data.slice(start, end)
-    pagination.value.total = data.length
+    // 更新數據 - 處理後端返回的資料結構
+    usersData.value = response.data || []
+    totalUsers.value = response.total || 0
+    
+    // 更新表格數據和分頁資訊
+    if (response.data) {
+      tableData.value = response.data
+      pagination.value.total = response.total || response.data.length
+    } else {
+      // 前端處理分頁
+      const data = filteredData.value
+      const start = (pagination.value.currentPage - 1) * pagination.value.pageSize
+      const end = start + pagination.value.pageSize
+      tableData.value = data.slice(start, end)
+      pagination.value.total = data.length
+    }
     
   } catch (error) {
     console.error('Failed to load users:', error)
@@ -979,8 +988,8 @@ const handleDeleteUser = async (user: any) => {
   
   if (confirm(`確定要刪除用戶 "${user.displayName}" 嗎？此操作不可恢復。`)) {
     try {
-      // 這裡調用刪除API
-      // await usersApi.deleteUser(user.id)
+      // 調用真實刪除API
+      await deleteUser(user.id)
       
       showAlert('刪除成功', 'success')
       loadData()

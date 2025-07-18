@@ -16,7 +16,6 @@
               <i v-if="tab.icon" :class="tab.icon" class="tab-icon"></i>
               <span class="tab-title">{{ tab.title }}</span>
               <i
-                v-if="tab.name !== 'Dashboard'"
                 class="bi bi-x-lg tab-close"
                 @click.stop="handleTabRemove(tab.name)"
               ></i>
@@ -46,7 +45,7 @@
           </li>
           <li>
             <a 
-              :class="['dropdown-item', { disabled: activeTab === 'Dashboard' }]"
+              class="dropdown-item"
               href="#"
               @click.prevent="handleTabAction('close-current')"
             >
@@ -106,7 +105,6 @@ const visitedViews = computed(() => {
 // 獲取路由圖標
 const getRouteIcon = (routeName: string) => {
   const iconMap: Record<string, string> = {
-    'Dashboard': 'bi bi-house',
     'Resources': 'bi bi-server',
     'ResourcesList': 'bi bi-server',
     'ResourcesCreate': 'bi bi-server',
@@ -145,11 +143,6 @@ const handleTabClick = (tab: any) => {
 
 // 處理標籤移除
 const handleTabRemove = (targetName: string) => {
-  // 不能關閉儀表板標籤
-  if (targetName === 'Dashboard') {
-    showAlert('儀表板標籤不能關閉', 'warning')
-    return
-  }
   
   // 如果關閉的是當前標籤，需要跳轉到其他標籤
   if (targetName === activeTab.value) {
@@ -211,10 +204,8 @@ const handleCloseOthers = async () => {
     if (!confirmed) return
     
     const currentView = visitedViews.value.find(view => view.name === activeTab.value)
-    const dashboardView = visitedViews.value.find(view => view.name === 'Dashboard')
-    
-    // 保留當前標籤和儀表板標籤
-    const viewsToKeep = [dashboardView, currentView].filter(Boolean)
+    // 保留當前標籤
+    const viewsToKeep = [currentView].filter(Boolean)
     
     // 清空所有訪問記錄和緩存
     appStore.clearVisitedViews()
@@ -244,15 +235,13 @@ const handleCloseAll = async () => {
     if (!confirmed) return
     
     // 跳轉到儀表板
-    router.push('/dashboard')
+    router.push('/resources')
     
     // 清空所有訪問記錄和緩存
     appStore.clearVisitedViews()
     appStore.clearCachedViews()
     
     // 重新添加儀表板
-    appStore.addVisitedView('Dashboard', '儀表板', '/dashboard')
-    appStore.addCachedView('Dashboard')
     
     showAlert('已關閉所有標籤', 'success')
   } catch (error) {

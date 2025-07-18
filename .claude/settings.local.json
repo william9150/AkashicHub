@@ -23,7 +23,10 @@
       "Bash(timeout 5 npm run build)",
       "Bash(timeout 10 npx vite build)",
       "Bash(npm run build:*)",
-      "Bash(npx vite:*)"
+      "Bash(npx vite:*)",
+      "Bash(rm:*)",
+      "Bash(pkill:*)",
+      "Bash(grep:*)"
     ],
     "deny": []
   }

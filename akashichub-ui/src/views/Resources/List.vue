@@ -202,40 +202,40 @@
                   <td>
                     <div class="d-flex align-items-center">
                       <i class="bi me-2 fs-5" :class="getResourceTypeIcon(row.resourceType)" :style="{ color: getResourceTypeColor(row.resourceType) }"></i>
-                      <span>{{ row.name }}</span>
+                      <span>{{ row.Name }}</span>
                     </div>
                   </td>
                   <td>
-                    <span class="badge" :class="getResourceTypeTagClass(row.resourceType)">
-                      {{ row.resourceType }}
+                    <span class="badge" :class="getResourceTypeTagClass(row.ResourceType)">
+                      {{ row.ResourceType }}
                     </span>
                   </td>
-                  <td>{{ row.ipAddress }}</td>
-                  <td>{{ row.loginUser }}</td>
+                  <td>{{ row.IpAddress }}</td>
+                  <td>{{ row.LoginUser }}</td>
                   <td>
                     <div class="d-flex flex-wrap gap-1">
                       <span
-                        v-for="tag in row.tags"
-                        :key="tag.id"
+                        v-for="tag in row.Tags"
+                        :key="tag.Id"
                         class="badge"
-                        :class="getTagClass(tag.category)"
+                        :class="getTagClass(tag.Category)"
                       >
-                        {{ tag.name }}
+                        {{ tag.Name }}
                       </span>
                     </div>
                   </td>
                   <td>
-                    <span class="badge" :class="getStatusTagClass(row.status)">
-                      {{ getStatusText(row.status) }}
+                    <span class="badge" :class="getStatusTagClass(row.Status)">
+                      {{ getStatusText(row.Status) }}
                     </span>
                   </td>
-                  <td class="text-muted small">{{ formatDateTime(row.updatedAt) }}</td>
+                  <td class="text-muted small">{{ formatDateTime(row.UpdatedAt) }}</td>
                   <td>
                     <div class="btn-group btn-group-sm" role="group">
                       <button
                         type="button"
                         class="btn btn-outline-primary"
-                        @click="goToDetail(row.id)"
+                        @click="goToDetail(row.Id)"
                       >
                         查看
                       </button>
@@ -243,7 +243,7 @@
                         v-if="authStore.canEditITData"
                         type="button"
                         class="btn btn-outline-secondary"
-                        @click="goToEdit(row.id)"
+                        @click="goToEdit(row.Id)"
                       >
                         編輯
                       </button>
@@ -321,6 +321,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { showAlert, showConfirm } from '@/utils/bootstrap-alerts'
 import { useAuthStore } from '@/stores/auth'
 import { format } from 'date-fns'
+import { getResources, deleteResource, batchDeleteResources } from '@/api/resources'
 
 // 狀態管理
 const authStore = useAuthStore()
@@ -374,68 +375,32 @@ const availableTags = ref([
   { id: 6, name: '低優先級', category: 'Priority' }
 ])
 
-// 模擬數據
-const mockData = ref([
-  {
-    id: 1,
-    name: 'Web Server 01',
-    resourceType: 'Server',
-    ipAddress: '192.168.1.100',
-    loginUser: 'admin',
-    status: 'active',
-    createdBy: 1, // admin (SuperAdmin) 創建
-    tags: [
-      { id: 1, name: '生產環境', category: 'Environment' },
-      { id: 4, name: '高優先級', category: 'Priority' }
-    ],
-    updatedAt: new Date('2024-01-15T10:30:00')
-  },
-  {
-    id: 2,
-    name: 'MySQL Database',
-    resourceType: 'Database',
-    ipAddress: '192.168.1.101',
-    loginUser: 'dbuser',
-    status: 'active',
-    createdBy: 2, // willy (ITManager) 創建
-    tags: [
-      { id: 1, name: '生產環境', category: 'Environment' }
-    ],
-    updatedAt: new Date('2024-01-14T15:45:00')
-  },
-  {
-    id: 3,
-    name: 'Redis Cache',
-    resourceType: 'Cache',
-    ipAddress: '192.168.1.102',
-    loginUser: 'redis',
-    status: 'maintenance',
-    createdBy: 1, // admin (SuperAdmin) 創建
-    tags: [
-      { id: 2, name: '測試環境', category: 'Environment' },
-      { id: 5, name: '中優先級', category: 'Priority' }
-    ],
-    updatedAt: new Date('2024-01-13T09:20:00')
-  },
-  {
-    id: 4,
-    name: 'File Storage',
-    resourceType: 'Storage',
-    ipAddress: '192.168.1.103',
-    loginUser: 'storage',
-    status: 'active',
-    createdBy: 2, // willy (ITManager) 創建
-    tags: [
-      { id: 3, name: '開發環境', category: 'Environment' },
-      { id: 6, name: '低優先級', category: 'Priority' }
-    ],
-    updatedAt: new Date('2024-01-12T14:15:00')
-  }
-])
+// // 模擬數據 - 已註解，改為使用API
+// const mockData = ref([
+//   {
+//     id: 1,
+//     name: 'Web Server 01',
+//     resourceType: 'Server',
+//     ipAddress: '192.168.1.100',
+//     loginUser: 'admin',
+//     status: 'active',
+//     createdBy: 1,
+//     tags: [
+//       { id: 1, name: '生產環境', category: 'Environment' },
+//       { id: 4, name: '高優先級', category: 'Priority' }
+//     ],
+//     updatedAt: new Date('2024-01-15T10:30:00')
+//   }
+//   // ... 更多模擬數據
+// ])
+
+// 從 API 取得的真實資料
+const resourcesData = ref([])
+const totalResources = ref(0)
 
 // 計算屬性
 const filteredData = computed(() => {
-  let data = [...mockData.value]
+  let data = [...resourcesData.value]
   
   // 搜索篩選
   if (searchQuery.value) {
@@ -540,7 +505,7 @@ const getStatusText = (status: string) => {
 
 // 格式化日期時間
 const formatDateTime = (date: Date) => {
-  return format(date, 'yyyy-MM-dd HH:mm:ss')
+  return date?format(date, 'yyyy-MM-dd HH:mm:ss'):''
 }
 
 // 檢查是否可以刪除資源
@@ -563,36 +528,35 @@ const loadData = async () => {
   try {
     loading.value = true
     
-    // 模擬API請求
-    await new Promise(resolve => setTimeout(resolve, 500))
-    
-    // 應用篩選和排序
-    let data = filteredData.value
-    
-    // 排序
-    if (sortConfig.value.prop) {
-      data.sort((a, b) => {
-        const aValue = a[sortConfig.value.prop]
-        const bValue = b[sortConfig.value.prop]
-        
-        if (sortConfig.value.order === 'ascending') {
-          return aValue > bValue ? 1 : -1
-        } else {
-          return aValue < bValue ? 1 : -1
-        }
-      })
+    // 調用真實API
+    const params = {
+      page: pagination.value.currentPage,
+      pageSize: pagination.value.pageSize,
+      search: searchQuery.value,
+      status: filters.value.status,
+      resourceType: filters.value.resourceType,
+      tags: filters.value.tags,
+      sortBy: sortConfig.value.prop,
+      sortOrder: sortConfig.value.order
     }
     
-    // 分頁
-    const start = (pagination.value.currentPage - 1) * pagination.value.pageSize
-    const end = start + pagination.value.pageSize
+    const response = await getResources(params)
+    // 更新數據 - 修正後端返回的資料結構
+    resourcesData.value = response.resources || []
+    totalResources.value = response.pagination?.totalItems || 0
     
-    tableData.value = data.slice(start, end)
-    pagination.value.total = data.length
+    // 更新表格數據和分頁資訊
+    tableData.value = response.resources || []
+    pagination.value.total = response.pagination?.totalItems || 0
+    pagination.value.currentPage = response.pagination?.currentPage || 1
     
   } catch (error) {
     console.error('Failed to load resources:', error)
-    showAlert('載入資源失敗', 'error')
+    showAlert('載入資源失敗，請檢查網路連線', 'danger')
+    // 如果 API 失敗，顯示空數據
+    resourcesData.value = []
+    tableData.value = []
+    pagination.value.total = 0
   } finally {
     loading.value = false
   }
@@ -856,13 +820,14 @@ const handleDelete = async (resource: any) => {
     
     if (!confirmed) return
     
-    // 這裡調用刪除API
-    // await resourcesApi.deleteResource(resource.id)
+    // 調用真實刪除API
+    await deleteResource(resource.id)
     
     showAlert('刪除成功', 'success')
     loadData()
   } catch (error) {
-    showAlert('刪除失敗', 'error')
+    console.error('Delete resource failed:', error)
+    showAlert('刪除失敗，請檢查網路連線', 'danger')
   }
 }
 
@@ -886,15 +851,16 @@ const handleBatchDelete = async () => {
     
     if (!confirmed) return
     
-    // 這裡調用批量刪除API
-    // const ids = selectedRows.value.map(row => row.id)
-    // await resourcesApi.deleteResources(ids)
+    // 調用真實批量刪除API
+    const ids = selectedRows.value.map(row => row.id)
+    await batchDeleteResources(ids)
     
     showAlert('批量刪除成功', 'success')
     selectedRows.value = []
     loadData()
   } catch (error) {
-    showAlert('批量刪除失敗', 'error')
+    console.error('Batch delete resources failed:', error)
+    showAlert('批量刪除失敗，請檢查網路連線', 'danger')
   }
 }
 
